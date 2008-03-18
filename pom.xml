@@ -6,7 +6,7 @@
   <artifactId>internet-resources-commons</artifactId>
   <packaging>jar</packaging>
   <version>0.1-SNAPSHOT</version>
-  <name>Internet Resources Commons</name>
+  <name>RIPE NCC Internet Resources Commons</name>
 
   <parent>
     <groupId>net.ripe.internet-resources</groupId>
