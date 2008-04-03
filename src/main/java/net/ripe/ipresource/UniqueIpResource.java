@@ -25,7 +25,11 @@ public abstract class UniqueIpResource extends IpResource {
         try {
             return Ipv4Address.parse(s);
         } catch (IllegalArgumentException ex) {
-            return Asn.parse(s);
+            try {
+            	return Ipv6Address.parse(s);
+            } catch(IllegalArgumentException ex2) {
+            	return Asn.parse(s);
+            }
         }
     }
 
