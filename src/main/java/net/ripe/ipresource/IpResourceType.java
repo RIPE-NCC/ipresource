@@ -24,7 +24,7 @@ public enum IpResourceType {
     IPv6("IPv6 Address", 128) {
         @Override
         public UniqueIpResource fromBigInteger(BigInteger value) {
-            throw new IllegalArgumentException("IPv6 not supported yet");
+            return new Ipv6Address(value);
         }
     };
 

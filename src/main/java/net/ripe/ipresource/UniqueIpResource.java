@@ -24,12 +24,12 @@ public abstract class UniqueIpResource extends IpResource {
     public static UniqueIpResource parse(String s) {
         try {
             return Ipv4Address.parse(s);
-        } catch (IllegalArgumentException ex) {
-            try {
-            	return Ipv6Address.parse(s);
-            } catch(IllegalArgumentException ex2) {
-            	return Asn.parse(s);
-            }
+        } catch (IllegalArgumentException ex4) {
+        	try {
+        		return Ipv6Address.parse(s);
+        	} catch (IllegalArgumentException ex6) {
+        		return Asn.parse(s);
+        	}
         }
     }
 

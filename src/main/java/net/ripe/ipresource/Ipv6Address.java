@@ -7,21 +7,13 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang.Validate;
 
 /**
- * This class has parts copied over from Ipv4Address for quick use by other team members. Stuff like
- * the ADDRESS_SIZE and the overrides need some pulling up and refactoring.
+ * Ipv6 address. This implementation has no support for interfaces.
  * 
- * @author beaumose
+ * @author Serge Beaumont
  *
  */
 public class Ipv6Address extends IpAddress {
 
-	public static final int ADDRESS_SIZE = IpResourceType.IPv6.getBitSize();
-    private static final BigInteger ADDRESS_MASK = bitMask(0);
-
-    private static BigInteger bitMask(int prefixLength) {
-        return BigInteger.valueOf((1L << (ADDRESS_SIZE - prefixLength)) - 1);
-    }
-    
 	/**
 	 * Mask for 16 bits, which is the length of one part of an IPv6 address.
 	 */
@@ -35,20 +27,12 @@ public class Ipv6Address extends IpAddress {
 		super(IpResourceType.IPv6, value);
 	}
 
-	public static Ipv6Address parse(String s) {
-        Validate.isTrue(Pattern.matches("[0-9a-fA-F]{0,4}\\:([0-9a-fA-F]{0,4}\\:){1,6}[0-9a-fA-F]{0,4}", s), "Invalid IPv6 address: " + s);
+	public static Ipv6Address parse(String ipAddressString) {
+        Validate.isTrue(Pattern.matches("[0-9a-fA-F]{0,4}:([0-9a-fA-F]{0,4}:){1,6}[0-9a-fA-F]{0,4}", ipAddressString), "Invalid IPv6 address: " + ipAddressString);
         
         // Count number of colons: must be between 2 and 7
-        Pattern colonPattern = Pattern.compile(":");
-        Matcher colonMatcher = colonPattern.matcher(s);
-        int colonCount = 0;
-        while (colonMatcher.find()) { colonCount++ ; };
-        
-        // Count number of double colons: should be either 0 (with 7 colons) or 1 (with less)
-        Pattern doubleColonPattern = Pattern.compile("::");
-        Matcher doubleColonMatcher = doubleColonPattern.matcher(s);
-        int doubleColonCount = 0;
-        while (doubleColonMatcher.find()) { doubleColonCount++ ; };
+        int colonCount = countColons(ipAddressString);
+        int doubleColonCount = numberOfDoubleColons(ipAddressString);
       
         // The number of double colons must be exactly one if there's a missing colon.
         // The double colon will be the place that gets filled out to complete the address for easy parsing.
@@ -56,14 +40,23 @@ public class Ipv6Address extends IpAddress {
         	Validate.isTrue(doubleColonCount == 1, "May only be one double colon in an IPv6 address");
 
         	// Add extra colons
-        	String filledDoubleColons = ":::::::".substring(0, 7 - colonCount + 2);
-        	s = s.replace("::", filledDoubleColons);
+        	ipAddressString = expandColons(ipAddressString);
         }
         
         // By now we have an IPv6 address that's guaranteed to have 7 colons.
         
-        Pattern p = Pattern.compile("([0-9a-fA-F]{0,4}):([0-9a-fA-F]{0,4}):([0-9a-fA-F]{0,4}):([0-9a-fA-F]{0,4}):([0-9a-fA-F]{0,4}):([0-9a-fA-F]{0,4}):([0-9a-fA-F]{0,4}):([0-9a-fA-F]{0,4})");
-        Matcher m = p.matcher(s);
+        return new Ipv6Address(IpResourceType.IPv6, ipv6StringtoBigInteger(ipAddressString));
+    }
+
+	/**
+	 * Converts a fully expanded IPv6 string to a BigInteger
+	 * 
+	 * @param Fully expanded address (i.e. no '::' shortcut)
+	 * @return Address as BigInteger
+	 */
+	private static BigInteger ipv6StringtoBigInteger(String ipAddressString) {
+		Pattern p = Pattern.compile("([0-9a-fA-F]{0,4}):([0-9a-fA-F]{0,4}):([0-9a-fA-F]{0,4}):([0-9a-fA-F]{0,4}):([0-9a-fA-F]{0,4}):([0-9a-fA-F]{0,4}):([0-9a-fA-F]{0,4}):([0-9a-fA-F]{0,4})");
+        Matcher m = p.matcher(ipAddressString);
         m.find();
         
         String ipv6Number = "";
@@ -73,28 +66,15 @@ public class Ipv6Address extends IpAddress {
 			ipv6Number = ipv6Number + padding + part;
 		}
 
-        return new Ipv6Address(IpResourceType.IPv6, new BigInteger(ipv6Number, 16));
-    }	
-	
-	@Override
-    public int getCommonPrefixLength(UniqueIpResource other) {
-        Validate.isTrue(getType() == other.getType(), "incompatible resource types");
-        BigInteger temp = this.getValue().xor(other.getValue());
-        return ADDRESS_SIZE - temp.bitLength();
-    }
-
-	@Override
-    public Ipv6Address lowerBoundForPrefix(int prefixLength) {
-        BigInteger mask = ADDRESS_MASK.xor(bitMask(prefixLength));
-        return new Ipv6Address(this.getValue().and(mask));
-    }
-
-	@Override
-    public Ipv6Address upperBoundForPrefix(int prefixLength) {
-        return new Ipv6Address(this.getValue().or(bitMask(prefixLength)));
-    }
+		return new BigInteger(ipv6Number, 16);
+	}
 
     @Override
+	protected IpAddress createOfSameType(BigInteger value) {
+		return new Ipv6Address(value);
+	}
+
+	@Override
     public String toString() {
     	String[] parts = new String[8];
     	
@@ -117,8 +97,40 @@ public class Ipv6Address extends IpAddress {
     			parts[1],
     			parts[0]);
     	
-    	result = result.replaceAll(":{3,7}", "::");
+    	result = compressColons(result);
     	
     	return result;
-    }		
+    }
+
+    // -------------------------------------------------------------------------------- HELPERS
+    
+	private String compressColons(String ipv6Address) {
+		// Compress colons into short notation
+    	ipv6Address = ipv6Address.replaceAll(":{3,7}", "::");
+		return ipv6Address;
+	}		
+
+	private static String expandColons(String ipv6String) {
+		String filledDoubleColons = ":::::::".substring(0, 7 - countColons(ipv6String) + 2);
+		ipv6String = ipv6String.replace("::", filledDoubleColons);
+		return ipv6String;
+	}
+
+	private static int countColons(String ipv6String) {
+		Pattern colonPattern = Pattern.compile(":");
+        Matcher colonMatcher = colonPattern.matcher(ipv6String);
+        int colonCount = 0;
+        while (colonMatcher.find()) { colonCount++ ; };
+		return colonCount;
+	}
+
+	private static int numberOfDoubleColons(String ipv6String) {
+		// Count number of double colons: should be either 0 (with 7 colons) or 1 (with less)
+        Pattern doubleColonPattern = Pattern.compile("::");
+        Matcher doubleColonMatcher = doubleColonPattern.matcher(ipv6String);
+        int doubleColonCount = 0;
+        while (doubleColonMatcher.find()) { doubleColonCount++ ; };
+		return doubleColonCount;
+	}	
+	
 }
