@@ -2,12 +2,13 @@ package net.ripe.ipresource;
 
 import org.apache.commons.lang.Validate;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 
-public abstract class IpResource implements Comparable<IpResource> {
+public abstract class IpResource implements Serializable, Comparable<IpResource> {
 
     public abstract IpResourceType getType();
 
