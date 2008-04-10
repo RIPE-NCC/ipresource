@@ -47,7 +47,7 @@
           <configuration>
             <jdk>1.5</jdk>
             <generateXml>true</generateXml>
-            <licenseLocation>${settings.localRepository}/com/xebia/clover/xebia/clover-xebia.license</licenseLocation>
+            <licenseLocation>${clover.licenseLocation}</licenseLocation>
           </configuration>
         </plugin>
         <plugin>
