@@ -7,6 +7,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @SuppressWarnings("serial")
+/**
+ * Example: AS1-AS20
+ */
 public class IpResourceRange extends IpResource {
 
     private static final Pattern PREFIX_PATTERN = Pattern.compile("([^/]+)/(\\d+)");
