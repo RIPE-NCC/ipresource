@@ -101,6 +101,18 @@ public class Ipv6Address extends IpAddress {
     	
     	return result;
     }
+	
+	@Override
+	public Ipv6Address stripLeastSignificantOnes() {
+		BigInteger strippedValue = value;
+		int leastSignificantZero = getLeastSignificantZero();
+		for (int i=0; i<leastSignificantZero; i++) {
+			strippedValue = strippedValue.clearBit(i);
+		}
+		return new Ipv6Address(strippedValue);
+	}
+
+	
 
     // -------------------------------------------------------------------------------- HELPERS
     

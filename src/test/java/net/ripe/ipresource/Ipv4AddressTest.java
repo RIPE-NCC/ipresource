@@ -3,6 +3,9 @@ package net.ripe.ipresource;
 import static net.ripe.ipresource.IpResource.parse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+
 import org.junit.Test;
 
 public class Ipv4AddressTest {
@@ -59,4 +62,15 @@ public class Ipv4AddressTest {
     public void shouldKnowSuccessor() {
         assertEquals(Ipv4Address.parse("10.15.0.1"), Ipv4Address.parse("10.15.0.0").successor());
     }
+    
+    @Test
+    public void shouldConvertIntoBitArray() {
+    	ArrayList<Integer> expected = new ArrayList<Integer>();
+    	for (int i=0; i<8; i++) { expected.add(new Integer("1")); }
+    	for (int i=0; i<8; i++) { expected.add(new Integer("0")); }
+    	for (int i=0; i<8; i++) { expected.add(new Integer("1")); }
+    	for (int i=0; i<8; i++) { expected.add(new Integer("0")); }
+    	assertEquals(expected, Ipv4Address.parse("255.0.255.0").toBitArray());
+    }
+    
 }
