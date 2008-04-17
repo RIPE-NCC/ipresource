@@ -1,8 +1,6 @@
 package net.ripe.ipresource;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,26 +44,6 @@ public class Ipv4Address extends IpAddress {
 				getValue().shiftRight(16).and(BYTE_MASK), getValue()
 						.shiftRight(8).and(BYTE_MASK), getValue()
 						.and(BYTE_MASK));
-	}
-
-	@Override
-	protected IpAddress createOfSameType(BigInteger value) {
-		return new Ipv4Address(value);
-	}
-
-	public List<Integer> toBitArray() {
-		return super.toBitArray(NUMBER_OF_BITS);
-	}
-
-
-	@Override
-	public Ipv4Address stripLeastSignificantOnes() {
-		BigInteger strippedValue = value;
-		int leastSignificantZero = getLeastSignificantZero();
-		for (int i=0; i<leastSignificantZero; i++) {
-			strippedValue = strippedValue.clearBit(i);
-		}
-		return new Ipv4Address(strippedValue);
 	}
 
 }

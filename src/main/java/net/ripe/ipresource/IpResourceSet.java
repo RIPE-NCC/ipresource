@@ -8,7 +8,7 @@ import java.util.Iterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-public class IpResourceSet {
+public class IpResourceSet implements Iterable<IpResource> {
     private SortedSet<IpResource> resources = new TreeSet<IpResource>();
 
     public IpResourceSet() {
@@ -121,6 +121,11 @@ public class IpResourceSet {
         return resource.isUnique() ? resource.unique() : resource;
     }
 
+    public Iterator<IpResource> iterator() {
+        normalize();
+        return resources.iterator();
+    }
+    
     public boolean remove(IpResource prefix) {
         SortedSet<IpResource> temp = new TreeSet<IpResource>();
         for (IpResource resource : resources) {

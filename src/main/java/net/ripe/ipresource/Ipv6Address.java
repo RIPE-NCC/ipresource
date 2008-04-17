@@ -69,11 +69,6 @@ public class Ipv6Address extends IpAddress {
 		return new BigInteger(ipv6Number, 16);
 	}
 
-    @Override
-	protected IpAddress createOfSameType(BigInteger value) {
-		return new Ipv6Address(value);
-	}
-
 	@Override
     public String toString() {
     	String[] parts = new String[8];
@@ -101,17 +96,6 @@ public class Ipv6Address extends IpAddress {
     	
     	return result;
     }
-	
-	@Override
-	public Ipv6Address stripLeastSignificantOnes() {
-		BigInteger strippedValue = value;
-		int leastSignificantZero = getLeastSignificantZero();
-		for (int i=0; i<leastSignificantZero; i++) {
-			strippedValue = strippedValue.clearBit(i);
-		}
-		return new Ipv6Address(strippedValue);
-	}
-
 	
 
     // -------------------------------------------------------------------------------- HELPERS

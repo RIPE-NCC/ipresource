@@ -1,10 +1,7 @@
 package net.ripe.ipresource;
 
-import static net.ripe.ipresource.IpResource.parse;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
+import static net.ripe.ipresource.IpResource.*;
+import static org.junit.Assert.*;
 
 import org.junit.Test;
 
@@ -64,13 +61,26 @@ public class Ipv4AddressTest {
     }
     
     @Test
-    public void shouldConvertIntoBitArray() {
-    	ArrayList<Integer> expected = new ArrayList<Integer>();
-    	for (int i=0; i<8; i++) { expected.add(new Integer("1")); }
-    	for (int i=0; i<8; i++) { expected.add(new Integer("0")); }
-    	for (int i=0; i<8; i++) { expected.add(new Integer("1")); }
-    	for (int i=0; i<8; i++) { expected.add(new Integer("0")); }
-    	assertEquals(expected, Ipv4Address.parse("255.0.255.0").toBitArray());
+    public void testGetLeastSignificantZero() {
+        assertEquals(4, Ipv4Address.parse("10.0.0.15").getLeastSignificantZero());
+        assertEquals(32, Ipv4Address.parse("255.255.255.255").getLeastSignificantZero());
+        assertEquals(24, Ipv4Address.parse("0.255.255.255").getLeastSignificantZero());
+    }
+    
+    @Test
+    public void testGetLeastSignificantOne() {
+        assertEquals(4, Ipv4Address.parse("10.0.0.16").getLeastSignificantOne());
+        assertEquals(32, Ipv4Address.parse("0.0.0.0").getLeastSignificantOne());
+        assertEquals(24, Ipv4Address.parse("255.0.0.0").getLeastSignificantOne());
+    }
+    
+    @Test
+    public void testStripLeastSignificantOnes() {
+        assertEquals(Ipv4Address.parse("10.0.0.16"), Ipv4Address.parse("10.0.0.16").stripLeastSignificantOnes());
+        assertEquals(Ipv4Address.parse("10.0.0.0"), Ipv4Address.parse("10.0.0.15").stripLeastSignificantOnes());
+        assertEquals(Ipv4Address.parse("0.0.0.0"), Ipv4Address.parse("0.255.255.255").stripLeastSignificantOnes());
+        assertEquals(Ipv4Address.parse("0.0.0.0"), Ipv4Address.parse("255.255.255.255").stripLeastSignificantOnes());
+        assertEquals(Ipv4Address.parse("255.255.254.0"), Ipv4Address.parse("255.255.254.255").stripLeastSignificantOnes());
     }
     
 }

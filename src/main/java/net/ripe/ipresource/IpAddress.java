@@ -1,8 +1,6 @@
 package net.ripe.ipresource;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.lang.Validate;
 
@@ -47,28 +45,13 @@ public abstract class IpAddress extends UniqueIpResource {
         return createOfSameType(this.getValue().or(bitMask(prefixLength, getType())));
     }
 	
-	protected abstract IpAddress createOfSameType(BigInteger value);
-	
-	/**
-	 * Get the IPv4 address as an array of 0 or 1 int values representing all the bits
-	 * starting with the most significant bit.
-	 * @return
-	 */
-	public List<Integer> toBitArray(int bitLength) {
-		ArrayList<Integer> bits = new ArrayList<Integer>();
-		for (int i=bitLength-1; i>=0; i--) {
-			if (value.testBit(i)) {
-				bits.add(new Integer("1"));
-			} else {
-				bits.add(new Integer("0"));
-			}
-		}
-		return bits;	
+	protected IpAddress createOfSameType(BigInteger value) {
+	    return (IpAddress) getType().fromBigInteger(value);
 	}
 	
 	/**
-	 * Returns the position of the least significant '1' for IPv4 address;
-	 * returns -1 if there is no '1'; i.e. for 0.0.0.0
+	 * Returns the position of the least significant '1' for an IP address;
+	 * returns {@link IpResourceType#getBitSize()} if there is no '1'; i.e. for 0.0.0.0
 	 * @return
 	 */
 	public int getLeastSignificantOne() {
@@ -76,8 +59,8 @@ public abstract class IpAddress extends UniqueIpResource {
 	}
 	
 	/**
-	 * Returns the position of the least significant '0' for IPv4 address;
-	 * returns -1 if there is no '0'; i.e. for 255.255.255.255
+	 * Returns the position of the least significant '0' for an IP address;
+	 * returns {@link IpResourceType#getBitSize()} if there is no '0'; i.e. for 255.255.255.255
 	 * @return
 	 */
 	public int getLeastSignificantZero() {
@@ -85,19 +68,17 @@ public abstract class IpAddress extends UniqueIpResource {
 	}
 	
 	private int getLeastSignificant(boolean bit) {
-		int leastSignificantOne = 0;
-		boolean notFound = true;
-		for (int i = 0; i < value.bitLength() && notFound; i++) {
+		for (int i = 0; i < getType().getBitSize(); i++) {
 			if (value.testBit(i) == bit) {
-				notFound = false;
-				leastSignificantOne = i;
+			    return i;
 			}
 		}
-		if (notFound) { leastSignificantOne = -1; }
-		return leastSignificantOne;		
+		return getType().getBitSize();
 	}
 	
-	public abstract IpAddress stripLeastSignificantOnes();
-	
+	public IpAddress stripLeastSignificantOnes() {
+	        int leastSignificantZero = getLeastSignificantZero();
+	        return createOfSameType(value.shiftRight(leastSignificantZero).shiftLeft(leastSignificantZero));
+	}
 	
 }
