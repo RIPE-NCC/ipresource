@@ -61,6 +61,15 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
         return true;
     }
 
+    public boolean containsType(IpResourceType type) {
+        for (IpResource resource: resources) {
+            if (type == resource.getType()) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     public static IpResourceSet parse(String s) {
         String[] resources = s.split(",");
         IpResourceSet result = new IpResourceSet();
