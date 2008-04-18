@@ -25,6 +25,13 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
     public IpResourceSet(IpResourceSet resources) {
         this.resources = new TreeSet<IpResource>(resources.resources);
     }
+    
+    public void addAll(IpResourceSet ipResourceSet) {
+    	for (IpResource ipResource: ipResourceSet.resources) {
+    		add(ipResource);
+    	}
+    	normalize();
+    }
 
     public void add(IpResource resource) {
         resources.add(resource);
@@ -83,12 +90,22 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
 
     @Override
     public boolean equals(Object obj) {
-        return EqualsBuilder.reflectionEquals(this, obj);
+    	if (this == obj) {
+    		return true;
+    	}
+    	if (! (obj instanceof IpResourceSet)) {
+    		return false;
+    	}
+    	normalize();
+    	IpResourceSet other = (IpResourceSet) obj;
+    	other.normalize();
+        return resources.equals(other.resources);
     }
 
     @Override
     public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
+    	normalize();
+        return resources.hashCode();
     }
 
     @Override
