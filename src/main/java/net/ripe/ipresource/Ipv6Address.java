@@ -69,8 +69,7 @@ public class Ipv6Address extends IpAddress {
 		return new BigInteger(ipv6Number, 16);
 	}
 
-	@Override
-    public String toString() {
+    public String toString(boolean defaultMissingOctets) {
     	String[] parts = new String[8];
     	
     	for (int i = 0; i < parts.length; i++) {

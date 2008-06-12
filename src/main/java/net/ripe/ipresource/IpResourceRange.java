@@ -99,7 +99,7 @@ public class IpResourceRange extends IpResource {
 
         m = PREFIX_PATTERN.matcher(s);
         if (m.matches()) {
-            IpAddress prefix = IpAddress.parse(m.group(1));
+            IpAddress prefix = IpAddress.parse(m.group(1), true);
             int length = Integer.parseInt(m.group(2));
             return IpRange.prefix(prefix, length);
         }

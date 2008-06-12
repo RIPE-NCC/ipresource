@@ -14,7 +14,7 @@ public class IpRangeTest {
     @Test
     public void shouldSupportPrefixNotation() {
         assertEquals(PREFIX_127_8, IpRange.parse("127.0.0.0/8"));
-        assertEquals("127.0.0.0/8", PREFIX_127_8.toString());
+        assertEquals("127/8", PREFIX_127_8.toString());
         assertEquals(Ipv4Address.parse("127.0.0.0"), PREFIX_127_8.getStart());
         assertEquals(Ipv4Address.parse("127.255.255.255"), PREFIX_127_8.getEnd());
     }

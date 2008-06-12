@@ -32,6 +32,11 @@ public class IpResourceRangeTest {
         assertEquals(Ipv4Address.parse("10.15.0.0"), IpResourceRange.parse("10.15.0.0/16").getStart());
         assertEquals(Ipv4Address.parse("10.15.255.255"), IpResourceRange.parse("10.15.0.0/16").getEnd());
     }
+    
+    @Test
+    public void shouldParseRipePrefixNotation() {
+        assertEquals("0/0", IpResourceRange.parse("0/0").toString());
+    }
 
     @Test
     public void subtractRange() {

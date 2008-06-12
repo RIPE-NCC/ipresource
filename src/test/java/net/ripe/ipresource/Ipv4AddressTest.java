@@ -12,6 +12,15 @@ public class Ipv4AddressTest {
         assertEquals("127.0.8.23", Ipv4Address.parse("127.0.8.23").toString());
         assertEquals("193.168.15.255", Ipv4Address.parse("193.168.15.255").toString());
     }
+    
+    @Test
+    public void shouldOptionallyDefaultMissingOctets() {
+        assertEquals("0", Ipv4Address.parse("0", true).toString(true));
+        assertEquals("127", Ipv4Address.parse("127", true).toString(true));
+        assertEquals("127.3", Ipv4Address.parse("127.3", true).toString(true));
+        assertEquals("127.0.8", Ipv4Address.parse("127.0.8", true).toString(true));
+        assertEquals("127.0.8.12", Ipv4Address.parse("127.0.8.12", true).toString(true));
+    }
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldFailOnOutOfBoundsByte() {

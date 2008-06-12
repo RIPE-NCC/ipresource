@@ -11,11 +11,19 @@ public abstract class IpAddress extends UniqueIpResource {
     }
 
     public static IpAddress parse(String s) {
+        return parse(s, false);
+    }
+    
+    public static IpAddress parse(String s, boolean defaultMissingOctets) {
         try {
-			return Ipv4Address.parse(s);
-		} catch (IllegalArgumentException e) {
-			return Ipv6Address.parse(s);
-		}
+            try {
+    			return Ipv4Address.parse(s, defaultMissingOctets);
+    		} catch (IllegalArgumentException e) {
+    			return Ipv6Address.parse(s);
+    		}
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("illegal IP address: " + s);
+        }
     }
 
     protected static BigInteger bitMask(int prefixLength, IpResourceType type) {
@@ -81,4 +89,10 @@ public abstract class IpAddress extends UniqueIpResource {
 	        return createOfSameType(value.shiftRight(leastSignificantZero).shiftLeft(leastSignificantZero));
 	}
 	
+	@Override
+	public String toString() {
+	    return toString(false);
+	}
+	
+	public abstract String toString(boolean defaultMissingOctets);
 }

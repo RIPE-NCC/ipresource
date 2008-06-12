@@ -17,7 +17,7 @@ public class IpResourceSetTest {
         resources.add(parse("194.16.0.0/16"));
         resources.add(parse("195.0.0.0/8"));
         resources.add(parse("195.1.0.0-196.255.255.255"));
-        assertEquals("10.0.0.0/8, 127.0.0.1, 193.0.0.0-196.255.255.255, 255.255.255.255", resources.toString());
+        assertEquals("10/8, 127.0.0.1, 193.0.0.0-196.255.255.255, 255.255.255.255", resources.toString());
     }
 
     @Test
