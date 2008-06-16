@@ -166,4 +166,10 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
             return false;
         }
     }
+
+    public void removeAll(IpResourceSet resources) {
+        for (IpResource resource: resources) {
+            remove(resource);
+        }
+    }
 }
