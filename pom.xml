@@ -42,16 +42,6 @@
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-clover-plugin</artifactId>
-          <version>2.4</version>
-          <configuration>
-            <jdk>1.5</jdk>
-            <generateXml>true</generateXml>
-            <licenseLocation>${clover.licenseLocation}</licenseLocation>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
           <executions>
             <execution>
