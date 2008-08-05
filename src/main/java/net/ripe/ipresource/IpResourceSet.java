@@ -1,8 +1,6 @@
 package net.ripe.ipresource;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 import java.io.Serializable;
 import java.util.Iterator;
@@ -11,6 +9,8 @@ import java.util.TreeSet;
 
 public class IpResourceSet implements Iterable<IpResource>, Serializable {
 
+    private static final long serialVersionUID = 1L;
+    
     private SortedSet<IpResource> resources = new TreeSet<IpResource>();
 
     public IpResourceSet() {
