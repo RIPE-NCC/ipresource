@@ -9,6 +9,10 @@ import java.util.TreeSet;
 
 public class IpResourceSet implements Iterable<IpResource>, Serializable {
 
+    public static final IpResourceSet IP_PRIVATE_USE_RESOURCES = IpResourceSet.parse("10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7");
+    public static final IpResourceSet ASN_PRIVATE_USE_RESOURCES = IpResourceSet.parse("AS64512-AS65534");
+    public static final IpResourceSet ALL_PRIVATE_USE_RESOURCES = IpResourceSet.parse("AS64512-AS65534,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7");
+
     private static final long serialVersionUID = 1L;
     
     private SortedSet<IpResource> resources = new TreeSet<IpResource>();
