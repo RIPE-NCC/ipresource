@@ -55,4 +55,11 @@ public class IpResourceSetTest {
         assertTrue(a.contains(IpResource.parse("AS3333-AS4444")));
         assertEquals("AS3333-AS4444, 10.0.0.0-10.4.255.255, 10.6.0.0-10.255.255.255", a.toString());
     }
+    
+    @Test
+    public void testRetainAll() {
+        IpResourceSet a = IpResourceSet.parse("AS8-AS3315,AS3333-AS4444,10.0.0.0/8");
+        a.retainAll(IpResourceSet.parse("AS1-AS10,AS3300-AS4420,10.0.0.0/9"));
+        assertEquals(IpResourceSet.parse("AS8-AS10,AS3300-AS3315,AS3333-AS4420,10.0.0.0/9"), a);
+    }
 }

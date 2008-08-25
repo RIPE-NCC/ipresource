@@ -111,6 +111,10 @@ public abstract class IpResource implements Serializable, Comparable<IpResource>
     }
 
     public IpResource intersect(IpResource value) {
+        if (getType() != value.getType()) {
+            return null;
+        }
+        
         UniqueIpResource start = getStart().max(value.getStart());
         UniqueIpResource end = getEnd().min(value.getEnd());
         if (start.compareTo(end) > 0) {

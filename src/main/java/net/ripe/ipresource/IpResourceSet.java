@@ -1,6 +1,7 @@
 package net.ripe.ipresource;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 
 import java.io.Serializable;
 import java.util.Iterator;
@@ -38,6 +39,7 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
     }
 
     public void add(IpResource resource) {
+        Validate.notNull(resource, "resource is null");
         resources.add(resource);
     }
 
@@ -171,9 +173,38 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
         }
     }
 
-    public void removeAll(IpResourceSet resources) {
-        for (IpResource resource: resources) {
+    public void removeAll(IpResourceSet other) {
+        for (IpResource resource: other) {
             remove(resource);
         }
+    }
+
+    public void retainAll(IpResourceSet other) {
+        if (this.isEmpty()) {
+            return;
+        } else if (other.isEmpty()) {
+            resources.clear();
+            return;
+        }
+        
+        SortedSet<IpResource> temp = new TreeSet<IpResource>();
+        Iterator<IpResource> thisIterator = this.iterator();
+        Iterator<IpResource> thatIterator = other.iterator();
+        IpResource thisResource = thisIterator.next();
+        IpResource thatResource = thatIterator.next();
+        while (thisResource != null && thatResource != null) {
+            IpResource intersect = thisResource.intersect(thatResource);
+            if (intersect != null) {
+                temp.add(intersect);
+            }
+            int compareTo = thisResource.getEnd().compareTo(thatResource.getEnd());
+            if (compareTo <= 0) {
+                thisResource = thisIterator.hasNext() ? thisIterator.next() : null;
+            }
+            if (compareTo >= 0) {
+                thatResource = thatIterator.hasNext() ? thatIterator.next() : null;
+            }
+        }
+        this.resources = temp;
     }
 }

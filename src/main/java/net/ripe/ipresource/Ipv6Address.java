@@ -14,7 +14,9 @@ import org.apache.commons.lang.Validate;
  */
 public class Ipv6Address extends IpAddress {
 
-	/**
+    private static final long serialVersionUID = 1L;
+    
+    /**
 	 * Mask for 16 bits, which is the length of one part of an IPv6 address.
 	 */
 	private BigInteger PART_MASK = BigInteger.valueOf(65535);
