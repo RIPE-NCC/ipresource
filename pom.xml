@@ -57,15 +57,8 @@
   <reporting>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-clover-plugin</artifactId>
-        <version>2.4</version>
-        <!--
-                <configuration>
-                  <generatePdf>true</generatePdf>
-                  <generateHistorical>true</generateHistorical> 
-                </configuration>
-        -->
+        <groupId>com.atlassian.maven.plugins</groupId>
+        <artifactId>maven-clover2-plugin</artifactId>
       </plugin>
     </plugins>
   </reporting>
