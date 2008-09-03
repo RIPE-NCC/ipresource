@@ -35,7 +35,7 @@ public class IpResourceRangeTest {
     
     @Test
     public void shouldParseRipePrefixNotation() {
-        assertEquals("0/0", IpResourceRange.parse("0/0").toString());
+        assertEquals("0.0.0.0/0", IpResourceRange.parse("0/0").toString());
     }
 
     @Test

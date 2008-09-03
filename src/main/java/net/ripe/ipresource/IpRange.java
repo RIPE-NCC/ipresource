@@ -65,7 +65,7 @@ public class IpRange extends IpResourceRange {
     @Override
     public String toString() {
         if (isLegalPrefix()) {
-            return ((IpAddress) getStart()).toString(true) + "/" + getPrefixLength();
+            return ((IpAddress) getStart()).toString(false) + "/" + getPrefixLength();
         } else {
             return super.toString();
         }
