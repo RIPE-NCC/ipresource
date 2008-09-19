@@ -8,9 +8,6 @@ import org.apache.commons.lang.Validate;
 
 /**
  * Ipv6 address. This implementation has no support for interfaces.
- * 
- * @author Serge Beaumont
- *
  */
 public class Ipv6Address extends IpAddress {
 

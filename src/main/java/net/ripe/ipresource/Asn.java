@@ -9,10 +9,11 @@ import java.util.regex.Pattern;
 /**
  * Immutable value object for Autonomous System Numbers.
  */
-@SuppressWarnings("serial")
 public class Asn extends UniqueIpResource {
 
-    private static final Pattern ASN_TEXT_PATTERN = Pattern.compile("AS(\\d+)(\\.(\\d+))?");
+	private static final long serialVersionUID = 1L;
+
+	private static final Pattern ASN_TEXT_PATTERN = Pattern.compile("AS(\\d+)(\\.(\\d+))?");
 
     private static BigInteger ASN_MIN_VALUE = BigInteger.ZERO;
     private static BigInteger ASN16_MAX_VALUE = BigInteger.ONE.shiftLeft(16).subtract(BigInteger.ONE);

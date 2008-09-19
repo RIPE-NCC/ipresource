@@ -6,13 +6,14 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@SuppressWarnings("serial")
 /**
  * Example: AS1-AS20
  */
 public class IpResourceRange extends IpResource {
 
-    private static final Pattern PREFIX_PATTERN = Pattern.compile("([^/]+)/(\\d+)");
+	private static final long serialVersionUID = 1L;
+
+	private static final Pattern PREFIX_PATTERN = Pattern.compile("([^/]+)/(\\d+)");
     private static final Pattern RANGE_PATTERN = Pattern.compile("([^-]+)-([^-]+)");
 
     private UniqueIpResource start;

@@ -6,8 +6,9 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang.Validate;
 
-@SuppressWarnings("serial")
 public class Ipv4Address extends IpAddress {
+
+	private static final long serialVersionUID = 1L;
 
 	/**
 	 * The regex format of an IPv4 address.

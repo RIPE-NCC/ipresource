@@ -2,13 +2,14 @@ package net.ripe.ipresource;
 
 import org.apache.commons.lang.Validate;
 
-@SuppressWarnings("serial")
 /**
  * Example IP Range: 192.168.0.1-192.168.1.10
  */
 public class IpRange extends IpResourceRange {
 
-    // Construction.
+	private static final long serialVersionUID = 1L;
+
+	// Construction.
 
     public static IpRange range(IpAddress start, IpAddress end) {
         return new IpRange(start, end);
