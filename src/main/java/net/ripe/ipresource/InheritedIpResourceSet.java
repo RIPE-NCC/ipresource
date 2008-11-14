@@ -59,14 +59,6 @@ public class InheritedIpResourceSet extends IpResourceSet {
         return "INHERITED";
     }
 
-    public static IpResourceSet parse(String s) {
-        if ("INHERITED".equals(s)) {
-            return INSTANCE;
-        } else {
-            return IpResourceSet.parse(s);
-        }
-    }
-
     @Override
     public int hashCode() {
         return 0;

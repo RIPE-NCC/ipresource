@@ -84,6 +84,10 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
     }
     
     public static IpResourceSet parse(String s) {
+        if ("INHERITED".equalsIgnoreCase(s)) {
+            return InheritedIpResourceSet.getInstance();
+        }
+
         String[] resources = s.split(",");
         IpResourceSet result = new IpResourceSet();
         for (String r : resources) {

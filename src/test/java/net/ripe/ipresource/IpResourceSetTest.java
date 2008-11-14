@@ -62,4 +62,9 @@ public class IpResourceSetTest {
         a.retainAll(IpResourceSet.parse("AS1-AS10,AS3300-AS4420,10.0.0.0/9"));
         assertEquals(IpResourceSet.parse("AS8-AS10,AS3300-AS3315,AS3333-AS4420,10.0.0.0/9"), a);
     }
+    
+    @Test
+    public void shouldSupportInheritedResources() {
+        assertEquals(InheritedIpResourceSet.getInstance(), IpResourceSet.parse("inherited"));
+    }
 }
