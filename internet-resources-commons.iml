@@ -15,7 +15,6 @@
     <orderEntry type="library" name="Maven: org.easymock:easymock:2.3" level="project" />
     <orderEntry type="library" name="Maven: gsbase:gsbase:2.0.1" level="project" />
     <orderEntry type="library" name="Maven: junitperf:junitperf:1.8" level="project" />
-    <orderEntryProperties />
   </component>
 </module>
 
