@@ -26,7 +26,7 @@ public class AsnTest {
         assertEquals(ASN12_3333, Asn.parse("AS12.3333"));
 
         assertEquals("AS3333", String.valueOf(ASN3333));
-        assertEquals("AS12.3333", String.valueOf(ASN12_3333));
+        assertEquals("AS789765", String.valueOf(ASN12_3333));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -38,5 +38,21 @@ public class AsnTest {
     public void shouldFailOnIllegalRange() {
         Asn.parse("AS23.321412");
     }
+    
+    @Test
+    public void shouldParseDotNotatedAsNumber() {
+        assertEquals(new Asn(new BigInteger("65536")), Asn.parse("AS1.0"));
+    }
+    
+    @Test
+    public void shouldParseContinuousNumberNotation() {
+        assertEquals(new Asn(new BigInteger("65536")), Asn.parse("AS65536"));
+    }
+    
+    
+   @Test
+   public void shouldParseHighestPossibleAsn() {
+       Asn.parse("AS4294967295");
+   }
 }
 

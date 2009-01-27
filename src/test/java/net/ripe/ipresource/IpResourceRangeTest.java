@@ -85,5 +85,10 @@ public class IpResourceRangeTest {
         assertEquals(Collections.singletonList(IpResourceRange.parse("127:1::-127:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF")), IPV6_RANGE_127_16.subtract(IPV6_RANGE_127_0_32));
         assertEquals(Arrays.asList(IPV6_RANGE_127_0_32, IpResourceRange.parse("127:2::-127:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF:FFFF")), IPV6_RANGE_127_16.subtract(IPV6_RANGE_127_1_32));
     }
+    
+    @Test
+    public void shouldParseFullAsnRange() {
+        IpResourceRange.parse("AS0-AS4294967295");
+    }
 
 }

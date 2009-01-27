@@ -37,31 +37,28 @@ public class Asn extends UniqueIpResource {
 
         BigInteger high = BigInteger.ZERO;
         BigInteger low;
+        
         if (matcher.group(3) != null) {
             low = new BigInteger(matcher.group(3));
             high = new BigInteger(matcher.group(1));
+            checkRange(high, ASN16_MAX_VALUE);
+            checkRange(low, ASN16_MAX_VALUE);
         } else {
             low = new BigInteger(matcher.group(1));
+            checkRange(low, ASN32_MAX_VALUE);
         }
-
-        checkRange(high);
-        checkRange(low);
 
         return new Asn(high.shiftLeft(16).or(low));
     }
-
-    private static void checkRange(BigInteger value) {
+    
+    private static void checkRange(BigInteger value, BigInteger Max) {
         Validate.isTrue(value.compareTo(BigInteger.ZERO) >= 0);
-        Validate.isTrue(value.compareTo(ASN16_MAX_VALUE) <= 0);
+        Validate.isTrue(value.compareTo(Max) <= 0);
     }
 
     @Override
     public String toString() {
-        if (value.compareTo(ASN16_MAX_VALUE) <= 0) {
-            return "AS" + value;
-        } else {
-            return "AS" + (value.shiftRight(16)) + "." + (value.and(ASN16_MAX_VALUE));
-        }
+        return "AS" + value;
     }
 
     @Override
