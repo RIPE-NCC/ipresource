@@ -7,6 +7,8 @@ import java.math.BigInteger;
 
 public abstract class UniqueIpResource extends IpResource {
 
+    private static final long serialVersionUID = 1L;
+
     private IpResourceType type;
     protected BigInteger value;
 

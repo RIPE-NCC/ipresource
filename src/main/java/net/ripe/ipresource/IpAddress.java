@@ -6,6 +6,8 @@ import org.apache.commons.lang.Validate;
 
 public abstract class IpAddress extends UniqueIpResource {
 
+    private static final long serialVersionUID = 1L;
+
     protected IpAddress(IpResourceType type, BigInteger value) {
         super(type, value);
     }

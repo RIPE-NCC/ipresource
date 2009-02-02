@@ -10,6 +10,8 @@ import java.util.List;
 
 public abstract class IpResource implements Serializable, Comparable<IpResource> {
 
+    private static final long serialVersionUID = 1L;
+
     public abstract IpResourceType getType();
 
     public int compareTo(IpResource that) {
