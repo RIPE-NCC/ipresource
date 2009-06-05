@@ -24,7 +24,7 @@ public abstract class IpAddress extends UniqueIpResource {
     			return Ipv6Address.parse(s);
     		}
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("illegal IP address: " + s);
+            throw new IllegalArgumentException(String.format("illegal IP address: %s (%s)", s, e.getMessage()));
         }
     }
 
