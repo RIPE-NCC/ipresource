@@ -3,13 +3,13 @@
 	<groupId>net.ripe.commons</groupId>
 	<artifactId>commons-internet-resources</artifactId>
 	<packaging>jar</packaging>
-	<version>1.12-SNAPSHOT</version>
+	<version>1.12</version>
 	<name>RIPE NCC Commons - Internet Resources</name>
 
 	<parent>
 		<groupId>net.ripe.commons</groupId>
 		<artifactId>commons-parent</artifactId>
-		<version>1.12-SNAPSHOT</version>
+		<version>1.12</version>
 	</parent>
 
 	<dependencies>
