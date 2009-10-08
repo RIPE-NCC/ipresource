@@ -33,7 +33,9 @@ public class IpResourceRange extends IpResource {
         Validate.notNull(start, "start is null");
         Validate.notNull(end, "end is null");
         Validate.isTrue(start.getType() == end.getType(), "resource types do not match");
-        Validate.isTrue(start.compareTo(end) <= 0, "range must not be empty: " + start + "-" + end);
+        if (start.compareTo(end) > 0) {
+            throw new IllegalArgumentException("range must not be empty: " + start + "-" + end);
+        }
 
         this.start = start;
         this.end = end;

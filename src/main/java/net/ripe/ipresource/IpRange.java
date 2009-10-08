@@ -50,8 +50,9 @@ public class IpRange extends IpResourceRange {
 
     protected IpRange(IpAddress networkNumber, int prefixLength) {
         this(networkNumber, networkNumber.upperBoundForPrefix(prefixLength));
-        Validate.isTrue(networkNumber.equals(networkNumber.lowerBoundForPrefix(prefixLength)),
-                "not a valid prefix: " + networkNumber + "/" + prefixLength);
+        if (!networkNumber.equals(networkNumber.lowerBoundForPrefix(prefixLength))) {
+            throw new IllegalArgumentException("not a valid prefix: " + networkNumber + "/" + prefixLength);
+        }
     }
 
     public boolean isLegalPrefix() {
