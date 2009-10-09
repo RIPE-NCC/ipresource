@@ -4,8 +4,6 @@ import java.math.BigInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang.Validate;
-
 public class Ipv4Address extends IpAddress {
 
 	private static final long serialVersionUID = 1L;
@@ -29,8 +27,9 @@ public class Ipv4Address extends IpAddress {
 	
 	public static Ipv4Address parse(String s, boolean defaultMissingOctets) {
         Matcher m = IPV4_FORMAT.matcher(s);
-        Validate.isTrue(m.matches(), "invalid IPv4 address: " + s);
-        Validate.isTrue(defaultMissingOctets || m.groupCount() == 7, "invalid IPv4 address: " + s);
+        if (!m.matches() || (!defaultMissingOctets && m.groupCount() != 7)) {
+            throw new IllegalArgumentException("invalid IPv4 address: " + s);
+        }
         return new Ipv4Address(new BigInteger(1, new byte[] {
                 parseByte(m.group(1)), parseByte(m.group(3)),
                 parseByte(m.group(5)), parseByte(m.group(7)) }));
