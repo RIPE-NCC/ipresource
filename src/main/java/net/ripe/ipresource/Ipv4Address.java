@@ -15,7 +15,7 @@ public class Ipv4Address extends IpAddress {
 	 */
 	private static final Pattern IPV4_FORMAT = Pattern.compile("([0-9]{1,3})(\\.([0-9]{1,3}))?(\\.([0-9]{1,3}))?(\\.([0-9]{1,3}))?");
 
-	private static final BigInteger BYTE_MASK = BigInteger.valueOf(255);
+	private static final int BYTE_MASK = 0xff;
 
 	public static final int NUMBER_OF_BITS = 32;
 
@@ -37,21 +37,22 @@ public class Ipv4Address extends IpAddress {
 	}
 
     public String toString(boolean defaultMissingOctets) {
-        BigInteger[] octets = {
-            getValue().shiftRight(24),
-            getValue().shiftRight(16).and(BYTE_MASK), 
-            getValue().shiftRight(8).and(BYTE_MASK), 
-            getValue().and(BYTE_MASK)
-        };
+        long value = getValue().longValue();
+        int a = (int) (value >> 24);
+        int b = (int) (value >> 16) & BYTE_MASK;
+        int c = (int) (value >> 8) & BYTE_MASK;
+        int d = (int) value & BYTE_MASK;
         
-        if (defaultMissingOctets && BigInteger.ZERO.equals(octets[1]) && BigInteger.ZERO.equals(octets[2]) && BigInteger.ZERO.equals(octets[3])) {
-            return "" + octets[0];
-        } else if (defaultMissingOctets && BigInteger.ZERO.equals(octets[2]) && BigInteger.ZERO.equals(octets[3])) {
-            return octets[0] + "." + octets[1];
-        } else if (defaultMissingOctets && BigInteger.ZERO.equals(octets[3])) {
-            return octets[0] + "." + octets[1] + "." + octets[2];
+        if (!defaultMissingOctets) {
+            return a + "." + b + "." + c + "." + d;
+        } else if (b == 0 && c == 0 && d == 0) {
+            return "" + a;
+        } else if (c == 0 && d == 0) {
+            return a + "." + b;
+        } else if (d == 0) {
+            return a + "." + b + "." + c;
         } else {
-            return octets[0] + "." + octets[1] + "." + octets[2] + "." + octets[3];
+            return a + "." + b + "." + c + "." + d;
         }
     }
 
@@ -60,8 +61,9 @@ public class Ipv4Address extends IpAddress {
             return 0;
         } else {
             int value = Integer.parseInt(s);
-            Validate.isTrue(value >= 0 && value <= 255,
-                    "value of byte not in range 0..255: " + value);
+            if (value < 0 || value > 255) {
+                throw new IllegalArgumentException("value of byte not in range 0..255: " + value);
+            }
             return (byte) value;
         }
     }
