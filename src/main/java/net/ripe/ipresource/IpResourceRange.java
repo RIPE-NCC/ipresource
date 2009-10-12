@@ -90,7 +90,14 @@ public class IpResourceRange extends IpResource {
     }
 
     public static IpResourceRange parse(String s) {
-        Matcher m = RANGE_PATTERN.matcher(s);
+        Matcher m = PREFIX_PATTERN.matcher(s);
+        if (m.matches()) {
+            IpAddress prefix = IpAddress.parse(m.group(1), true);
+            int length = Integer.parseInt(m.group(2));
+            return IpRange.prefix(prefix, length);
+        }
+
+        m = RANGE_PATTERN.matcher(s);
         if (m.matches()) {
             UniqueIpResource start = UniqueIpResource.parse(m.group(1));
             UniqueIpResource end = UniqueIpResource.parse(m.group(2));
@@ -98,13 +105,6 @@ public class IpResourceRange extends IpResource {
                 throw new IllegalArgumentException("resource types in range do not match");
             }
             return IpResourceRange.range(start, end);
-        }
-
-        m = PREFIX_PATTERN.matcher(s);
-        if (m.matches()) {
-            IpAddress prefix = IpAddress.parse(m.group(1), true);
-            int length = Integer.parseInt(m.group(2));
-            return IpRange.prefix(prefix, length);
         }
 
         throw new IllegalArgumentException("illegal resource range: " + s);

@@ -1,17 +1,10 @@
 package net.ripe.ipresource;
 
 import java.math.BigInteger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Ipv4Address extends IpAddress {
 
 	private static final long serialVersionUID = 1L;
-
-	/**
-	 * The regex format of an IPv4 address.
-	 */
-	private static final Pattern IPV4_FORMAT = Pattern.compile("([0-9]{1,3})(\\.([0-9]{1,3}))?(\\.([0-9]{1,3}))?(\\.([0-9]{1,3}))?");
 
 	private static final int BYTE_MASK = 0xff;
 
@@ -26,14 +19,51 @@ public class Ipv4Address extends IpAddress {
 	}
 	
 	public static Ipv4Address parse(String s, boolean defaultMissingOctets) {
-        Matcher m = IPV4_FORMAT.matcher(s);
-        if (!m.matches() || (!defaultMissingOctets && m.groupCount() != 7)) {
+	    int length = s.length();
+	    if (length == 0 || !Character.isDigit(s.charAt(0)) || !Character.isDigit(s.charAt(s.length() - 1))) {
+            throw new IllegalArgumentException("invalid IPv4 address: " + s);
+	    }
+
+	    long value = 0;
+        int octet = 0;
+        int octetCount = 1;
+        
+        for (int i = 0; i < length; ++i) {
+            char ch = s.charAt(i);
+            if (Character.isDigit(ch)) {
+                octet = octet * 10 + (ch - '0');
+            } else if (ch == '.') {
+                if (octetCount > 4) {
+                    throw new IllegalArgumentException("invalid IPv4 address: " + s);
+                }
+                octetCount++;
+
+                value = addOctet(value, octet); 
+                
+                octet = 0;
+            } else {
+                throw new IllegalArgumentException("invalid IPv4 address: " + s);
+            }
+        }
+
+        value = addOctet(value, octet);
+
+        if (defaultMissingOctets) {
+            value <<= 8 * (4 - octetCount);
+        } else if (octetCount != 4) {
             throw new IllegalArgumentException("invalid IPv4 address: " + s);
         }
-        return new Ipv4Address(new BigInteger(1, new byte[] {
-                parseByte(m.group(1)), parseByte(m.group(3)),
-                parseByte(m.group(5)), parseByte(m.group(7)) }));
+        
+        return new Ipv4Address(BigInteger.valueOf(value));
 	}
+
+    private static long addOctet(long value, int octet) {
+        if (octet < 0 || octet > 255) {
+            throw new IllegalArgumentException("value of octet not in range 0..255: " + octet);
+        }
+        value = ((value) << 8) | octet;
+        return value;
+    }
 
     public String toString(boolean defaultMissingOctets) {
         long value = getValue().longValue();
@@ -52,18 +82,6 @@ public class Ipv4Address extends IpAddress {
             return a + "." + b + "." + c;
         } else {
             return a + "." + b + "." + c + "." + d;
-        }
-    }
-
-    private static byte parseByte(String s) {
-        if (s == null) {
-            return 0;
-        } else {
-            int value = Integer.parseInt(s);
-            if (value < 0 || value > 255) {
-                throw new IllegalArgumentException("value of byte not in range 0..255: " + value);
-            }
-            return (byte) value;
         }
     }
 
