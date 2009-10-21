@@ -17,6 +17,7 @@ public abstract class UniqueIpResource extends IpResource {
     protected UniqueIpResource(IpResourceType type, BigInteger value) {
         Validate.notNull(type, "resource type not null");
         Validate.notNull(value, "resource value not null");
+        Validate.isTrue(value.compareTo(BigInteger.ZERO) >= 0, "value cannot be negative");
         this.type = type;
         this.value = value;
     }
