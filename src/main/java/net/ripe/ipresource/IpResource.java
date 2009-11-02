@@ -36,7 +36,7 @@ public abstract class IpResource implements Serializable, Comparable<IpResource>
         if (getType() != other.getType()) {
             return false;
         }
-        return contains(other.getStart()) || other.contains(getStart());
+        return getStart().compareTo(other.getEnd()) <= 0 && getEnd().compareTo(other.getStart()) >= 0;
     }
 
     public boolean adjacent(IpResource other) {

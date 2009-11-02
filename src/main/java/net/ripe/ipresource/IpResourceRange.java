@@ -3,18 +3,12 @@ package net.ripe.ipresource;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /**
  * Example: AS1-AS20
  */
 public class IpResourceRange extends IpResource {
 
 	private static final long serialVersionUID = 1L;
-
-	private static final Pattern PREFIX_PATTERN = Pattern.compile("([^/]+)/(\\d+)");
-    private static final Pattern RANGE_PATTERN = Pattern.compile("([^-]+)-([^-]+)");
 
     private UniqueIpResource start;
     private UniqueIpResource end;
@@ -90,17 +84,17 @@ public class IpResourceRange extends IpResource {
     }
 
     public static IpResourceRange parse(String s) {
-        Matcher m = PREFIX_PATTERN.matcher(s);
-        if (m.matches()) {
-            IpAddress prefix = IpAddress.parse(m.group(1), true);
-            int length = Integer.parseInt(m.group(2));
+        int idx = s.indexOf('/');
+        if (idx >= 0) {
+            IpAddress prefix = IpAddress.parse(s.substring(0, idx), true);
+            int length = Integer.parseInt(s.substring(idx + 1));
             return IpRange.prefix(prefix, length);
         }
 
-        m = RANGE_PATTERN.matcher(s);
-        if (m.matches()) {
-            UniqueIpResource start = UniqueIpResource.parse(m.group(1));
-            UniqueIpResource end = UniqueIpResource.parse(m.group(2));
+        idx = s.indexOf('-');
+        if (idx >= 0) {
+            UniqueIpResource start = UniqueIpResource.parse(s.substring(0, idx));
+            UniqueIpResource end = UniqueIpResource.parse(s.substring(idx + 1));
             if (start.getType() != end.getType()) {
                 throw new IllegalArgumentException("resource types in range do not match");
             }
