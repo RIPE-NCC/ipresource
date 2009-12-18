@@ -1,5 +1,7 @@
 package net.ripe.ipresource;
 
+import java.math.BigInteger;
+
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 
@@ -102,5 +104,17 @@ public class IpResourceRange extends IpResource {
         }
 
         throw new IllegalArgumentException("illegal resource range: " + s);
+    }
+    
+    public static IpResourceRange assemble(BigInteger start, BigInteger end, IpResourceType type) {
+        if (type.equals(IpResourceType.ASN)) {
+            return IpResourceRange.range(new Asn(start), new Asn(end));
+        } else if (type.equals(IpResourceType.IPv4)) {
+            return IpResourceRange.range(new Ipv4Address(start), new Ipv4Address(end));
+        } else if (type.equals(IpResourceType.IPv6)) {
+            return IpResourceRange.range(new Ipv6Address(start), new Ipv6Address(end));
+        } else {
+            throw new IllegalStateException("Unknown resource type: "+ type);
+        }
     }
 }
