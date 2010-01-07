@@ -1,9 +1,10 @@
 package net.ripe.ipresource;
 
-import static org.junit.Assert.assertEquals;
-import org.junit.Test;
+import static org.junit.Assert.*;
 
 import java.math.BigInteger;
+
+import org.junit.Test;
 
 /**
  * Tests for {@link Asn}.
@@ -11,8 +12,7 @@ import java.math.BigInteger;
 public class AsnTest {
 
     public static final Asn ASN3333 = new Asn(BigInteger.valueOf(3333));
-    public static final Asn ASN12_3333 = new Asn(BigInteger
-            .valueOf((12 << 16) | 3333));
+    public static final Asn ASN12_3333 = new Asn(BigInteger.valueOf((12 << 16) | 3333));
 
     /**
      * Tests that the textual representation of an ASN conforms to
@@ -38,21 +38,25 @@ public class AsnTest {
     public void shouldFailOnIllegalRange() {
         Asn.parse("AS23.321412");
     }
-    
+
     @Test
     public void shouldParseDotNotatedAsNumber() {
         assertEquals(new Asn(new BigInteger("65536")), Asn.parse("AS1.0"));
     }
-    
+
     @Test
     public void shouldParseContinuousNumberNotation() {
         assertEquals(new Asn(new BigInteger("65536")), Asn.parse("AS65536"));
     }
-    
-    
-   @Test
-   public void shouldParseHighestPossibleAsn() {
-       Asn.parse("AS4294967295");
-   }
+
+    @Test
+    public void parseShouldBeCaseInsensitive() {
+        assertEquals(Asn.parse("AS3333"), Asn.parse("as3333"));
+    }
+
+    @Test
+    public void shouldParseHighestPossibleAsn() {
+        Asn.parse("AS4294967295");
+    }
 }
 

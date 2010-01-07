@@ -1,10 +1,10 @@
 package net.ripe.ipresource;
 
-import org.apache.commons.lang.Validate;
-
 import java.math.BigInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.commons.lang.Validate;
 
 /**
  * Immutable value object for Autonomous System Numbers.
@@ -13,7 +13,7 @@ public class Asn extends UniqueIpResource {
 
 	private static final long serialVersionUID = 1L;
 
-	private static final Pattern ASN_TEXT_PATTERN = Pattern.compile("AS(\\d+)(\\.(\\d+))?");
+	private static final Pattern ASN_TEXT_PATTERN = Pattern.compile("AS(\\d+)(\\.(\\d+))?", Pattern.CASE_INSENSITIVE);
 
     private static BigInteger ASN_MIN_VALUE = BigInteger.ZERO;
     private static BigInteger ASN16_MAX_VALUE = BigInteger.ONE.shiftLeft(16).subtract(BigInteger.ONE);
@@ -37,7 +37,7 @@ public class Asn extends UniqueIpResource {
 
         BigInteger high = BigInteger.ZERO;
         BigInteger low;
-        
+
         if (matcher.group(3) != null) {
             low = new BigInteger(matcher.group(3));
             high = new BigInteger(matcher.group(1));
@@ -50,7 +50,7 @@ public class Asn extends UniqueIpResource {
 
         return new Asn(high.shiftLeft(16).or(low));
     }
-    
+
     private static void checkRange(BigInteger value, BigInteger Max) {
         Validate.isTrue(value.compareTo(BigInteger.ZERO) >= 0);
         Validate.isTrue(value.compareTo(Max) <= 0);

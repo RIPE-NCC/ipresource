@@ -66,11 +66,14 @@ public class IpRange extends IpResourceRange {
 
     @Override
     public String toString() {
+        return toString(false);
+    }
+
+    public String toString(boolean defaultMissingOctets) {
         if (isLegalPrefix()) {
-            return ((IpAddress) getStart()).toString(false) + "/" + getPrefixLength();
+            return ((IpAddress) getStart()).toString(defaultMissingOctets) + "/" + getPrefixLength();
         } else {
             return super.toString();
         }
     }
-
 }
