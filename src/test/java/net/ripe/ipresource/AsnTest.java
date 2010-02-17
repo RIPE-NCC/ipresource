@@ -1,6 +1,6 @@
 package net.ripe.ipresource;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.math.BigInteger;
 
@@ -52,6 +52,11 @@ public class AsnTest {
     @Test
     public void parseShouldBeCaseInsensitive() {
         assertEquals(Asn.parse("AS3333"), Asn.parse("as3333"));
+    }
+
+    @Test
+    public void shouldParseNumberWithLeadingAndTrailingSpaces() {
+        assertEquals(new Asn(new BigInteger("65536")), Asn.parse("  AS65536  "));
     }
 
     @Test

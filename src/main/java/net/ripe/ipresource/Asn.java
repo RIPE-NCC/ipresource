@@ -30,7 +30,10 @@ public class Asn extends UniqueIpResource {
             return null;
         }
 
+        text = text.trim();
+
         Matcher matcher = ASN_TEXT_PATTERN.matcher(text);
+
         if (!matcher.matches()) {
             throw new IllegalArgumentException("not a legal ASN: " + text);
         }
@@ -41,10 +44,12 @@ public class Asn extends UniqueIpResource {
         if (matcher.group(3) != null) {
             low = new BigInteger(matcher.group(3));
             high = new BigInteger(matcher.group(1));
+
             checkRange(high, ASN16_MAX_VALUE);
             checkRange(low, ASN16_MAX_VALUE);
         } else {
             low = new BigInteger(matcher.group(1));
+
             checkRange(low, ASN32_MAX_VALUE);
         }
 

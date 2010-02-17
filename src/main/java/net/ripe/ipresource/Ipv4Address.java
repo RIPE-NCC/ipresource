@@ -17,8 +17,12 @@ public class Ipv4Address extends IpAddress {
 	public static Ipv4Address parse(String s) {
 	    return parse(s, false);
 	}
-	
+
 	public static Ipv4Address parse(String s, boolean defaultMissingOctets) {
+	    if (s != null) {
+	        s = s.trim();
+	    }
+
 	    int length = s.length();
 	    if (length == 0 || !Character.isDigit(s.charAt(0)) || !Character.isDigit(s.charAt(s.length() - 1))) {
             throw new IllegalArgumentException("invalid IPv4 address: " + s);
@@ -27,7 +31,7 @@ public class Ipv4Address extends IpAddress {
 	    long value = 0;
         int octet = 0;
         int octetCount = 1;
-        
+
         for (int i = 0; i < length; ++i) {
             char ch = s.charAt(i);
             if (Character.isDigit(ch)) {
@@ -38,8 +42,8 @@ public class Ipv4Address extends IpAddress {
                 }
                 octetCount++;
 
-                value = addOctet(value, octet); 
-                
+                value = addOctet(value, octet);
+
                 octet = 0;
             } else {
                 throw new IllegalArgumentException("invalid IPv4 address: " + s);
@@ -53,7 +57,7 @@ public class Ipv4Address extends IpAddress {
         } else if (octetCount != 4) {
             throw new IllegalArgumentException("invalid IPv4 address: " + s);
         }
-        
+
         return new Ipv4Address(BigInteger.valueOf(value));
 	}
 
@@ -71,7 +75,7 @@ public class Ipv4Address extends IpAddress {
         int b = (int) (value >> 16) & BYTE_MASK;
         int c = (int) (value >> 8) & BYTE_MASK;
         int d = (int) value & BYTE_MASK;
-        
+
         if (!defaultMissingOctets) {
             return a + "." + b + "." + c + "." + d;
         } else if (b == 0 && c == 0 && d == 0) {

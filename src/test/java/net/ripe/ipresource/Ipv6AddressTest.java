@@ -25,6 +25,11 @@ public class Ipv6AddressTest {
 	}
 
 	@Test
+	public void shouldParseIPv6AddressWithLeadingAndTrailingSpaces() {
+	    assertEquals(ADDRESS_ONE, Ipv6Address.parse("  " + ADDRESS_ONE + "  ").toString());
+	}
+
+	@Test
 	public void testExpandAllString() {
 		assertEquals(ADDRESS_ALL, Ipv6Address.parse(ADDRESS_ALL).toString());
 	}

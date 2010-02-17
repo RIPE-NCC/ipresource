@@ -27,6 +27,10 @@ public class Ipv6Address extends IpAddress {
 	}
 
 	public static Ipv6Address parse(String ipAddressString) {
+	    if (ipAddressString != null) {
+	        ipAddressString = ipAddressString.trim();
+	    }
+
         Validate.isTrue(Pattern.matches("[0-9a-fA-F]{0,4}:([0-9a-fA-F]{0,4}:){1,6}[0-9a-fA-F]{0,4}", ipAddressString), "Invalid IPv6 address: " + ipAddressString);
 
         // Count number of colons: must be between 2 and 7
