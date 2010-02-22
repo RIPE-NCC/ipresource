@@ -86,6 +86,22 @@ public class IpResourceRange extends IpResource {
     }
 
     public static IpResourceRange parse(String s) {
+        if(s.indexOf(',') >= 0) {
+        	int slashIdx = s.indexOf('/');
+        	String startAddress = s.substring(0, slashIdx);
+        	
+        	UniqueIpResource start = UniqueIpResource.parse(startAddress);
+        	UniqueIpResource end = UniqueIpResource.parse(startAddress);
+        	
+        	String sizes = s.substring(slashIdx);
+        	for(String sizeStr: sizes.split(",")) {
+        		int size = Integer.parseInt(sizeStr.substring(1));
+        		end = end.upperBoundForPrefix(size).successor();
+        	}
+        	
+            return IpResourceRange.range(start, end.predecessor());
+        }
+
         int idx = s.indexOf('/');
         if (idx >= 0) {
             IpAddress prefix = IpAddress.parse(s.substring(0, idx), true);

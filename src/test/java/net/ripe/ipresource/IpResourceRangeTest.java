@@ -37,6 +37,11 @@ public class IpResourceRangeTest {
     public void shouldParseRipePrefixNotation() {
         assertEquals("0.0.0.0/0", IpResourceRange.parse("0/0").toString());
     }
+    
+    @Test
+    public void shouldParseCommaPrefixNotation() {
+        assertEquals("10.0.0.0-10.1.1.129", IpResourceRange.parse("10.0.0.0/16,/24,/25,/31").toString());
+    }
 
     @Test
     public void subtractRange() {
