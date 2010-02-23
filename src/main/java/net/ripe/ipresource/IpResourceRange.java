@@ -133,4 +133,14 @@ public class IpResourceRange extends IpResource {
             throw new IllegalStateException("Unknown resource type: "+ type);
         }
     }
+
+	public static IpResourceRange parseWithNetmask(String ipStr, String netmaskStr) {
+		UniqueIpResource start = UniqueIpResource.parse(ipStr);
+		UniqueIpResource netmask = UniqueIpResource.parse(netmaskStr);
+		
+		int size = netmask.value.bitCount();
+        UniqueIpResource end = start.upperBoundForPrefix(size);
+
+        return IpResourceRange.range(start, end);
+	}
 }

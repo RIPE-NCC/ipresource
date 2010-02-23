@@ -44,6 +44,11 @@ public class IpResourceRangeTest {
     }
 
     @Test
+    public void shouldParseNetmaskPrefixNotation() {
+        assertEquals("193.0.0.0/19", IpResourceRange.parseWithNetmask("193.0.0.0", "255.255.224.0").toString());
+    }
+
+    @Test
     public void subtractRange() {
         assertEquals(Collections.singletonList(RANGE_127_0_16), RANGE_127_0_16.subtract(RANGE_127_1_16));
         assertEquals(Collections.emptyList(), RANGE_127_0_16.subtract(RANGE_127_8));
