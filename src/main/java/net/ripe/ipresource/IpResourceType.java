@@ -11,14 +11,14 @@ public enum IpResourceType {
 
         @Override
         public UniqueIpResource fromBigInteger(BigInteger value) {
-            return new Asn(value);
+            return new Asn(value.longValue());
         }
     },
 
     IPv4("IPv4 Address", 32) {
         @Override
         public UniqueIpResource fromBigInteger(BigInteger value) {
-            return new Ipv4Address(value);
+            return new Ipv4Address(value.longValue());
         }
     },
     IPv6("IPv6 Address", 128) {

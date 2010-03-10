@@ -1,6 +1,8 @@
 package net.ripe.ipresource;
 
-import static org.junit.Assert.assertEquals;
+import static net.ripe.ipresource.Ipv6Address.*;
+
+import static org.junit.Assert.*;
 
 import java.math.BigInteger;
 
@@ -68,6 +70,28 @@ public class Ipv6AddressTest {
     @Test
     public void shouldOnlyCompressFirstSequenceOfZeroes() {
     	assertEquals("ffce::dead:beef:0:12", Ipv6Address.parse("ffce:0:0:0:dead:beef:0:12").toString());
+    }
+    
+    @Test
+    public void testCompareTo() {
+        assertTrue(parse("ffce::32").compareTo(parse("ffce::32")) == 0);
+        assertTrue(parse("ffce::32").compareTo(parse("ffce::33")) < 0);
+        assertTrue(parse("ffce::32").compareTo(parse("ffcd::32")) > 0);
+        assertTrue(parse("ffce::32").compareTo(parse("ffce::32").upTo(parse("ffce::32"))) == 0);
+        assertTrue(parse("ffce::32").upTo(parse("ffce::32")).compareTo(parse("ffce::32")) == 0);
+    }
+
+    @Test
+    public void shouldCalculateCommonPrefix() {
+        assertEquals(parse("ffce::"), parse("ffce::1").getCommonPrefix(parse("ffce:de::")));
+        assertEquals(parse("::"), parse("::1").getCommonPrefix(parse("fd::")));
+        assertEquals(parse("23:23:33:112:33:fce:fa:0"), parse("23:23:33:112:33:fce:fa:16").getCommonPrefix(parse("23:23:33:112:33:fce:fa:24")));
+    }
+
+    @Test
+    public void shouldCalculatePrefixRange() {
+        assertEquals(parse("ffce:abc0::"), parse("ffce:abcd::").lowerBoundForPrefix(28));
+        assertEquals(parse("ffce:abcf:ffff:ffff:ffff:ffff:ffff:ffff"), parse("ffce:abcd::").upperBoundForPrefix(28));
     }
 
 }

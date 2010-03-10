@@ -63,11 +63,11 @@ public class IpResourceRange extends IpResource {
             return -obj.compareTo(this);
         } else if (obj instanceof IpResourceRange) {
             IpResource that = (IpResource) obj;
-            int rc = getStart().compareTo(that.getStart());
+            int rc = getStart().doCompareTo(that.getStart());
             if (rc != 0) {
                 return rc;
             } else {
-                return -getEnd().compareTo(that.getEnd());
+                return -getEnd().doCompareTo(that.getEnd());
             }
         } else {
             throw new IllegalArgumentException("unknown resource type: " + obj);
@@ -123,22 +123,14 @@ public class IpResourceRange extends IpResource {
     }
     
     public static IpResourceRange assemble(BigInteger start, BigInteger end, IpResourceType type) {
-        if (type.equals(IpResourceType.ASN)) {
-            return IpResourceRange.range(new Asn(start), new Asn(end));
-        } else if (type.equals(IpResourceType.IPv4)) {
-            return IpResourceRange.range(new Ipv4Address(start), new Ipv4Address(end));
-        } else if (type.equals(IpResourceType.IPv6)) {
-            return IpResourceRange.range(new Ipv6Address(start), new Ipv6Address(end));
-        } else {
-            throw new IllegalStateException("Unknown resource type: "+ type);
-        }
+        return type.fromBigInteger(start).upTo(type.fromBigInteger(end));
     }
 
 	public static IpResourceRange parseWithNetmask(String ipStr, String netmaskStr) {
 		UniqueIpResource start = UniqueIpResource.parse(ipStr);
 		UniqueIpResource netmask = UniqueIpResource.parse(netmaskStr);
 		
-		int size = netmask.value.bitCount();
+		int size = netmask.getValue().bitCount();
         UniqueIpResource end = start.upperBoundForPrefix(size);
 
         return IpResourceRange.range(start, end);

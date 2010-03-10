@@ -2,14 +2,12 @@ package net.ripe.ipresource;
 
 import java.math.BigInteger;
 
-import org.apache.commons.lang.Validate;
-
 public abstract class IpAddress extends UniqueIpResource {
 
-    private static final long serialVersionUID = 1L;
-
-    protected IpAddress(IpResourceType type, BigInteger value) {
-        super(type, value);
+    private static final long serialVersionUID = 2L;
+    
+    protected IpAddress(IpResourceType type) {
+        super(type);
     }
 
     public static IpAddress parse(String s) {
@@ -37,24 +35,6 @@ public abstract class IpAddress extends UniqueIpResource {
         return lowerBoundForPrefix(getCommonPrefixLength(other));
     }
     
-	@Override
-    public int getCommonPrefixLength(UniqueIpResource other) {
-        Validate.isTrue(getType() == other.getType(), "incompatible resource types");
-        BigInteger temp = this.getValue().xor(other.getValue());
-        return getType().getBitSize() - temp.bitLength();
-    }
-
-	@Override
-    public IpAddress lowerBoundForPrefix(int prefixLength) {
-        BigInteger mask = bitMask(0, getType()).xor(bitMask(prefixLength, getType()));
-        return createOfSameType(this.getValue().and(mask));
-    }
-
-	@Override
-    public IpAddress upperBoundForPrefix(int prefixLength) {
-        return createOfSameType(this.getValue().or(bitMask(prefixLength, getType())));
-    }
-	
 	protected IpAddress createOfSameType(BigInteger value) {
 	    return (IpAddress) getType().fromBigInteger(value);
 	}
@@ -79,7 +59,7 @@ public abstract class IpAddress extends UniqueIpResource {
 	
 	private int getLeastSignificant(boolean bit) {
 		for (int i = 0; i < getType().getBitSize(); i++) {
-			if (value.testBit(i) == bit) {
+			if (getValue().testBit(i) == bit) {
 			    return i;
 			}
 		}
@@ -88,7 +68,7 @@ public abstract class IpAddress extends UniqueIpResource {
 	
 	public IpAddress stripLeastSignificantOnes() {
 	        int leastSignificantZero = getLeastSignificantZero();
-	        return createOfSameType(value.shiftRight(leastSignificantZero).shiftLeft(leastSignificantZero));
+	        return createOfSameType(getValue().shiftRight(leastSignificantZero).shiftLeft(leastSignificantZero));
 	}
 	
 	@Override

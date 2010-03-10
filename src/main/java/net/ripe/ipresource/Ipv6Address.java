@@ -5,27 +5,60 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Ipv6 address. This implementation has no support for interfaces.
  */
 public class Ipv6Address extends IpAddress {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
 
     /**
 	 * Mask for 16 bits, which is the length of one part of an IPv6 address.
 	 */
 	private BigInteger PART_MASK = BigInteger.valueOf(65535);
 
-	protected Ipv6Address(IpResourceType type, BigInteger value) {
-		super(type, value);
-	}
+    private final BigInteger value;
 
     public Ipv6Address(BigInteger value) {
-		super(IpResourceType.IPv6, value);
+		super(IpResourceType.IPv6);
+		this.value = value;
 	}
 
+    @Override
+    protected int doHashCode() {
+        return new HashCodeBuilder().append(IpResourceType.IPv6).append(value).toHashCode();
+    }
+    
+    @Override
+    protected int doCompareTo(IpResource obj) {
+        if (obj instanceof Ipv6Address) {
+            Ipv6Address that = (Ipv6Address) obj;
+            return this.getValue().compareTo(that.getValue());
+        } else {
+            return super.doCompareTo(obj);
+        }
+    }
+
+    @Override
+    public int getCommonPrefixLength(UniqueIpResource other) {
+        Validate.isTrue(getType() == other.getType(), "incompatible resource types");
+        BigInteger temp = this.getValue().xor(other.getValue());
+        return getType().getBitSize() - temp.bitLength();
+    }
+
+    @Override
+    public Ipv6Address lowerBoundForPrefix(int prefixLength) {
+        BigInteger mask = bitMask(0, getType()).xor(bitMask(prefixLength, getType()));
+        return new Ipv6Address(this.getValue().and(mask));
+    }
+
+    @Override
+    public IpAddress upperBoundForPrefix(int prefixLength) {
+        return new Ipv6Address(this.getValue().or(bitMask(prefixLength, getType())));
+    }
+    
 	public static Ipv6Address parse(String ipAddressString) {
 	    if (ipAddressString != null) {
 	        ipAddressString = ipAddressString.trim();
@@ -48,7 +81,7 @@ public class Ipv6Address extends IpAddress {
 
         // By now we have an IPv6 address that's guaranteed to have 7 colons.
 
-        return new Ipv6Address(IpResourceType.IPv6, ipv6StringtoBigInteger(ipAddressString));
+        return new Ipv6Address(ipv6StringtoBigInteger(ipAddressString));
     }
 
 	/**
@@ -109,7 +142,11 @@ public class Ipv6Address extends IpAddress {
 		return ipv6Address.replaceFirst(":{3,7}", "::");
 	}
 
-	private static String expandColons(String ipv6String) {
+	public final BigInteger getValue() {
+        return value;
+    }
+
+    private static String expandColons(String ipv6String) {
 		String filledDoubleColons = ":::::::".substring(0, 7 - countColons(ipv6String) + 2);
 		ipv6String = ipv6String.replace("::", filledDoubleColons);
 		return ipv6String;

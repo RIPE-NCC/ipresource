@@ -1,48 +1,31 @@
 package net.ripe.ipresource;
 
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-
 import java.math.BigInteger;
+
+import org.apache.commons.lang.Validate;
 
 public abstract class UniqueIpResource extends IpResource {
 
     private static final long serialVersionUID = 1L;
 
     private IpResourceType type;
-    protected BigInteger value;
-
-    // Construction.
-
-    protected UniqueIpResource(IpResourceType type, BigInteger value) {
+    
+    protected UniqueIpResource(IpResourceType type) {
         Validate.notNull(type, "resource type not null");
-        Validate.notNull(value, "resource value not null");
-        Validate.isTrue(value.compareTo(BigInteger.ZERO) >= 0, "value cannot be negative");
         this.type = type;
-        this.value = value;
     }
 
-    // Parsing.
+    public abstract BigInteger getValue();
+    
+    public abstract int getCommonPrefixLength(UniqueIpResource other);
 
-    public static UniqueIpResource parse(String s) {
-        try {
-            return Ipv4Address.parse(s);
-        } catch (IllegalArgumentException ex4) {
-        	try {
-        		return Ipv6Address.parse(s);
-        	} catch (IllegalArgumentException ex6) {
-        		return Asn.parse(s);
-        	}
-        }
-    }
+    public abstract IpAddress lowerBoundForPrefix(int prefixLength);
+
+    public abstract IpAddress upperBoundForPrefix(int prefixLength);
 
     @Override
     public final IpResourceType getType() {
         return type;
-    }
-
-    public final BigInteger getValue() {
-        return value;
     }
 
     @Override
@@ -68,20 +51,14 @@ public abstract class UniqueIpResource extends IpResource {
     }
 
     @Override
-    protected final int doCompareTo(IpResource obj) {
+    protected int doCompareTo(IpResource obj) {
         if (obj instanceof UniqueIpResource) {
-            UniqueIpResource that = (UniqueIpResource) obj;
-            return this.getValue().compareTo(that.getValue());
+            throw new IllegalStateException("should be overriden by subclass");
         } else if (obj instanceof IpResourceRange) {
             return upTo(this).compareTo(obj);
         } else {
             throw new IllegalArgumentException("not a valid resource type: " + obj);
         }
-    }
-
-    @Override
-    protected int doHashCode() {
-        return new HashCodeBuilder().append(type).append(value).toHashCode();
     }
 
     @Override
@@ -94,17 +71,29 @@ public abstract class UniqueIpResource extends IpResource {
     }
 
     public UniqueIpResource predecessor() {
-        return type.fromBigInteger(value.subtract(BigInteger.ONE));
+        return type.fromBigInteger(getValue().subtract(BigInteger.ONE));
     }
 
     public UniqueIpResource successor() {
-        return type.fromBigInteger(value.add(BigInteger.ONE));
+        return type.fromBigInteger(getValue().add(BigInteger.ONE));
     }
 
-    public abstract int getCommonPrefixLength(UniqueIpResource other);
+    // Parsing.
 
-    public abstract IpAddress lowerBoundForPrefix(int prefixLength);
-
-    public abstract IpAddress upperBoundForPrefix(int prefixLength);
+    public static UniqueIpResource parse(String s) {
+        try {
+            try {
+                return Ipv4Address.parse(s);
+            } catch (IllegalArgumentException ex4) {
+            	try {
+            		return Ipv6Address.parse(s);
+            	} catch (IllegalArgumentException ex6) {
+            		return Asn.parse(s);
+            	}
+            }
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(String.format("illegal number resource: %s (%s)", s, e.getMessage()));
+        }
+    }
 
 }
