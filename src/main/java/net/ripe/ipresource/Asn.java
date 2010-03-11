@@ -69,6 +69,10 @@ public class Asn extends UniqueIpResource {
         Validate.isTrue(value >= ASN_MIN_VALUE);
         Validate.isTrue(value <= max);
     }
+    
+    public long longValue() {
+        return value;
+    }
 
     @Override
     protected int doHashCode() {

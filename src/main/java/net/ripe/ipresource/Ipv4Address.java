@@ -105,6 +105,10 @@ public class Ipv4Address extends IpAddress {
         }
     }
 
+    public long longValue() {
+        return value;
+    }
+    
     @Override
     protected int doHashCode() {
         return new HashCodeBuilder().append(IpResourceType.IPv4).append(value).toHashCode();
