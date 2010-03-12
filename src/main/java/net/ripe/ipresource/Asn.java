@@ -76,7 +76,7 @@ public class Asn extends UniqueIpResource {
 
     @Override
     protected int doHashCode() {
-        return new HashCodeBuilder().append(IpResourceType.ASN).append(value).toHashCode();
+        return new HashCodeBuilder().append(value).toHashCode();
     }
 
     @Override

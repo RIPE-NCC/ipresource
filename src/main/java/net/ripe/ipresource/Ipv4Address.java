@@ -111,7 +111,7 @@ public class Ipv4Address extends IpAddress {
     
     @Override
     protected int doHashCode() {
-        return new HashCodeBuilder().append(IpResourceType.IPv4).append(value).toHashCode();
+        return new HashCodeBuilder().append(value).toHashCode();
     }
 
     @Override
