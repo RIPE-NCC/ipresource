@@ -5,7 +5,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Immutable value object for Autonomous System Numbers.
@@ -76,7 +75,7 @@ public class Asn extends UniqueIpResource {
 
     @Override
     protected int doHashCode() {
-        return new HashCodeBuilder().append(value).toHashCode();
+        return (int) value;
     }
 
     @Override

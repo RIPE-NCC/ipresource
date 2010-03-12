@@ -3,7 +3,6 @@ package net.ripe.ipresource;
 import java.math.BigInteger;
 
 import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 public class Ipv4Address extends IpAddress {
 
@@ -111,7 +110,7 @@ public class Ipv4Address extends IpAddress {
     
     @Override
     protected int doHashCode() {
-        return new HashCodeBuilder().append(value).toHashCode();
+        return (int) value;
     }
 
     @Override

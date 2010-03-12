@@ -5,7 +5,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 
 /**
  * Ipv6 address. This implementation has no support for interfaces.
@@ -28,7 +27,7 @@ public class Ipv6Address extends IpAddress {
 
     @Override
     protected int doHashCode() {
-        return new HashCodeBuilder().append(value).toHashCode();
+        return value.hashCode();
     }
     
     @Override
