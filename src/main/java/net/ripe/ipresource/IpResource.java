@@ -68,6 +68,10 @@ public abstract class IpResource implements Serializable, Comparable<IpResource>
 
     public abstract UniqueIpResource getEnd();
 
+    public boolean isValidNetmask() {
+        return false;
+    }
+    
     protected abstract int doCompareTo(IpResource that);
 
     protected abstract int doHashCode();

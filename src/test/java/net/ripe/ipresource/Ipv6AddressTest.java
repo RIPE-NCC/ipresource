@@ -94,4 +94,15 @@ public class Ipv6AddressTest {
         assertEquals(parse("ffce:abcf:ffff:ffff:ffff:ffff:ffff:ffff"), parse("ffce:abcd::").upperBoundForPrefix(28));
     }
 
+    @Test
+    public void testIsValidNetmask() {
+        assertTrue(parse("ffff::").isValidNetmask());
+        assertTrue(parse("8000::").isValidNetmask());
+        assertTrue(parse("c000::").isValidNetmask());
+        assertTrue(parse("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ff80").isValidNetmask());
+        assertTrue(parse("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff").isValidNetmask());
+        assertFalse(parse("ffff::ffff").isValidNetmask());
+        assertFalse(parse("::").isValidNetmask());
+    }
+    
 }

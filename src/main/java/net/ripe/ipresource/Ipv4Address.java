@@ -152,4 +152,11 @@ public class Ipv4Address extends IpAddress {
         return new Ipv4Address(value | mask);
     }
     
+    @Override
+    public boolean isValidNetmask() {
+        int leadingOnesCount = Integer.numberOfLeadingZeros(~(int) value);
+        int trailingZeroesCount = Integer.numberOfTrailingZeros((int) value);
+        return leadingOnesCount > 0 && (leadingOnesCount + trailingZeroesCount) == NUMBER_OF_BITS;
+    }
+    
 }

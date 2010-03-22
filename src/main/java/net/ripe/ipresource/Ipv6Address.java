@@ -16,7 +16,7 @@ public class Ipv6Address extends IpAddress {
     /**
 	 * Mask for 16 bits, which is the length of one part of an IPv6 address.
 	 */
-	private BigInteger PART_MASK = BigInteger.valueOf(65535);
+	private BigInteger PART_MASK = BigInteger.valueOf(0xffff);
 
     private final BigInteger value;
 
@@ -144,6 +144,23 @@ public class Ipv6Address extends IpAddress {
 	public final BigInteger getValue() {
         return value;
     }
+	
+	@Override
+	public boolean isValidNetmask() {
+	    int bitLength = value.bitLength();
+        if (bitLength < IpResourceType.IPv6.getBitSize()) {
+	        return false;
+	    }
+	    
+	    int lowestSetBit = value.getLowestSetBit();
+        for (int i = bitLength - 1; i >= lowestSetBit; --i) {
+	        if (!value.testBit(i)) {
+	            return false;
+	        }
+	    }
+
+	    return true;
+	}
 
     private static String expandColons(String ipv6String) {
 		String filledDoubleColons = ":::::::".substring(0, 7 - countColons(ipv6String) + 2);

@@ -1,8 +1,8 @@
 package net.ripe.ipresource;
 
-import static net.ripe.ipresource.IpResource.parse;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static net.ripe.ipresource.Ipv4Address.*;
+
+import static org.junit.Assert.*;
 
 import org.junit.Test;
 
@@ -54,15 +54,15 @@ public class Ipv4AddressTest {
     @Test
     public void shouldCompare() {
         assertTrue(parse("193.17.48.32").compareTo(parse("193.17.48.33")) < 0);
-        assertTrue(parse("193.0.0.0/8").compareTo(parse("193.0.0.0/12")) < 0);
-        assertTrue(parse("193.16.0.0/16").compareTo(parse("193.16.0.0/12")) > 0);
-        assertTrue(parse("10.32.0.0/12").compareTo(parse("10.64.0.0/16")) < 0);
+        assertTrue(IpRange.parse("193.0.0.0/8").compareTo(IpRange.parse("193.0.0.0/12")) < 0);
+        assertTrue(IpRange.parse("193.16.0.0/16").compareTo(IpRange.parse("193.16.0.0/12")) > 0);
+        assertTrue(IpRange.parse("10.32.0.0/12").compareTo(IpRange.parse("10.64.0.0/16")) < 0);
 
         // Bigger ranges are sorted before smaller ranges, just like smaller
         // prefixes (bigger space) are sorted before larger prefixes (smaller
         // space).
-        assertTrue(parse("193.0.0.0/8").compareTo(parse("193.0.0.0-195.255.255.255")) > 0);
-        assertTrue(parse("193.0.0.0-193.1.255.255").compareTo(parse("193.0.0.0-195.255.255.255")) > 0);
+        assertTrue(IpRange.parse("193.0.0.0/8").compareTo(IpRange.parse("193.0.0.0-195.255.255.255")) > 0);
+        assertTrue(IpRange.parse("193.0.0.0-193.1.255.255").compareTo(IpRange.parse("193.0.0.0-195.255.255.255")) > 0);
     }
 
     @Test
@@ -98,4 +98,19 @@ public class Ipv4AddressTest {
         assertEquals(Ipv4Address.parse("255.255.254.0"), Ipv4Address.parse("255.255.254.255").stripLeastSignificantOnes());
     }
 
+    @Test
+    public void testIsValidNetmask() {
+        assertTrue(parse("255.0.0.0").isValidNetmask());
+        assertTrue(parse("128.0.0.0").isValidNetmask());
+        assertTrue(parse("192.0.0.0").isValidNetmask());
+        assertTrue(parse("255.255.255.192").isValidNetmask());
+        assertTrue(parse("255.255.255.255").isValidNetmask());
+        assertFalse(parse("255.0.0.255").isValidNetmask());
+        assertFalse(parse("0.0.0.0").isValidNetmask());
+        
+        // Ensure singleton ranges behave the same way as an regular address.
+        assertTrue(IpRange.parse("255.0.0.0/32").isValidNetmask());
+        assertFalse(IpRange.parse("255.0.0.0-255.255.0.0").isValidNetmask());
+    }
+    
 }

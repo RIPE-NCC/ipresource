@@ -53,6 +53,11 @@ public class IpResourceRange extends IpResource {
     }
 
     @Override
+    public boolean isValidNetmask() {
+        return isUnique() && unique().isValidNetmask();
+    }
+    
+    @Override
     public String toString() {
         return start.toString() + "-" + end.toString();
     }
