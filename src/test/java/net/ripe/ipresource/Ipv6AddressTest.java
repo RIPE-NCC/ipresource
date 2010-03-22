@@ -45,6 +45,11 @@ public class Ipv6AddressTest {
 		assertEquals(COMPRESSED_NOTATION_AT_BEGIN, Ipv6Address.parse(COMPRESSED_NOTATION_AT_BEGIN).toString());
 	}
 
+	@Test(expected = IllegalArgumentException.class)
+	public void shouldFailOnMissingGroups() {
+	    Ipv6Address.parse(":1.2.3.4");
+	}
+	
     @Test(expected = IllegalArgumentException.class)
     public void shouldFailOnOutOfBoundsByte() {
         Ipv6Address.parse("10000::");

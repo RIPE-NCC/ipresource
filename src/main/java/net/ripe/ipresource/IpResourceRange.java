@@ -134,6 +134,9 @@ public class IpResourceRange extends IpResource {
 	public static IpResourceRange parseWithNetmask(String ipStr, String netmaskStr) {
 		UniqueIpResource start = UniqueIpResource.parse(ipStr);
 		UniqueIpResource netmask = UniqueIpResource.parse(netmaskStr);
+		if (!netmask.isValidNetmask()) {
+		    throw new IllegalArgumentException("netmask '" + netmaskStr + "' is not a valid netmask");
+		}
 		
 		int size = netmask.getValue().bitCount();
         UniqueIpResource end = start.upperBoundForPrefix(size);

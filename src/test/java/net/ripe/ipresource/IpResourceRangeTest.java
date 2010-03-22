@@ -1,10 +1,11 @@
 package net.ripe.ipresource;
 
-import static org.junit.Assert.assertEquals;
-import org.junit.Test;
+import static org.junit.Assert.*;
 
 import java.util.Arrays;
 import java.util.Collections;
+
+import org.junit.Test;
 
 public class IpResourceRangeTest {
 
@@ -46,6 +47,12 @@ public class IpResourceRangeTest {
     @Test
     public void shouldParseNetmaskPrefixNotation() {
         assertEquals("193.0.0.0/19", IpResourceRange.parseWithNetmask("193.0.0.0", "255.255.224.0").toString());
+        
+        try {
+            IpResourceRange.parseWithNetmask("193.0.0.0", "193.0.0.19");
+            fail("IllegalArgumentException expected");
+        } catch (IllegalArgumentException expected) {
+        }
     }
 
     @Test
