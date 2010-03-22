@@ -27,6 +27,14 @@ public class AsnTest {
         assertEquals("AS789765", String.valueOf(ASN12_3333));
     }
 
+    @Test
+    public void shouldParseShortVersion() {
+        assertEquals(ASN3333, Asn.parse("3333"));
+        assertEquals(ASN12_3333, Asn.parse("12.3333"));
+        assertEquals(new Asn(65536), Asn.parse("  65536  "));
+    }
+    
+    
     @Test(expected = IllegalArgumentException.class)
     public void shouldFailOnBadFormat() {
         Asn.parse("AS23.321.12");

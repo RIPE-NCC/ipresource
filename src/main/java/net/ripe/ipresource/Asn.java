@@ -13,7 +13,7 @@ public class Asn extends UniqueIpResource {
 
 	private static final long serialVersionUID = 2L;
 
-	private static final Pattern ASN_TEXT_PATTERN = Pattern.compile("AS(\\d+)(\\.(\\d+))?", Pattern.CASE_INSENSITIVE);
+	private static final Pattern ASN_TEXT_PATTERN = Pattern.compile("(?:AS)?(\\d+)(\\.(\\d+))?", Pattern.CASE_INSENSITIVE);
 
     private static long ASN_MIN_VALUE = 0L;
     private static long ASN16_MAX_VALUE = (1L << 16) - 1L;
