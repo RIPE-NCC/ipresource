@@ -16,7 +16,15 @@ public class IpResourceRangeTest {
     private static final IpResourceRange IPV6_RANGE_127_0_32 = IpResourceRange.parse("127:0::/32");
     private static final IpResourceRange IPV6_RANGE_127_1_32 = IpResourceRange.parse("127:1::/32");
     private static final IpResourceRange IPV6_RANGE_127_16 = IpResourceRange.parse("127::/16");
+    
+    private static final String EXPECTED_IPV6_RANGE_WITH_LEADING_ZERO = "2001:0db8:8000::/33";
+    private static final IpResourceRange IPV6_RANGE_WITH_LEADING_ZERO = IpResourceRange.parse(EXPECTED_IPV6_RANGE_WITH_LEADING_ZERO);
 
+    @Test
+    public void shouldLeaveLeadingZeroWhenTurnedBackIntoString() {
+    	assertEquals(EXPECTED_IPV6_RANGE_WITH_LEADING_ZERO, IPV6_RANGE_WITH_LEADING_ZERO.toString());
+    }
+    
     
     @Test
     public void shouldSupportAsnRange() {

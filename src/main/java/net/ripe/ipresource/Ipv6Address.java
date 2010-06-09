@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 /**
@@ -115,15 +116,15 @@ public class Ipv6Address extends IpAddress {
     			if (!insideFirstZeroes && !afterFirstZeroes) {
     				insideFirstZeroes = true;
     			} else if (!insideFirstZeroes) {
-    				result.append("0");
+    				result.append("0000");
     			}
     		} else if (insideFirstZeroes) {
     			// No longer inside first zero sequence
     			insideFirstZeroes = false;
     			afterFirstZeroes = true;
-        		result.append(part.toString(16));
+        		result.append(StringUtils.leftPad(part.toString(16), 4, '0'));
     		} else {
-    			result.append(part.toString(16));
+        		result.append(StringUtils.leftPad(part.toString(16), 4, '0'));
     		}
     		if (i > 0) {
     			result.append(':');
