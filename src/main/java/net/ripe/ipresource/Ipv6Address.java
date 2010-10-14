@@ -106,41 +106,49 @@ public class Ipv6Address extends IpAddress {
 
     @Override
     public String toString(boolean defaultMissingOctets) {
-        StringBuilder result = new StringBuilder();
-
-        boolean insideFirstZeroes = false;
-        boolean afterFirstZeroes = false;
+        long[] list = new long[8];
+        int currentZeroLength = 0;
+        int maxZeroLength = 0;
+        int maxZeroIndex = 0;
         for (int i = 7; i >= 0; i--) {
-            BigInteger part = getValue().shiftRight(i*16).and(PART_MASK);
-            if (BigInteger.ZERO.equals(part)) {
-                if (!insideFirstZeroes && !afterFirstZeroes) {
-                    insideFirstZeroes = true;
-                } else if (!insideFirstZeroes) {
-                    result.append("0");
-                }
-            } else if (insideFirstZeroes) {
-                // No longer inside first zero sequence
-                insideFirstZeroes = false;
-                afterFirstZeroes = true;
-                result.append(part.toString(16));
+            list[i] = getValue().shiftRight(i*16).and(PART_MASK).longValue();
+
+            if (list[i] == 0) {
+                currentZeroLength ++;
             } else {
-                result.append(part.toString(16));
-            }
-            if (i > 0) {
-                result.append(':');
+                if (currentZeroLength > maxZeroLength) {
+                    maxZeroIndex = i + currentZeroLength;
+                    maxZeroLength = currentZeroLength;
+                }
+                currentZeroLength = 0;
             }
         }
+        if (currentZeroLength > maxZeroLength) {
+            maxZeroIndex = -1 + currentZeroLength;
+            maxZeroLength = currentZeroLength;
+        }
 
-        return compressColons(result.toString());
+        StringBuilder sb = new StringBuilder();
+        for (int i = 7; i >= 0; i--) {
+            if (i == maxZeroIndex && maxZeroLength > 1) {
+                if (i == 7) {
+                    sb.append(':');
+                }
+                i -= (maxZeroLength - 1);
+            } else {
+                sb.append(String.format("%x", list[i]));
+            }
+            sb.append(':');
+        }
+        if ( (maxZeroIndex - maxZeroLength + 1) != 0) {
+            sb.deleteCharAt(sb.length()-1);
+        }
+
+        return sb.toString();
     }
 
 
     // -------------------------------------------------------------------------------- HELPERS
-
-    private String compressColons(String ipv6Address) {
-        // Compress colons into short notation
-        return ipv6Address.replaceFirst(":{3,7}", "::");
-    }
 
     @Override
     public final BigInteger getValue() {

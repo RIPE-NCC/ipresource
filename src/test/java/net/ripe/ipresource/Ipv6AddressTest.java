@@ -1,8 +1,9 @@
 package net.ripe.ipresource;
 
-import static net.ripe.ipresource.Ipv6Address.*;
-
-import static org.junit.Assert.*;
+import static net.ripe.ipresource.Ipv6Address.parse;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.math.BigInteger;
 
@@ -11,21 +12,21 @@ import org.junit.Test;
 public class Ipv6AddressTest {
 
 	private final static String ADDRESS_ONE = "1:4::a:f:1000:23:1d";
-	private final static String EXPECTED_ADDRESS_ONE = "0001:0004::000a:000f:1000:0023:001d";
-	
-	private final static String ADDRESS_TWO = "12f:2:45:109:ffff:1000:9923:1d";
-	private final static String EXPECTED_ADDRESS_TWO = "012f:0002:0045:0109:ffff:1000:9923:001d";
+	private final static String EXPECTED_ADDRESS_ONE = "1:4:0:a:f:1000:23:1d";
+
+	private final static String ADDRESS_TWO = "12f:0000:45:109:ffff:1000:9923:1d";
+	private final static String EXPECTED_ADDRESS_TWO = "12f:0:45:109:ffff:1000:9923:1d";
 
 	private final static String ADDRESS_ALL = "::";
-	
+
 	private final static String COMPRESSED_NOTATION = "12::34";
-	private final static String EXPECTED_COMPRESSED_NOTATION = "0012::0034";
-	
+	private final static String EXPECTED_COMPRESSED_NOTATION = "12::34";
+
 	private final static String COMPRESSED_NOTATION_AT_END = "12::";
-	private final static String EXPECTED_COMPRESSED_NOTATION_AT_END = "0012::";
-	
+	private final static String EXPECTED_COMPRESSED_NOTATION_AT_END = "12::";
+
 	private final static String COMPRESSED_NOTATION_AT_BEGIN = "::12";
-	private final static String EXPECTED_NOTATION_AT_BEGIN = "::0012";
+	private final static String EXPECTED_NOTATION_AT_BEGIN = "::12";
 
 	private final static String CLASSLESS_NOTATION = "1:2:3:4/64";
 
@@ -58,7 +59,7 @@ public class Ipv6AddressTest {
 	public void shouldFailOnMissingGroups() {
 	    Ipv6Address.parse(":1.2.3.4");
 	}
-	
+
     @Test(expected = IllegalArgumentException.class)
     public void shouldFailOnOutOfBoundsByte() {
         Ipv6Address.parse("10000::");
@@ -82,10 +83,35 @@ public class Ipv6AddressTest {
     }
 
     @Test
-    public void shouldOnlyCompressFirstSequenceOfZeroes() {
-    	assertEquals("ffce::dead:beef:0000:0012", Ipv6Address.parse("ffce:0:0:0:dead:beef:0:12").toString());
+    public void shouldCompressLongestSequenceOfZeroes() {
+        assertEquals("ffce::dead:beef:0:12", Ipv6Address.parse("ffce:0:0:0:dead:beef:0:12").toString());
     }
-    
+
+    @Test
+    public void shouldCompressLeftmostLongestSequenceOfZeroes() {
+        assertEquals("ffce::dead:0:0:0", Ipv6Address.parse("ffce:0:0:0:dead:0:0:0").toString());
+    }
+
+    @Test
+    public void shouldNotCompressSingleZero() {
+        assertEquals("ffce:0:a:0:dead:0:b:0", Ipv6Address.parse("ffce:0:a:0:dead:0:b:0").toString());
+    }
+
+    @Test
+    public void shouldCompressOnLeft() {
+        assertEquals("::a:0:dead:0:b:0", Ipv6Address.parse("0:0:a:0:dead:0:b:0").toString());
+    }
+
+    @Test
+    public void shouldCompressOnRight() {
+        assertEquals("a:0:a:0:dead::", Ipv6Address.parse("a:0:a:0:dead:0:0:0").toString());
+    }
+
+    @Test
+    public void shouldCompressOnLeftNotRight() {
+        assertEquals("::a:0:dead:a:0:0", Ipv6Address.parse("0:0:a:0:dead:a:0:0").toString());
+    }
+
     @Test
     public void testCompareTo() {
         assertTrue(parse("ffce::32").compareTo(parse("ffce::32")) == 0);
@@ -118,5 +144,5 @@ public class Ipv6AddressTest {
         assertFalse(parse("ffff::ffff").isValidNetmask());
         assertFalse(parse("::").isValidNetmask());
     }
-    
+
 }
