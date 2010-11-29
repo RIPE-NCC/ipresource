@@ -83,6 +83,7 @@ public class IpRange extends IpResourceRange {
 
             while ((currentSizeOfPrefix.compareTo(maximumSizeOfPrefix) > 0) && (maximumPrefixLength > 0)) {
                 maximumPrefixLength--;
+
                 currentSizeOfPrefix = BigInteger.valueOf(2).pow(maximumPrefixLength);
             }
 
@@ -97,16 +98,18 @@ public class IpRange extends IpResourceRange {
         return prefixes;
     }
 
-    private static int getMaximumLengthOfPrefixStartingAtIpAddressValue(BigInteger ipAddressValue, int power) {
-        while ((power >= 0) && !canBeDividedByThePowerOfTwo(ipAddressValue, power)) {
-            power--;
+    private int getMaximumLengthOfPrefixStartingAtIpAddressValue(BigInteger ipAddressValue, int startingPrefixLength) {
+        int prefixLength = startingPrefixLength;
+
+        while ((prefixLength >= 0) && !canBeDividedByThePowerOfTwo(ipAddressValue, prefixLength)) {
+            prefixLength--;
         }
 
-        return power;
+        return prefixLength;
     }
 
-    private static boolean canBeDividedByThePowerOfTwo(BigInteger ipAddressValue, int power) {
-        return ipAddressValue.remainder(BigInteger.valueOf(2).pow(power)).equals(BigInteger.ZERO);
+    private boolean canBeDividedByThePowerOfTwo(BigInteger number, int power) {
+        return number.remainder(BigInteger.valueOf(2).pow(power)).equals(BigInteger.ZERO);
     }
 
     @Override

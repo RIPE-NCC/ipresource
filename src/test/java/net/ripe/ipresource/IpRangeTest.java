@@ -42,16 +42,15 @@ public class IpRangeTest {
 
     @Test
     public void shouldConvertIPv4RangeToPrefixesIfRangeIsNotALegalPrefix() {
-        IpRange ipRange = IpRange.parse("188.247.21.0 - 188.247.28.255");
-        List<IpRange> prefixes = ipRange.splitToPrefixes();
+        List<IpRange> prefixes = IpRange.parse("188.247.21.0 - 188.247.28.255").splitToPrefixes();
 
-        assertThat(prefixes, is(Arrays.asList(IpRange.parse("188.247.21.0/24"), IpRange.parse("188.247.22.0/23"), IpRange.parse("188.247.24.0/22"), IpRange.parse("188.247.28.0/24"))));
+        assertThat(prefixes, is(Arrays.asList(IpRange.parse("188.247.21.0/24"), IpRange.parse("188.247.22.0/23"),
+                IpRange.parse("188.247.24.0/22"), IpRange.parse("188.247.28.0/24"))));
     }
 
     @Test
     public void shouldConvertIPv4RangeToPrefixIfRangeIsALegalPrefix() {
-        IpRange ipRange = IpRange.parse("188.247.0.0 - 188.247.255.255");
-        List<IpRange> prefixes = ipRange.splitToPrefixes();
+        List<IpRange> prefixes = IpRange.parse("188.247.0.0 - 188.247.255.255").splitToPrefixes();
 
         assertThat(prefixes, is(Arrays.asList(IpRange.parse("188.247.0.0/16"))));
     }
@@ -59,8 +58,7 @@ public class IpRangeTest {
 
     @Test
     public void shouldConvertIPv6RangeToPrefixesIfRangeIsNotALegalPrefix() {
-        IpRange ipRange = IpRange.parse("2001:67c:2e8:13:21e:c2ff:0:0 - 2001:67c:2e8:13:21e:c2ff:7f:0");
-        List<IpRange> prefixes = ipRange.splitToPrefixes();
+        List<IpRange> prefixes = IpRange.parse("2001:67c:2e8:13:21e:c2ff:0:0 - 2001:67c:2e8:13:21e:c2ff:7f:0").splitToPrefixes();
 
         assertThat(prefixes, is(Arrays.asList(IpRange.parse("2001:67c:2e8:13:21e:c2ff::/106"), IpRange.parse("2001:67c:2e8:13:21e:c2ff:40:0/107"),
                 IpRange.parse("2001:67c:2e8:13:21e:c2ff:60:0/108"), IpRange.parse("2001:67c:2e8:13:21e:c2ff:70:0/109"),
@@ -70,8 +68,7 @@ public class IpRangeTest {
 
     @Test
     public void shouldConvertIPv6RangeToPrefixIfRangeIsALegalPrefix() {
-        IpRange ipRange = IpRange.parse("2001:0:0:0:0:0:0:0 - 2001:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
-        List<IpRange> prefixes = ipRange.splitToPrefixes();
+        List<IpRange> prefixes = IpRange.parse("2001:0:0:0:0:0:0:0 - 2001:ffff:ffff:ffff:ffff:ffff:ffff:ffff").splitToPrefixes();
 
         assertThat(prefixes, is(Arrays.asList(IpRange.parse("2001::/16"))));
     }
