@@ -1,6 +1,10 @@
 package net.ripe.ipresource;
 
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
+
+import java.util.Arrays;
+import java.util.List;
 
 import org.junit.Test;
 
@@ -35,7 +39,43 @@ public class IpRangeTest {
         assertFalse(RANGE_127_128.overlaps(IpRange.range(IpAddress.parse("100.0.0.10"), IpAddress.parse("101.0.0.0"))));
         assertFalse(RANGE_127_128.overlaps(IpRange.range(IpAddress.parse("180.0.0.10"), IpAddress.parse("181.0.0.0"))));
     }
-    
+
+    @Test
+    public void shouldConvertIPv4RangeToPrefixesIfRangeIsNotALegalPrefix() {
+        IpRange ipRange = IpRange.parse("188.247.21.0 - 188.247.28.255");
+        List<IpRange> prefixes = ipRange.splitToPrefixes();
+
+        assertThat(prefixes, is(Arrays.asList(IpRange.parse("188.247.21.0/24"), IpRange.parse("188.247.22.0/23"), IpRange.parse("188.247.24.0/22"), IpRange.parse("188.247.28.0/24"))));
+    }
+
+    @Test
+    public void shouldConvertIPv4RangeToPrefixIfRangeIsALegalPrefix() {
+        IpRange ipRange = IpRange.parse("188.247.0.0 - 188.247.255.255");
+        List<IpRange> prefixes = ipRange.splitToPrefixes();
+
+        assertThat(prefixes, is(Arrays.asList(IpRange.parse("188.247.0.0/16"))));
+    }
+
+
+    @Test
+    public void shouldConvertIPv6RangeToPrefixesIfRangeIsNotALegalPrefix() {
+        IpRange ipRange = IpRange.parse("2001:67c:2e8:13:21e:c2ff:0:0 - 2001:67c:2e8:13:21e:c2ff:7f:0");
+        List<IpRange> prefixes = ipRange.splitToPrefixes();
+
+        assertThat(prefixes, is(Arrays.asList(IpRange.parse("2001:67c:2e8:13:21e:c2ff::/106"), IpRange.parse("2001:67c:2e8:13:21e:c2ff:40:0/107"),
+                IpRange.parse("2001:67c:2e8:13:21e:c2ff:60:0/108"), IpRange.parse("2001:67c:2e8:13:21e:c2ff:70:0/109"),
+                IpRange.parse("2001:67c:2e8:13:21e:c2ff:78:0/110"), IpRange.parse("2001:67c:2e8:13:21e:c2ff:7c:0/111"),
+                IpRange.parse("2001:67c:2e8:13:21e:c2ff:7e:0/112"), IpRange.parse("2001:67c:2e8:13:21e:c2ff:7f:0/128"))));
+    }
+
+    @Test
+    public void shouldConvertIPv6RangeToPrefixIfRangeIsALegalPrefix() {
+        IpRange ipRange = IpRange.parse("2001:0:0:0:0:0:0:0 - 2001:ffff:ffff:ffff:ffff:ffff:ffff:ffff");
+        List<IpRange> prefixes = ipRange.splitToPrefixes();
+
+        assertThat(prefixes, is(Arrays.asList(IpRange.parse("2001::/16"))));
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void shouldRejectAsnRanges() {
         IpRange.parse("AS3333-AS4444");
@@ -50,5 +90,4 @@ public class IpRangeTest {
     public void shouldCheckPrefixLength_NotGreatherThanAddressBitSize() {
         IpRange.prefix(IpAddress.parse("127.0.0.0"), 34);
     }
-
 }

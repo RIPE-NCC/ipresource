@@ -1,5 +1,11 @@
 package net.ripe.ipresource;
 
+import static net.ripe.ipresource.IpResourceType.*;
+
+import java.math.BigInteger;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.apache.commons.lang.Validate;
 
 /**
@@ -62,6 +68,45 @@ public class IpRange extends IpResourceRange {
 
     public int getPrefixLength() {
         return getStart().getCommonPrefixLength(getEnd());
+    }
+
+    public List<IpRange> splitToPrefixes() {
+        BigInteger rangeEnd = getEnd().getValue();
+        BigInteger currentRangeStart = getStart().getValue();
+        int startingPrefixLength = (getType() == IPv4) ? 32 : 128;
+        List<IpRange> prefixes = new LinkedList<IpRange>();
+
+        while (currentRangeStart.compareTo(rangeEnd) <= 0) {
+            int maximumPrefixLength = getMaximumLengthOfPrefixStartingAtIpAddressValue(currentRangeStart, startingPrefixLength);
+            BigInteger maximumSizeOfPrefix = rangeEnd.subtract(currentRangeStart).add(BigInteger.ONE);
+            BigInteger currentSizeOfPrefix = BigInteger.valueOf(2).pow(maximumPrefixLength);
+
+            while ((currentSizeOfPrefix.compareTo(maximumSizeOfPrefix) > 0) && (maximumPrefixLength > 0)) {
+                maximumPrefixLength--;
+                currentSizeOfPrefix = BigInteger.valueOf(2).pow(maximumPrefixLength);
+            }
+
+            BigInteger currentRangeEnd = currentRangeStart.add(BigInteger.valueOf(2).pow(maximumPrefixLength).subtract(BigInteger.ONE));
+            IpRange prefix = (IpRange) IpResourceRange.assemble(currentRangeStart, currentRangeEnd, getType());
+
+            prefixes.add(prefix);
+
+            currentRangeStart = currentRangeEnd.add(BigInteger.ONE);
+        }
+
+        return prefixes;
+    }
+
+    private static int getMaximumLengthOfPrefixStartingAtIpAddressValue(BigInteger ipAddressValue, int power) {
+        while ((power >= 0) && !canBeDividedByThePowerOfTwo(ipAddressValue, power)) {
+            power--;
+        }
+
+        return power;
+    }
+
+    private static boolean canBeDividedByThePowerOfTwo(BigInteger ipAddressValue, int power) {
+        return ipAddressValue.remainder(BigInteger.valueOf(2).pow(power)).equals(BigInteger.ZERO);
     }
 
     @Override
