@@ -13,15 +13,15 @@ import org.junit.Test;
  */
 public class IpRangeTest {
 
-    public static final IpRange RANGE_127_128 = IpRange.range(IpAddress.parse("127.0.0.0"), IpAddress.parse("128.0.0.0"));
-    public static final IpRange PREFIX_127_8 = IpRange.prefix(IpAddress.parse("127.0.0.0"), 8);
+    public static final IpRange RANGE_127_128 = new Ipv4Range(Ipv4Address.parse("127.0.0.0"), Ipv4Address.parse("128.0.0.0"));
+    public static final IpRange PREFIX_127_8 = Ipv4Range.prefix(Ipv4Address.parse("127.0.0.0"), 8);
 
     @Test
     public void shouldSupportPrefixNotation() {
         assertEquals(PREFIX_127_8, IpRange.parse("127.0.0.0/8"));
         assertEquals("127.0.0.0/8", PREFIX_127_8.toString());
-        assertEquals(Ipv4Address.parse("127.0.0.0"), PREFIX_127_8.getStart());
-        assertEquals(Ipv4Address.parse("127.255.255.255"), PREFIX_127_8.getEnd());
+        assertEquals(Ipv4Address.parse("127.0.0.0"), PREFIX_127_8.start);
+        assertEquals(Ipv4Address.parse("127.255.255.255"), PREFIX_127_8.end);
     }
 
     @Test
@@ -32,45 +32,45 @@ public class IpRangeTest {
 
     @Test
     public void shouldSupportOverlap() {
-        assertTrue(RANGE_127_128.overlaps(IpRange.range(IpAddress.parse("100.0.0.0"), IpAddress.parse("200.0.0.0"))));
-        assertTrue(RANGE_127_128.overlaps(IpRange.range(IpAddress.parse("127.0.0.10"), IpAddress.parse("127.0.0.10"))));
-        assertTrue(RANGE_127_128.overlaps(IpRange.range(IpAddress.parse("127.0.0.10"), IpAddress.parse("129.0.0.10"))));
-        assertTrue(RANGE_127_128.overlaps(IpRange.range(IpAddress.parse("100.0.0.10"), IpAddress.parse("127.0.0.10"))));
-        assertFalse(RANGE_127_128.overlaps(IpRange.range(IpAddress.parse("100.0.0.10"), IpAddress.parse("101.0.0.0"))));
-        assertFalse(RANGE_127_128.overlaps(IpRange.range(IpAddress.parse("180.0.0.10"), IpAddress.parse("181.0.0.0"))));
+        assertTrue(RANGE_127_128.overlaps(new Ipv4Range(Ipv4Address.parse("100.0.0.0"), Ipv4Address.parse("200.0.0.0"))));
+        assertTrue(RANGE_127_128.overlaps(new Ipv4Range(Ipv4Address.parse("127.0.0.10"), Ipv4Address.parse("127.0.0.10"))));
+        assertTrue(RANGE_127_128.overlaps(new Ipv4Range(Ipv4Address.parse("127.0.0.10"), Ipv4Address.parse("129.0.0.10"))));
+        assertTrue(RANGE_127_128.overlaps(new Ipv4Range(Ipv4Address.parse("100.0.0.10"), Ipv4Address.parse("127.0.0.10"))));
+        assertFalse(RANGE_127_128.overlaps(new Ipv4Range(Ipv4Address.parse("100.0.0.10"), Ipv4Address.parse("101.0.0.0"))));
+        assertFalse(RANGE_127_128.overlaps(new Ipv4Range(Ipv4Address.parse("180.0.0.10"), Ipv4Address.parse("181.0.0.0"))));
     }
 
     @Test
     public void shouldConvertIPv4RangeToPrefixesIfRangeIsNotALegalPrefix() {
-        List<IpRange> prefixes = IpRange.parse("188.247.21.0 - 188.247.28.255").splitToPrefixes();
+        List<Ipv4Range> prefixes = Ipv4Range.parse("188.247.21.0 - 188.247.28.255").splitToPrefixes();
 
-        assertThat(prefixes, is(Arrays.asList(IpRange.parse("188.247.21.0/24"), IpRange.parse("188.247.22.0/23"),
-                IpRange.parse("188.247.24.0/22"), IpRange.parse("188.247.28.0/24"))));
+        assertThat(prefixes, is(Arrays.asList(Ipv4Range.parse("188.247.21.0/24"), Ipv4Range.parse("188.247.22.0/23"),
+                Ipv4Range.parse("188.247.24.0/22"), Ipv4Range.parse("188.247.28.0/24"))));
     }
 
     @Test
     public void shouldConvertIPv4RangeToPrefixIfRangeIsALegalPrefix() {
-        List<IpRange> prefixes = IpRange.parse("188.247.0.0 - 188.247.255.255").splitToPrefixes();
+        List<Ipv4Range> prefixes = Ipv4Range.parse("188.247.0.0 - 188.247.255.255").splitToPrefixes();
 
-        assertThat(prefixes, is(Arrays.asList(IpRange.parse("188.247.0.0/16"))));
+        assertThat(prefixes, is(Arrays.asList(Ipv4Range.parse("188.247.0.0/16"))));
     }
 
 
     @Test
     public void shouldConvertIPv6RangeToPrefixesIfRangeIsNotALegalPrefix() {
-        List<IpRange> prefixes = IpRange.parse("2001:67c:2e8:13:21e:c2ff:0:0 - 2001:67c:2e8:13:21e:c2ff:7f:0").splitToPrefixes();
+        List<Ipv6Range> prefixes = Ipv6Range.parse("2001:67c:2e8:13:21e:c2ff:0:0 - 2001:67c:2e8:13:21e:c2ff:7f:0").splitToPrefixes();
 
-        assertThat(prefixes, is(Arrays.asList(IpRange.parse("2001:67c:2e8:13:21e:c2ff::/106"), IpRange.parse("2001:67c:2e8:13:21e:c2ff:40:0/107"),
-                IpRange.parse("2001:67c:2e8:13:21e:c2ff:60:0/108"), IpRange.parse("2001:67c:2e8:13:21e:c2ff:70:0/109"),
-                IpRange.parse("2001:67c:2e8:13:21e:c2ff:78:0/110"), IpRange.parse("2001:67c:2e8:13:21e:c2ff:7c:0/111"),
-                IpRange.parse("2001:67c:2e8:13:21e:c2ff:7e:0/112"), IpRange.parse("2001:67c:2e8:13:21e:c2ff:7f:0/128"))));
+        assertThat(prefixes, is(Arrays.asList(Ipv6Range.parse("2001:67c:2e8:13:21e:c2ff::/106"), Ipv6Range.parse("2001:67c:2e8:13:21e:c2ff:40:0/107"),
+                Ipv6Range.parse("2001:67c:2e8:13:21e:c2ff:60:0/108"), Ipv6Range.parse("2001:67c:2e8:13:21e:c2ff:70:0/109"),
+                Ipv6Range.parse("2001:67c:2e8:13:21e:c2ff:78:0/110"), Ipv6Range.parse("2001:67c:2e8:13:21e:c2ff:7c:0/111"),
+                Ipv6Range.parse("2001:67c:2e8:13:21e:c2ff:7e:0/112"), Ipv6Range.parse("2001:67c:2e8:13:21e:c2ff:7f:0/128"))));
     }
 
     @Test
     public void shouldConvertIPv6RangeToPrefixIfRangeIsALegalPrefix() {
-        List<IpRange> prefixes = IpRange.parse("2001:0:0:0:0:0:0:0 - 2001:ffff:ffff:ffff:ffff:ffff:ffff:ffff").splitToPrefixes();
+        List<Ipv6Range> prefixes = Ipv6Range.parse("2001:0:0:0:0:0:0:0 - 2001:ffff:ffff:ffff:ffff:ffff:ffff:ffff").splitToPrefixes();
 
-        assertThat(prefixes, is(Arrays.asList(IpRange.parse("2001::/16"))));
+        assertThat(prefixes, is(Arrays.asList(Ipv6Range.parse("2001::/16"))));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -80,11 +80,11 @@ public class IpRangeTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldCheckPrefixLength_NonNegative() {
-        IpRange.prefix(IpAddress.parse("127.0.0.0"), -4);
+        Ipv4Range.prefix(Ipv4Address.parse("127.0.0.0"), -4);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldCheckPrefixLength_NotGreatherThanAddressBitSize() {
-        IpRange.prefix(IpAddress.parse("127.0.0.0"), 34);
+        Ipv4Range.prefix(Ipv4Address.parse("127.0.0.0"), 34);
     }
 }

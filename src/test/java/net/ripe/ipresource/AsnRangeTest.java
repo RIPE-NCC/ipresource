@@ -7,7 +7,7 @@ import org.junit.Test;
 /**
  * Tests for {@link Asn}.
  */
-public class AsnTest {
+public class AsnRangeTest {
 
     public static final Asn ASN3333 = new Asn(3333);
     public static final Asn ASN12_3333 = new Asn((12 << 16) | 3333);
@@ -80,8 +80,8 @@ public class AsnTest {
         assertTrue(Asn.parse("AS3333").compareTo(Asn.parse("AS3333")) == 0);
         assertTrue(Asn.parse("AS3333").compareTo(Asn.parse("AS3334")) < 0);
         assertTrue(Asn.parse("AS3333").compareTo(Asn.parse("AS3332")) > 0);
-       // assertTrue(Asn.parse("AS3333").compareTo(Asn.parse("AS3333").upTo(Asn.parse("AS3333"))) == 0);
-       // assertTrue(Asn.parse("AS3333").upTo(Asn.parse("AS3333")).compareTo(Asn.parse("AS3333")) == 0);
+//        assertTrue(Asn.parse("AS3333").compareTo(Asn.parse("AS3333").upTo(Asn.parse("AS3333"))) == 0);
+//        assertTrue(Asn.parse("AS3333").upTo(Asn.parse("AS3333")).compareTo(Asn.parse("AS3333")) == 0);
     }
     
 }

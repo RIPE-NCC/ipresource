@@ -3,7 +3,6 @@ package net.ripe.ipresource;
 import java.math.BigInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.apache.commons.lang.Validate;
 
 /**
@@ -18,44 +17,22 @@ public class Ipv6Address extends IpAddress {
      */
     private BigInteger PART_MASK = BigInteger.valueOf(0xffff);
 
-    private final BigInteger value;
-
     public Ipv6Address(BigInteger value) {
-        super(IpResourceType.IPv6);
-        this.value = value;
+        super(value);
     }
 
-    @Override
-    protected int doHashCode() {
-        return value.hashCode();
+    public int getCommonPrefixLength(Ipv6Address other) {
+        BigInteger temp = value.xor(other.value);
+        return getBitSize() - temp.bitLength();
     }
 
-    @Override
-    protected int doCompareTo(IpResource obj) {
-        if (obj instanceof Ipv6Address) {
-            Ipv6Address that = (Ipv6Address) obj;
-            return this.getValue().compareTo(that.getValue());
-        } else {
-            return super.doCompareTo(obj);
-        }
-    }
-
-    @Override
-    public int getCommonPrefixLength(UniqueIpResource other) {
-        Validate.isTrue(getType() == other.getType(), "incompatible resource types");
-        BigInteger temp = this.getValue().xor(other.getValue());
-        return getType().getBitSize() - temp.bitLength();
-    }
-
-    @Override
     public Ipv6Address lowerBoundForPrefix(int prefixLength) {
-        BigInteger mask = bitMask(0, getType()).xor(bitMask(prefixLength, getType()));
-        return new Ipv6Address(this.getValue().and(mask));
+        BigInteger mask = bitMask(0).xor(bitMask(prefixLength));
+        return new Ipv6Address(value.and(mask));
     }
 
-    @Override
-    public IpAddress upperBoundForPrefix(int prefixLength) {
-        return new Ipv6Address(this.getValue().or(bitMask(prefixLength, getType())));
+    public Ipv6Address upperBoundForPrefix(int prefixLength) {
+        return new Ipv6Address(value.or(bitMask(prefixLength)));
     }
 
     public static Ipv6Address parse(String ipAddressString) {
@@ -83,6 +60,15 @@ public class Ipv6Address extends IpAddress {
         return new Ipv6Address(ipv6StringtoBigInteger(ipAddressString));
     }
 
+    public Ipv6Address getCommonPrefix(Ipv6Address other) {
+        return lowerBoundForPrefix(getCommonPrefixLength(other));
+    }
+    
+    public Ipv6Address stripLeastSignificantOnes() {
+        int leastSignificantZero = getLeastSignificantZero();
+        return new Ipv6Address(value.shiftRight(leastSignificantZero).shiftLeft(leastSignificantZero));
+    }
+    
     /**
      * Converts a fully expanded IPv6 string to a BigInteger
      *
@@ -111,7 +97,7 @@ public class Ipv6Address extends IpAddress {
         int maxZeroLength = 0;
         int maxZeroIndex = 0;
         for (int i = 7; i >= 0; i--) {
-            list[i] = getValue().shiftRight(i*16).and(PART_MASK).longValue();
+            list[i] = value.shiftRight(i*16).and(PART_MASK).longValue();
 
             if (list[i] == 0) {
                 currentZeroLength ++;
@@ -149,16 +135,15 @@ public class Ipv6Address extends IpAddress {
 
 
     // -------------------------------------------------------------------------------- HELPERS
-
-    @Override
-    public final BigInteger getValue() {
-        return value;
+    
+    private BigInteger bitMask(int prefixLength) {
+        final BigInteger MINUS_ONE = new BigInteger("-1");
+        return BigInteger.ONE.shiftLeft(getBitSize() - prefixLength).add(MINUS_ONE);
     }
 
-    @Override
     public boolean isValidNetmask() {
         int bitLength = value.bitLength();
-        if (bitLength < IpResourceType.IPv6.getBitSize()) {
+        if (bitLength < getBitSize()) {
             return false;
         }
 
@@ -195,4 +180,24 @@ public class Ipv6Address extends IpAddress {
         return doubleColonCount;
     }
 
+    @Override
+    protected int getBitSize() {
+        return 128;
+    }
+
+    @Override
+    public int compareTo(Resource other) {
+        if (other instanceof Ipv6Address) {
+            return value.compareTo(other.value);
+        }
+        return 1;
+    }
+    
+    public Ipv6Address successor() {
+        return new Ipv6Address(value.add(BigInteger.ONE));
+    }
+
+    public Ipv6Address predecessor() {
+        return new Ipv6Address(value.subtract(BigInteger.ONE));
+    }
 }

@@ -61,8 +61,8 @@ public class Ipv4AddressTest {
         // Bigger ranges are sorted before smaller ranges, just like smaller
         // prefixes (bigger space) are sorted before larger prefixes (smaller
         // space).
-        assertTrue(IpRange.parse("193.0.0.0/8").compareTo(IpRange.parse("193.0.0.0-195.255.255.255")) > 0);
-        assertTrue(IpRange.parse("193.0.0.0-193.1.255.255").compareTo(IpRange.parse("193.0.0.0-195.255.255.255")) > 0);
+        assertTrue(ResourceRange.parse("193.0.0.0/8").compareTo(ResourceRange.parse("193.0.0.0-195.255.255.255")) > 0);
+        assertTrue(ResourceRange.parse("193.0.0.0-193.1.255.255").compareTo(ResourceRange.parse("193.0.0.0-195.255.255.255")) > 0);
     }
 
     @Test

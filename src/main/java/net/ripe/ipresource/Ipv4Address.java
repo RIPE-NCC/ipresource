@@ -2,8 +2,6 @@ package net.ripe.ipresource;
 
 import java.math.BigInteger;
 
-import org.apache.commons.lang.Validate;
-
 public class Ipv4Address extends IpAddress {
 
 	private static final long serialVersionUID = 2L;
@@ -12,26 +10,25 @@ public class Ipv4Address extends IpAddress {
 
 	public static final int NUMBER_OF_BITS = 32;
 
-	private static final long MINIMUM_VALUE = 0;
-	private static final long MAXIMUM_VALUE = (1L << NUMBER_OF_BITS) - 1;
+//	private static final long MINIMUM_VALUE = 0;
+//	private static final long MAXIMUM_VALUE = (1L << NUMBER_OF_BITS) - 1;
 	
-	// Use long to easily represent 32-bit unsigned integers.
-    private final long value;
-
-    @Deprecated
     public Ipv4Address(BigInteger value) {
-        this(value.longValue());
+        super(value);
     }
     
-	public Ipv4Address(long value) {
-		super(IpResourceType.IPv4);
-		Validate.isTrue(value >= MINIMUM_VALUE && value <= MAXIMUM_VALUE, "value out of range");
-		this.value = value;
-	}
-
 	public static Ipv4Address parse(String s) {
 	    return parse(s, false);
 	}
+	
+	public Ipv4Address getCommonPrefix(Ipv4Address other) {
+        return lowerBoundForPrefix(getCommonPrefixLength(other));
+    }
+	
+    public Ipv4Address stripLeastSignificantOnes() {
+        int leastSignificantZero = getLeastSignificantZero();
+        return new Ipv4Address(value.shiftRight(leastSignificantZero).shiftLeft(leastSignificantZero));
+    }
 
 	public static Ipv4Address parse(String s, boolean defaultMissingOctets) {
 	    if (s != null) {
@@ -73,7 +70,7 @@ public class Ipv4Address extends IpAddress {
             throw new IllegalArgumentException("invalid IPv4 address: " + s);
         }
 
-        return new Ipv4Address(value);
+        return new Ipv4Address(BigInteger.valueOf(value));
 	}
 
     private static long addOctet(long value, int octet) {
@@ -85,7 +82,7 @@ public class Ipv4Address extends IpAddress {
     }
 
     public String toString(boolean defaultMissingOctets) {
-        long value = getValue().longValue();
+        long value = this.value.longValue();
         int a = (int) (value >> 24);
         int b = (int) (value >> 16) & BYTE_MASK;
         int c = (int) (value >> 8) & BYTE_MASK;
@@ -103,60 +100,49 @@ public class Ipv4Address extends IpAddress {
             return a + "." + b + "." + c + "." + d;
         }
     }
-
-    public long longValue() {
-        return value;
-    }
     
-    @Override
-    protected int doHashCode() {
-        return (int) value;
+    public Ipv4Address successor() {
+        return new Ipv4Address(value.add(BigInteger.ONE));
     }
 
-    @Override
-    protected int doCompareTo(IpResource obj) {
-        if (obj instanceof Ipv4Address) {
-            long otherValue = ((Ipv4Address) obj).value;
-            if (value < otherValue) {
-                return -1;
-            } else if (value > otherValue) {
-                return +1;
-            } else {
-                return 0;
-            }
-        } else {
-            return super.doCompareTo(obj);
-        }
-    }
-    
-    public final BigInteger getValue() {
-        return BigInteger.valueOf(value);
+    public Ipv4Address predecessor() {
+        return new Ipv4Address(value.subtract(BigInteger.ONE));
     }
 
-    @Override
-    public int getCommonPrefixLength(UniqueIpResource other) {
-        Validate.isTrue(getType() == other.getType(), "incompatible resource types");
-        long temp = value ^ ((Ipv4Address) other).value;
+    public int getCommonPrefixLength(Ipv4Address other) {
+        long temp = value.longValue() ^ other.value.longValue();
         return Integer.numberOfLeadingZeros((int) temp);
     }
 
-    @Override
     public Ipv4Address lowerBoundForPrefix(int prefixLength) {
         long mask = ~((1L << (NUMBER_OF_BITS - prefixLength)) -  1);
-        return new Ipv4Address(value & mask);
+        return new Ipv4Address(BigInteger.valueOf(value.longValue() & mask));
+    }
+
+    public Ipv4Address upperBoundForPrefix(int prefixLength) {
+        long mask = (1L << (NUMBER_OF_BITS - prefixLength)) -  1;
+        return new Ipv4Address(BigInteger.valueOf(value.longValue() | mask));
+    }
+    
+    public boolean isValidNetmask() {
+        int leadingOnesCount = Integer.numberOfLeadingZeros(~(int) value.longValue());
+        int trailingZeroesCount = Integer.numberOfTrailingZeros((int) value.longValue());
+        return leadingOnesCount > 0 && (leadingOnesCount + trailingZeroesCount) == NUMBER_OF_BITS;
     }
 
     @Override
-    public Ipv4Address upperBoundForPrefix(int prefixLength) {
-        long mask = (1L << (NUMBER_OF_BITS - prefixLength)) -  1;
-        return new Ipv4Address(value | mask);
+    protected int getBitSize() {
+        return 32;
     }
-    
+
     @Override
-    public boolean isValidNetmask() {
-        int leadingOnesCount = Integer.numberOfLeadingZeros(~(int) value);
-        int trailingZeroesCount = Integer.numberOfTrailingZeros((int) value);
-        return leadingOnesCount > 0 && (leadingOnesCount + trailingZeroesCount) == NUMBER_OF_BITS;
+    public int compareTo(Resource other) {
+        if (other instanceof Ipv4Address) {
+            return value.compareTo(other.value);
+        }
+        if (other instanceof Asn) {
+            return 1;
+        }
+        return -1;
     }
-    
 }
