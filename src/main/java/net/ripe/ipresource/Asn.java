@@ -1,31 +1,65 @@
+/**
+ * The BSD License
+ *
+ * Copyright (c) 2010, 2011 RIPE NCC
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *   - Redistributions of source code must retain the above copyright notice,
+ *     this list of conditions and the following disclaimer.
+ *   - Redistributions in binary form must reproduce the above copyright notice,
+ *     this list of conditions and the following disclaimer in the documentation
+ *     and/or other materials provided with the distribution.
+ *   - Neither the name of the RIPE NCC nor the names of its contributors may be
+ *     used to endorse or promote products derived from this software without
+ *     specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
 package net.ripe.ipresource;
 
 import java.math.BigInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import net.ripe.ipresource.Resource;
+
 import org.apache.commons.lang.Validate;
 
-public class Asn extends Resource {
+/**
+ * Immutable value object for Autonomous System Numbers.
+ */
+public class Asn extends UniqueIpResource {
 
-    private static final long serialVersionUID = 2L;
+	private static final long serialVersionUID = 2L;
 
-    private static final long ASN_MIN_VALUE = 0L;
-    private static final long ASN16_MAX_VALUE = (1L << 16) - 1L;
-    private static final long ASN32_MAX_VALUE = (1L << 32) - 1L;
+	private static final Pattern ASN_TEXT_PATTERN = Pattern.compile("(?:AS)?(\\d+)(\\.(\\d+))?", Pattern.CASE_INSENSITIVE);
 
-    private static final Pattern ASN_TEXT_PATTERN = Pattern.compile("(?:AS)?(\\d+)(\\.(\\d+))?", Pattern.CASE_INSENSITIVE);
+    private static long ASN_MIN_VALUE = 0L;
+    private static long ASN16_MAX_VALUE = (1L << 16) - 1L;
+    private static long ASN32_MAX_VALUE = (1L << 32) - 1L;
 
+    // Use long to easily represent 32-bit unsigned integers.
+    private final long value;
+
+    @Deprecated
     public Asn(BigInteger value) {
-        super(value);
+        this(value.longValue());
     }
     
-    public Asn(int value) {
-        super(BigInteger.valueOf(value));
-    }
-
     public Asn(long value) {
-        super(BigInteger.valueOf(value));
+        super(IpResourceType.ASN);
+        checkRange(value, ASN32_MAX_VALUE);
+        this.value = value;
     }
 
     public static Asn parse(String text) {
@@ -33,9 +67,13 @@ public class Asn extends Resource {
             return null;
         }
 
-        Matcher matcher = ASN_TEXT_PATTERN.matcher(text.trim());
-        
-        Validate.isTrue(matcher.matches(), "Not a legal ASN: " + text);
+        text = text.trim();
+
+        Matcher matcher = ASN_TEXT_PATTERN.matcher(text);
+
+        if (!matcher.matches()) {
+            throw new IllegalArgumentException("not a legal ASN: " + text);
+        }
 
         long high = 0L;
         long low;
@@ -52,28 +90,61 @@ public class Asn extends Resource {
             checkRange(low, ASN32_MAX_VALUE);
         }
 
-        return new Asn(BigInteger.valueOf((high << 16) | low));
+        return new Asn((high << 16) | low);
     }
 
     private static void checkRange(long value, long max) {
         Validate.isTrue(value >= ASN_MIN_VALUE);
         Validate.isTrue(value <= max);
     }
-
+    
     public long longValue() {
-        return value.longValue();
+        return value;
     }
 
+    @Override
+    protected int doHashCode() {
+        return (int) value;
+    }
+
+    @Override
+    protected int doCompareTo(IpResource obj) {
+        if (obj instanceof Asn) {
+            long otherValue = ((Asn) obj).value;
+            if (value < otherValue) {
+                return -1;
+            } else if (value > otherValue) {
+                return +1;
+            } else {
+                return 0;
+            }
+        } else {
+            return super.doCompareTo(obj);
+        }
+    }
+    
     @Override
     public String toString() {
         return "AS" + value;
     }
 
     @Override
-    public int compareTo(Resource other) {
-        if (other instanceof Asn) {
-            return value.compareTo(other.value);
-        }
-        return -1;
+    public int getCommonPrefixLength(UniqueIpResource other) {
+        throw new UnsupportedOperationException("prefix notation not supported for ASN resources");
     }
+
+    @Override
+    public IpAddress lowerBoundForPrefix(int prefixLength) {
+        throw new UnsupportedOperationException("prefix notation not supported for ASN resources");
+    }
+
+    @Override
+    public IpAddress upperBoundForPrefix(int prefixLength) {
+        throw new UnsupportedOperationException("prefix notation not supported for ASN resources");
+    }
+
+    public final BigInteger getValue() {
+        return BigInteger.valueOf(value);
+    }
+
 }
