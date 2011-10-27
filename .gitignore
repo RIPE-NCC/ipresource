@@ -1,5 +1,15 @@
-/.classpath
-/.clover
-/.project
-/.settings
-/target
+target/
+*.out
+*.log
+*.epoch
+*.lck
+
+# Intellj
+*.iml
+*.ipr
+*.iws
+.idea/
+
+*.settings/
+*.classpath
+*.project
