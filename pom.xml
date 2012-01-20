@@ -91,6 +91,8 @@
 					<header>LICENSE.txt</header>
 					<excludes>
 						<exclude>**/*.txt</exclude>
+						<exclude>.gitignore</exclude>
+						<exclude>.idea/**/*.*</exclude>
 					</excludes>
 				</configuration>
 				<executions>
