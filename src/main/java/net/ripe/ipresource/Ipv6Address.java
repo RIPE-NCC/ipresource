@@ -88,20 +88,19 @@ public class Ipv6Address extends IpAddress {
     }
 
     public static Ipv6Address parse(String ipAddressString) {
-        if (ipAddressString != null) {
-            ipAddressString = ipAddressString.trim();
-        }
+        Validate.notNull(ipAddressString);
+        ipAddressString = ipAddressString.trim();
 
         Validate.isTrue(Pattern.matches("[0-9a-fA-F]{0,4}:([0-9a-fA-F]{0,4}:){1,6}[0-9a-fA-F]{0,4}", ipAddressString), "Invalid IPv6 address: " + ipAddressString);
+        Validate.isTrue(! ":::::::".equals(ipAddressString), "Invalid IPv6 address: " + ipAddressString);
 
         // Count number of colons: must be between 2 and 7
         int colonCount = countColons(ipAddressString);
-        int doubleColonCount = numberOfDoubleColons(ipAddressString);
 
         // The number of double colons must be exactly one if there's a missing colon.
         // The double colon will be the place that gets filled out to complete the address for easy parsing.
         if (colonCount < 7) {
-            Validate.isTrue(doubleColonCount == 1, "May only be one double colon in an IPv6 address");
+            Validate.isTrue(numberOfDoubleColons(ipAddressString) == 1, "There must be exactly one double colon if the IPv6 address is shortened");
 
             // Add extra colons
             ipAddressString = expandColons(ipAddressString);
@@ -115,7 +114,7 @@ public class Ipv6Address extends IpAddress {
     /**
      * Converts a fully expanded IPv6 string to a BigInteger
      *
-     * @param Fully expanded address (i.e. no '::' shortcut)
+     * @param ipAddressString Fully expanded address (i.e. no '::' shortcut)
      * @return Address as BigInteger
      */
     private static BigInteger ipv6StringtoBigInteger(String ipAddressString) {
@@ -211,7 +210,9 @@ public class Ipv6Address extends IpAddress {
         Pattern colonPattern = Pattern.compile(":");
         Matcher colonMatcher = colonPattern.matcher(ipv6String);
         int colonCount = 0;
-        while (colonMatcher.find()) { colonCount++ ; };
+        while (colonMatcher.find()) {
+            colonCount++;
+        }
         return colonCount;
     }
 
@@ -220,7 +221,9 @@ public class Ipv6Address extends IpAddress {
         Pattern doubleColonPattern = Pattern.compile("::");
         Matcher doubleColonMatcher = doubleColonPattern.matcher(ipv6String);
         int doubleColonCount = 0;
-        while (doubleColonMatcher.find()) { doubleColonCount++ ; };
+        while (doubleColonMatcher.find()) {
+            doubleColonCount++;
+        }
         return doubleColonCount;
     }
 

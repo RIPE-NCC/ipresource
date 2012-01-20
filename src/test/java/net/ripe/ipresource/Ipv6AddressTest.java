@@ -30,9 +30,7 @@
 package net.ripe.ipresource;
 
 import static net.ripe.ipresource.Ipv6Address.parse;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.math.BigInteger;
 
@@ -174,4 +172,23 @@ public class Ipv6AddressTest {
         assertFalse(parse("::").isValidNetmask());
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldNotParseIpv6AddressesWithLessThan7ColonsWithoutDoubleColon() {
+        parse("a:b:c");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldNotParseIpv6AddressesWithSeveralDoubleColons() {
+        parse("a::b::c");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldNotParseIpv6AddressesWith7ColonsOnly() {
+        parse(":::::::");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldNotParseNull() {
+        parse(null);
+    }
 }
