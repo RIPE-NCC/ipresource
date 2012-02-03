@@ -51,7 +51,7 @@ public abstract class IpAddress extends UniqueIpResource {
     			return Ipv6Address.parse(s);
     		}
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(String.format("illegal IP address: %s (%s)", s, e.getMessage()));
+            throw new IllegalArgumentException(String.format("Invalid IP address: " + s));
         }
     }
 

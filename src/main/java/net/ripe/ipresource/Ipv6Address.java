@@ -33,6 +33,7 @@ import java.math.BigInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 /**
@@ -41,6 +42,11 @@ import org.apache.commons.lang.Validate;
 public class Ipv6Address extends IpAddress {
 
     private static final long serialVersionUID = 2L;
+
+    /* Pattern to match IPv6 addresses in forms defined in http://www.ietf.org/rfc/rfc4291.txt */
+    private static final Pattern IPV6_PATTERN = Pattern.compile("(([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))");
+    private static final int COLON_COUNT_FOR_EMBEDDED_IPV4 = 6;
+    private static final int COLON_COUNT_IPV6 = 7;
 
     /**
      * Mask for 16 bits, which is the length of one part of an IPv6 address.
@@ -90,25 +96,33 @@ public class Ipv6Address extends IpAddress {
     public static Ipv6Address parse(String ipAddressString) {
         Validate.notNull(ipAddressString);
         ipAddressString = ipAddressString.trim();
+        Validate.isTrue(IPV6_PATTERN.matcher(ipAddressString).matches(), "Invalid IPv6 address: " + ipAddressString);
 
-        Validate.isTrue(Pattern.matches("[0-9a-fA-F]{0,4}:([0-9a-fA-F]{0,4}:){1,6}[0-9a-fA-F]{0,4}", ipAddressString), "Invalid IPv6 address: " + ipAddressString);
-        Validate.isTrue(! ":::::::".equals(ipAddressString), "Invalid IPv6 address: " + ipAddressString);
-
-        // Count number of colons: must be between 2 and 7
-        int colonCount = countColons(ipAddressString);
-
-        // The number of double colons must be exactly one if there's a missing colon.
-        // The double colon will be the place that gets filled out to complete the address for easy parsing.
-        if (colonCount < 7) {
-            Validate.isTrue(numberOfDoubleColons(ipAddressString) == 1, "There must be exactly one double colon if the IPv6 address is shortened");
-
-            // Add extra colons
-            ipAddressString = expandColons(ipAddressString);
+        ipAddressString = expandMissingColons(ipAddressString);
+        if (isInIpv4EmbeddedIpv6Format(ipAddressString)) {
+            ipAddressString = getIpv6AddressWithIpv4SectionInIpv6Notation(ipAddressString);
         }
-
-        // By now we have an IPv6 address that's guaranteed to have 7 colons.
-
         return new Ipv6Address(ipv6StringtoBigInteger(ipAddressString));
+    }
+
+    private static String expandMissingColons(String ipAddressString) {
+        int colonCount = isInIpv4EmbeddedIpv6Format(ipAddressString) ? COLON_COUNT_FOR_EMBEDDED_IPV4 : COLON_COUNT_IPV6;
+        return ipAddressString.replace("::", StringUtils.repeat(":", colonCount - StringUtils.countMatches(ipAddressString, ":") + 2));
+    }
+
+    private static boolean isInIpv4EmbeddedIpv6Format(String ipAddressString) {
+        return ipAddressString.contains(".");
+    }
+
+    private static String getIpv6AddressWithIpv4SectionInIpv6Notation(String ipAddressString) {
+        String ipv6Section = StringUtils.substringBeforeLast(ipAddressString, ":");
+        String ipv4Section = StringUtils.substringAfterLast(ipAddressString, ":");
+        try {
+            String ipv4SectionInIpv6Notation = StringUtils.join(new Ipv6Address(Ipv4Address.parse(ipv4Section).getValue()).toString().split(":"), ":", 2, 4);
+            return ipv6Section + ":" + ipv4SectionInIpv6Notation;
+        } catch(IllegalArgumentException e) {
+            throw new IllegalArgumentException("Embedded Ipv4 in IPv6 address is invalid: " + ipAddressString, e);
+        }
     }
 
     /**
@@ -199,32 +213,4 @@ public class Ipv6Address extends IpAddress {
 
         return true;
     }
-
-    private static String expandColons(String ipv6String) {
-        String filledDoubleColons = ":::::::".substring(0, 7 - countColons(ipv6String) + 2);
-        ipv6String = ipv6String.replace("::", filledDoubleColons);
-        return ipv6String;
-    }
-
-    private static int countColons(String ipv6String) {
-        Pattern colonPattern = Pattern.compile(":");
-        Matcher colonMatcher = colonPattern.matcher(ipv6String);
-        int colonCount = 0;
-        while (colonMatcher.find()) {
-            colonCount++;
-        }
-        return colonCount;
-    }
-
-    private static int numberOfDoubleColons(String ipv6String) {
-        // Count number of double colons: should be either 0 (with 7 colons) or 1 (with less)
-        Pattern doubleColonPattern = Pattern.compile("::");
-        Matcher doubleColonMatcher = doubleColonPattern.matcher(ipv6String);
-        int doubleColonCount = 0;
-        while (doubleColonMatcher.find()) {
-            doubleColonCount++;
-        }
-        return doubleColonCount;
-    }
-
 }
