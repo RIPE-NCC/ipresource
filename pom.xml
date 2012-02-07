@@ -21,7 +21,7 @@
 	</organization>
 
 	<scm>
-		<connection>scm:svn:https://localhost:10443/svn/ba/commons-internet-resources/trunk/</connection>
+		<connection>scm:svn:https://svn.ripe.net/svn/ba/commons-internet-resources/trunk/</connection>
 	</scm>
 
 	<distributionManagement>
