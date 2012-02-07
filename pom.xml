@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.ripe.commons</groupId>
 	<artifactId>commons-internet-resources</artifactId>
-	<version>1.39-SNAPSHOT</version>
+	<version>1.39</version>
 	<packaging>jar</packaging>
 	<name>RIPE NCC Commons - Internet Resources</name>
 
@@ -21,7 +21,7 @@
 	</organization>
 
 	<scm>
-		<connection>scm:svn:https://localhost:10443/svn/ba/commons-internet-resources/trunk/</connection>
+		<connection>scm:svn:https://localhost:10443/svn/ba/commons-internet-resources/tags/RELEASE-1.39-20120207</connection>
 	</scm>
 
 	<distributionManagement>
