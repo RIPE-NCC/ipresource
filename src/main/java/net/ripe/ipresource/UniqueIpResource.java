@@ -121,7 +121,7 @@ public abstract class UniqueIpResource extends IpResource {
             	}
             }
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(String.format("illegal number resource: %s (%s)", s, e.getMessage()));
+            throw new IllegalArgumentException(String.format("Invalid IPv4, IPv6 or ASN resource: %s", s));
         }
     }
 
