@@ -193,6 +193,6 @@ public class Ipv4Address extends IpAddress {
     }
 
     private long value() {
-        return value & 0xffffffffL;
+        return value & MAXIMUM_VALUE;
     }
 }

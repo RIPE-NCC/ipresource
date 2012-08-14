@@ -103,7 +103,7 @@ public class Asn extends UniqueIpResource {
     }
 
     public final long longValue() {
-        return value & 0xffffffffL;
+        return value & ASN32_MAX_VALUE;
     }
 
     @Override
