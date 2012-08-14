@@ -47,6 +47,7 @@ public class Ipv6Address extends IpAddress {
     private static final Pattern IPV6_PATTERN = Pattern.compile("(([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))");
     private static final int COLON_COUNT_FOR_EMBEDDED_IPV4 = 6;
     private static final int COLON_COUNT_IPV6 = 7;
+    private static final String COLON = ":";
 
     /**
      * Mask for 16 bits, which is the length of one part of an IPv6 address.
@@ -152,44 +153,41 @@ public class Ipv6Address extends IpAddress {
 
     @Override
     public String toString(boolean defaultMissingOctets) {
-        long[] list = new long[8];
-        int currentZeroLength = 0;
-        int maxZeroLength = 0;
-        int maxZeroIndex = 0;
-        for (int i = 7; i >= 0; i--) {
-            list[i] = getValue().shiftRight(i*16).and(PART_MASK).longValue();
-
-            if (list[i] == 0) {
-                currentZeroLength ++;
+        Long[] parts = new Long[8];
+        int countOfZeroParts = 0;
+        int maxZeroParts = 0;
+        int maxZeroPartsIndex = 0;
+        for (int i = 7; i >= 0; --i) {
+            parts[i] = getValue().shiftRight(i * 16).and(PART_MASK).longValue();
+            if (parts[i] == 0) {
+                countOfZeroParts++;
             } else {
-                if (currentZeroLength > maxZeroLength) {
-                    maxZeroIndex = i + currentZeroLength;
-                    maxZeroLength = currentZeroLength;
+                if (maxZeroParts < countOfZeroParts) {
+                    maxZeroParts = countOfZeroParts;
+                    maxZeroPartsIndex = countOfZeroParts + i;
                 }
-                currentZeroLength = 0;
+                countOfZeroParts = 0;
             }
         }
-        if (currentZeroLength > maxZeroLength) {
-            maxZeroIndex = -1 + currentZeroLength;
-            maxZeroLength = currentZeroLength;
+        if (maxZeroParts < countOfZeroParts) {
+            maxZeroParts = countOfZeroParts;
+            maxZeroPartsIndex = countOfZeroParts - 1;
         }
 
-        StringBuilder sb = new StringBuilder();
-        for (int i = 7; i >= 0; i--) {
-            if (i == maxZeroIndex && maxZeroLength > 1) {
-                if (i == 7) {
-                    sb.append(':');
-                }
-                i -= (maxZeroLength - 1);
-            } else {
-                sb.append(String.format("%x", list[i]));
+        StringBuilder sb = (maxZeroPartsIndex == 7) ? new StringBuilder(COLON) : new StringBuilder();
+        String delimiter = "";
+        for (int i = 7; i >= 0; --i) {
+            if (i == maxZeroPartsIndex && maxZeroParts > 1) {
+                i -= maxZeroParts;
+                sb.append(COLON);
             }
-            sb.append(':');
+            if (i >= 0) {
+                sb.append(delimiter).append(Long.toHexString(parts[i]));
+            } else {
+                return sb.append(delimiter).toString();
+            }
+            delimiter = COLON;
         }
-        if ( (maxZeroIndex - maxZeroLength + 1) != 0) {
-            sb.deleteCharAt(sb.length()-1);
-        }
-
         return sb.toString();
     }
 
