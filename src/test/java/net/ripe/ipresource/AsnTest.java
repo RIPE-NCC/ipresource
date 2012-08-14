@@ -54,6 +54,7 @@ public class AsnTest {
 
         assertEquals("AS3333", String.valueOf(ASN3333));
         assertEquals("AS789765", String.valueOf(ASN12_3333));
+        assertEquals("AS4294967295", String.valueOf(new Asn(Asn.ASN32_MAX_VALUE)));
     }
 
     @Test
@@ -62,8 +63,8 @@ public class AsnTest {
         assertEquals(ASN12_3333, Asn.parse("12.3333"));
         assertEquals(new Asn(65536), Asn.parse("  65536  "));
     }
-    
-    
+
+
     @Test(expected = IllegalArgumentException.class)
     public void shouldFailOnBadFormat() {
         Asn.parse("AS23.321.12");
@@ -112,6 +113,11 @@ public class AsnTest {
         assertTrue(Asn.parse("AS3333").compareTo(Asn.parse("AS3333").upTo(Asn.parse("AS3333"))) == 0);
         assertTrue(Asn.parse("AS3333").upTo(Asn.parse("AS3333")).compareTo(Asn.parse("AS3333")) == 0);
     }
-    
-}
 
+    @Test
+    public void testBoundaryConditions() {
+        assertEquals(Asn.ASN16_MAX_VALUE, Asn.parse("" + Asn.ASN16_MAX_VALUE).longValue());
+        assertEquals(Asn.ASN32_MAX_VALUE, Asn.parse("" + Asn.ASN32_MAX_VALUE).longValue());
+        assertTrue(new Asn(Asn.ASN16_MAX_VALUE).compareTo(new Asn(Asn.ASN32_MAX_VALUE)) < 0);
+    }
+}

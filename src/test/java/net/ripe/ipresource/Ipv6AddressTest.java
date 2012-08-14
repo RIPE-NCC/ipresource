@@ -29,9 +29,8 @@
  */
 package net.ripe.ipresource;
 
-import static net.ripe.ipresource.Ipv6Address.parse;
+import static net.ripe.ipresource.Ipv6Address.*;
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
 
 import java.math.BigInteger;
 
@@ -69,6 +68,8 @@ public class Ipv6AddressTest {
         assertEquals("fe80::1", parse("fe80::1").toString());
         assertEquals("2001:db8::", parse("2001:db8::").toString());
         assertEquals("1:2:3:4:5:6:0:8", parse("1:2:3:4:5:6::8").toString());
+        // FIXME
+        //assertEquals("5f:4688:d998:321a:2fb5:b15:ccc2:0", parse("5f:4688:d998:321a:2fb5:b15:ccc2:0").toString());
     }
 
     @Test

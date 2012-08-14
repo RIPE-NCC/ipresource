@@ -31,31 +31,17 @@ package net.ripe.ipresource;
 
 import java.math.BigInteger;
 
-import org.apache.commons.lang.Validate;
-
 public abstract class UniqueIpResource extends IpResource {
 
-    private static final long serialVersionUID = 1L;
-
-    private IpResourceType type;
-    
-    protected UniqueIpResource(IpResourceType type) {
-        Validate.notNull(type, "resource type not null");
-        this.type = type;
-    }
+    private static final long serialVersionUID = 2L;
 
     public abstract BigInteger getValue();
-    
+
     public abstract int getCommonPrefixLength(UniqueIpResource other);
 
     public abstract IpAddress lowerBoundForPrefix(int prefixLength);
 
     public abstract IpAddress upperBoundForPrefix(int prefixLength);
-
-    @Override
-    public final IpResourceType getType() {
-        return type;
-    }
 
     @Override
     public final UniqueIpResource getStart() {
@@ -100,11 +86,11 @@ public abstract class UniqueIpResource extends IpResource {
     }
 
     public UniqueIpResource predecessor() {
-        return type.fromBigInteger(getValue().subtract(BigInteger.ONE));
+        return getType().fromBigInteger(getValue().subtract(BigInteger.ONE));
     }
 
     public UniqueIpResource successor() {
-        return type.fromBigInteger(getValue().add(BigInteger.ONE));
+        return getType().fromBigInteger(getValue().add(BigInteger.ONE));
     }
 
     // Parsing.

@@ -43,29 +43,31 @@ public class Ipv4Address extends IpAddress {
 
 	private static final long MINIMUM_VALUE = 0;
 	private static final long MAXIMUM_VALUE = (1L << NUMBER_OF_BITS) - 1;
-	
-	// Use long to easily represent 32-bit unsigned integers.
-    private final long value;
+
+    // Int is more memory efficient, so use longValue() accessor to get correct unsigned long value.
+    private final int value;
 
     @Deprecated
     public Ipv4Address(BigInteger value) {
         this(value.longValue());
     }
-    
+
 	public Ipv4Address(long value) {
-		super(IpResourceType.IPv4);
 		Validate.isTrue(value >= MINIMUM_VALUE && value <= MAXIMUM_VALUE, "value out of range");
-		this.value = value;
+		this.value = (int) value;
 	}
+
+    @Override
+    public IpResourceType getType() {
+        return IpResourceType.IPv4;
+    }
 
 	public static Ipv4Address parse(String s) {
 	    return parse(s, false);
 	}
 
 	public static Ipv4Address parse(String s, boolean defaultMissingOctets) {
-	    if (s != null) {
-	        s = s.trim();
-	    }
+        s = s.trim();
 
 	    int length = s.length();
 	    if (length == 0 || !Character.isDigit(s.charAt(0)) || !Character.isDigit(s.charAt(s.length() - 1))) {
@@ -113,6 +115,7 @@ public class Ipv4Address extends IpAddress {
         return value;
     }
 
+    @Override
     public String toString(boolean defaultMissingOctets) {
         long value = getValue().longValue();
         int a = (int) (value >> 24);
@@ -134,21 +137,21 @@ public class Ipv4Address extends IpAddress {
     }
 
     public long longValue() {
-        return value;
+        return value();
     }
-    
+
     @Override
     protected int doHashCode() {
-        return (int) value;
+        return value;
     }
 
     @Override
     protected int doCompareTo(IpResource obj) {
         if (obj instanceof Ipv4Address) {
-            long otherValue = ((Ipv4Address) obj).value;
-            if (value < otherValue) {
+            long otherValue = ((Ipv4Address) obj).value();
+            if (value() < otherValue) {
                 return -1;
-            } else if (value > otherValue) {
+            } else if (value() > otherValue) {
                 return +1;
             } else {
                 return 0;
@@ -157,35 +160,39 @@ public class Ipv4Address extends IpAddress {
             return super.doCompareTo(obj);
         }
     }
-    
+
+    @Override
     public final BigInteger getValue() {
-        return BigInteger.valueOf(value);
+        return BigInteger.valueOf(value());
     }
 
     @Override
     public int getCommonPrefixLength(UniqueIpResource other) {
         Validate.isTrue(getType() == other.getType(), "incompatible resource types");
-        long temp = value ^ ((Ipv4Address) other).value;
+        long temp = value() ^ ((Ipv4Address) other).value();
         return Integer.numberOfLeadingZeros((int) temp);
     }
 
     @Override
     public Ipv4Address lowerBoundForPrefix(int prefixLength) {
         long mask = ~((1L << (NUMBER_OF_BITS - prefixLength)) -  1);
-        return new Ipv4Address(value & mask);
+        return new Ipv4Address(value() & mask);
     }
 
     @Override
     public Ipv4Address upperBoundForPrefix(int prefixLength) {
         long mask = (1L << (NUMBER_OF_BITS - prefixLength)) -  1;
-        return new Ipv4Address(value | mask);
+        return new Ipv4Address(value() | mask);
     }
-    
+
     @Override
     public boolean isValidNetmask() {
-        int leadingOnesCount = Integer.numberOfLeadingZeros(~(int) value);
-        int trailingZeroesCount = Integer.numberOfTrailingZeros((int) value);
+        int leadingOnesCount = Integer.numberOfLeadingZeros(~(int) value());
+        int trailingZeroesCount = Integer.numberOfTrailingZeros((int) value());
         return leadingOnesCount > 0 && (leadingOnesCount + trailingZeroesCount) == NUMBER_OF_BITS;
     }
-    
+
+    private long value() {
+        return value & 0xffffffffL;
+    }
 }

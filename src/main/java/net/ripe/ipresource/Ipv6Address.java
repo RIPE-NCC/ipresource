@@ -56,8 +56,12 @@ public class Ipv6Address extends IpAddress {
     private final BigInteger value;
 
     public Ipv6Address(BigInteger value) {
-        super(IpResourceType.IPv6);
         this.value = value;
+    }
+
+    @Override
+    public IpResourceType getType() {
+        return IpResourceType.IPv6;
     }
 
     @Override

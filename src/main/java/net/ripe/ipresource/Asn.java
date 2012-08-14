@@ -44,22 +44,26 @@ public class Asn extends UniqueIpResource {
 
 	private static final Pattern ASN_TEXT_PATTERN = Pattern.compile("(?:AS)?(\\d+)(\\.(\\d+))?", Pattern.CASE_INSENSITIVE);
 
-    private static long ASN_MIN_VALUE = 0L;
-    private static long ASN16_MAX_VALUE = (1L << 16) - 1L;
-    private static long ASN32_MAX_VALUE = (1L << 32) - 1L;
+    public static long ASN_MIN_VALUE = 0L;
+    public static long ASN16_MAX_VALUE = (1L << 16) - 1L;
+    public static long ASN32_MAX_VALUE = (1L << 32) - 1L;
 
-    // Use long to easily represent 32-bit unsigned integers.
-    private final long value;
+    // Int is more memory efficient, so use value() accessor to get correct unsigned long value.
+    private final int value;
 
     @Deprecated
     public Asn(BigInteger value) {
         this(value.longValue());
     }
-    
+
     public Asn(long value) {
-        super(IpResourceType.ASN);
         checkRange(value, ASN32_MAX_VALUE);
-        this.value = value;
+        this.value = (int) value;
+    }
+
+    @Override
+    public IpResourceType getType() {
+        return IpResourceType.ASN;
     }
 
     public static Asn parse(String text) {
@@ -97,23 +101,23 @@ public class Asn extends UniqueIpResource {
         Validate.isTrue(value >= ASN_MIN_VALUE);
         Validate.isTrue(value <= max);
     }
-    
-    public long longValue() {
-        return value;
+
+    public final long longValue() {
+        return value & 0xffffffffL;
     }
 
     @Override
     protected int doHashCode() {
-        return (int) value;
+        return value;
     }
 
     @Override
     protected int doCompareTo(IpResource obj) {
         if (obj instanceof Asn) {
-            long otherValue = ((Asn) obj).value;
-            if (value < otherValue) {
+            long otherValue = ((Asn) obj).longValue();
+            if (longValue() < otherValue) {
                 return -1;
-            } else if (value > otherValue) {
+            } else if (longValue() > otherValue) {
                 return +1;
             } else {
                 return 0;
@@ -122,10 +126,10 @@ public class Asn extends UniqueIpResource {
             return super.doCompareTo(obj);
         }
     }
-    
+
     @Override
     public String toString() {
-        return "AS" + value;
+        return "AS" + longValue();
     }
 
     @Override
@@ -143,8 +147,9 @@ public class Asn extends UniqueIpResource {
         throw new UnsupportedOperationException("prefix notation not supported for ASN resources");
     }
 
+    @Override
     public final BigInteger getValue() {
-        return BigInteger.valueOf(value);
+        return BigInteger.valueOf(longValue());
     }
 
 }
