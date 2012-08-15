@@ -153,42 +153,41 @@ public class Ipv6Address extends IpAddress {
 
     @Override
     public String toString(boolean defaultMissingOctets) {
-        Long[] parts = new Long[8];
-        int countOfZeroParts = 0;
-        int maxZeroParts = 0;
-        int maxZeroPartsIndex = 0;
-        for (int i = 7; i >= 0; --i) {
-            parts[i] = getValue().shiftRight(i * 16).and(PART_MASK).longValue();
-            if (parts[i] == 0) {
-                countOfZeroParts++;
-            } else {
-                if (maxZeroParts < countOfZeroParts) {
-                    maxZeroParts = countOfZeroParts;
-                    maxZeroPartsIndex = countOfZeroParts + i;
-                }
-                countOfZeroParts = 0;
-            }
-        }
-        if (maxZeroParts < countOfZeroParts) {
-            maxZeroParts = countOfZeroParts;
-            maxZeroPartsIndex = countOfZeroParts - 1;
+        long[] parts = new long[8];
+        String[] formatted = new String[parts.length];
+        for (int i = 0; i < parts.length; ++i) {
+            parts[i] = getValue().shiftRight((7 - i) * 16).and(PART_MASK).longValue();
+            formatted[i] = Long.toHexString(parts[i]);
         }
 
-        StringBuilder sb = (maxZeroPartsIndex == 7) ? new StringBuilder(COLON) : new StringBuilder();
-        String delimiter = "";
-        for (int i = 7; i >= 0; --i) {
-            if (i == maxZeroPartsIndex && maxZeroParts > 1) {
-                i -= maxZeroParts;
-                sb.append(COLON);
-            }
-            if (i >= 0) {
-                sb.append(delimiter).append(Long.toHexString(parts[i]));
+        // Find longest sequence of zeroes. Use the first one if there are
+        // multiple sequences of zeroes with the same length.
+        int currentZeroPartsLength = 0;
+        int currentZeroPartsStart = 0;
+        int maxZeroPartsLength = 0;
+        int maxZeroPartsStart = 0;
+        for (int i = 0; i < parts.length; ++i) {
+            if (parts[i] == 0) {
+                if (currentZeroPartsLength == 0) {
+                    currentZeroPartsStart = i;
+                }
+                ++currentZeroPartsLength;
+                if (currentZeroPartsLength > maxZeroPartsLength) {
+                    maxZeroPartsLength = currentZeroPartsLength;
+                    maxZeroPartsStart = currentZeroPartsStart;
+                }
             } else {
-                return sb.append(delimiter).toString();
+                currentZeroPartsLength = 0;
             }
-            delimiter = COLON;
         }
-        return sb.toString();
+
+        if (maxZeroPartsLength <= 1) {
+            return StringUtils.join(formatted, COLON);
+        } else {
+            String init = StringUtils.join(formatted, COLON, 0, maxZeroPartsStart);
+            String tail = StringUtils.join(formatted, COLON, maxZeroPartsStart + maxZeroPartsLength, formatted.length);
+            return init + "::" + tail;
+        }
     }
 
 
