@@ -31,8 +31,6 @@ package net.ripe.ipresource.etree;
 
 import static org.junit.Assert.*;
 
-import net.ripe.ipresource.etree.InternalNode;
-
 import org.junit.Before;
 import org.junit.Test;
 
@@ -46,7 +44,7 @@ public class InternalNodeTest {
 
     @Before
     public void setup() {
-        d.addChild(a);
+        d.addChild(a, TestInterval.STRATEGY);
     }
 
     @Test
@@ -68,12 +66,12 @@ public class InternalNodeTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void test_overlap_insert_fails() {
-        c.addChild(e);
+        c.addChild(e, TestInterval.STRATEGY);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void test_overlap_remove_fails() {
-        c.removeChild(e.getInterval());
+        c.removeChild(e.getKey(), TestInterval.STRATEGY);
     }
 
 }

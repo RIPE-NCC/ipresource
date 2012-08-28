@@ -29,8 +29,6 @@
  */
 package net.ripe.ipresource.etree;
 
-import net.ripe.ipresource.etree.ChildNodeTreeMap;
-
 import org.junit.Test;
 
 public class ChildNodeTreeMapEmptyTest {
@@ -38,12 +36,12 @@ public class ChildNodeTreeMapEmptyTest {
     @SuppressWarnings("unchecked")
     @Test(expected=UnsupportedOperationException.class)
     public void removeChildIsUnsupported() {
-        ChildNodeTreeMap.EMPTY.removeChild(null);
+        ChildNodeTreeMap.EMPTY.removeChild(null, TestInterval.STRATEGY);
     }
 
     @SuppressWarnings("unchecked")
     @Test(expected=UnsupportedOperationException.class)
     public void addChildIsUnsupported() {
-        ChildNodeTreeMap.EMPTY.addChild(null);
+        ChildNodeTreeMap.EMPTY.addChild(null, TestInterval.STRATEGY);
     }
 }

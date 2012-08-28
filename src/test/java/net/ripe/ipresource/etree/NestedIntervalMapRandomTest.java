@@ -40,8 +40,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
-import net.ripe.ipresource.etree.NestedIntervalMap;
-
 import org.junit.Before;
 import org.junit.Test;
 
@@ -95,7 +93,7 @@ public class NestedIntervalMapRandomTest {
     public void setup() {
         everything = new ArrayList<TestInterval>();
         childrenByParent = new HashMap<TestInterval, List<TestInterval>>();
-        subject = new NestedIntervalMap<TestInterval, TestInterval>();
+        subject = new NestedIntervalMap<TestInterval, TestInterval>(TestInterval.STRATEGY);
 
         List<TestInterval> roots = generateRandomSiblings(TestInterval.MAX_RANGE, random.nextInt(3) + 5);
         for (TestInterval root : roots) {
@@ -166,7 +164,7 @@ public class NestedIntervalMapRandomTest {
     @Test
     public void should_promote_children_of_delete_node_to_parent() {
         for (int i = 0; i < 10; ) {
-            NestedIntervalMap<TestInterval, TestInterval> copy = new NestedIntervalMap<TestInterval, TestInterval>(subject);
+            NestedIntervalMap<TestInterval, TestInterval> copy = new NestedIntervalMap<TestInterval, TestInterval>(subject, TestInterval.STRATEGY);
             TestInterval interval = everything.get(random.nextInt(everything.size()));
             if (childrenByParent.containsKey(interval)) {
                 TestInterval parent = uniqueResult(copy.findFirstLessSpecific(interval));

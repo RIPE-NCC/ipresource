@@ -34,8 +34,6 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
-import net.ripe.ipresource.etree.MultiValueIntervalMap;
-
 import org.junit.Before;
 import org.junit.Test;
 
@@ -56,7 +54,7 @@ public class MultiValueIntervalMapTest {
 
     @Before
     public void setUp() throws Exception {
-        subject = new MultiValueIntervalMap<TestInterval, String>();
+        subject = new MultiValueIntervalMap<TestInterval, String>(TestInterval.STRATEGY);
 
         k_11 = new TestInterval(1, 1);
         k_12 = new TestInterval(1, 2);

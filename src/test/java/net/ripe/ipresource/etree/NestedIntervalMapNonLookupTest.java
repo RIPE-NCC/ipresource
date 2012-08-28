@@ -37,9 +37,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.ripe.ipresource.etree.NestedIntervalMap;
-import net.ripe.ipresource.etree.OverlappingIntervalException;
-
 import org.apache.commons.lang.Validate;
 import org.junit.Test;
 
@@ -68,7 +65,7 @@ public class NestedIntervalMapNonLookupTest {
         }
     }
 
-    private NestedIntervalMap<TestInterval, TestInterval> subject = new NestedIntervalMap<TestInterval, TestInterval>();
+    private NestedIntervalMap<TestInterval, TestInterval> subject = new NestedIntervalMap<TestInterval, TestInterval>(TestInterval.STRATEGY);
 
     private List<TestInterval> allNodes() {
         return subject.findAllMoreSpecific(TestInterval.MAX_RANGE);
@@ -337,7 +334,7 @@ public class NestedIntervalMapNonLookupTest {
         assertThat(allNodes(), hasSize(4));
 
         NestedIntervalMap<TestInterval, TestInterval> original = subject;
-        subject = new NestedIntervalMap<TestInterval, TestInterval>(original);
+        subject = new NestedIntervalMap<TestInterval, TestInterval>(original, TestInterval.STRATEGY);
 
         assertThat(allNodes(), hasSize(4));
         assertThat(original, is(subject));

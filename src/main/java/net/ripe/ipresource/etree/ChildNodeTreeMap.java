@@ -31,7 +31,6 @@ package net.ripe.ipresource.etree;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -45,7 +44,7 @@ import java.util.TreeMap;
  * matching intervals by comparing an interval's <em>lower-bound</em> with the
  * existing interval's <em>upper-bounds</em>.
  */
-class ChildNodeTreeMap<K extends Interval<K>, V> extends TreeMap<K, InternalNode<K, V>> implements ChildNodeMap<K, V> {
+class ChildNodeTreeMap<K, V> extends TreeMap<K, InternalNode<K, V>> implements ChildNodeMap<K, V> {
 
     private static final long serialVersionUID = 1L;
 
@@ -60,59 +59,46 @@ class ChildNodeTreeMap<K extends Interval<K>, V> extends TreeMap<K, InternalNode
      * @return an unmodifiable, empty {@link ChildNodeMap}.
      */
     @SuppressWarnings("unchecked")
-    static <K extends Interval<K>, T> ChildNodeMap<K, T> empty() {
+    static <K, T> ChildNodeMap<K, T> empty() {
         return EMPTY;
     }
 
-    /*
-     * Compares the upper-bound of two intervals. This comparator is not
-     * consistent with {@link Interval#equals(Object)}.
-     */
-    @SuppressWarnings("rawtypes")
-    private static final Comparator<Interval> UPPER_BOUND_COMPARATOR = new Comparator<Interval>() {
-        @SuppressWarnings("unchecked")
-        @Override
-        public int compare(Interval o1, Interval o2) {
-            return o1.compareUpperBound(o2);
-        }
-    };
-
-    ChildNodeTreeMap() {
-        super(UPPER_BOUND_COMPARATOR);
+    ChildNodeTreeMap(IntervalStrategy<K> strategy) {
+        super(strategy.upperBoundComparator());
     }
 
-    public ChildNodeTreeMap(ChildNodeMap<K, V> source) {
-        this();
+    public ChildNodeTreeMap(ChildNodeMap<K, V> source, IntervalStrategy<K> strategy) {
+        this(strategy);
         for (InternalNode<K, V> node : source.values()) {
-            this.put(node.getInterval(), new InternalNode<K, V>(node));
+            this.put(node.getKey(), new InternalNode<K, V>(node, strategy));
         }
     }
 
     @Override
-    public void addChild(InternalNode<K, V> nodeToAdd) {
-        K range = nodeToAdd.getInterval();
-        InternalNode<K, V> containingChild = getChildContaining(range);
+    public void addChild(InternalNode<K, V> nodeToAdd, IntervalStrategy<K> strategy) {
+        K range = nodeToAdd.getKey();
+        InternalNode<K, V> containingChild = getChildContaining(range, strategy);
         if (containingChild != null) {
-            containingChild.addChild(nodeToAdd);
+            containingChild.addChild(nodeToAdd, strategy);
             return;
         }
 
-        List<K> overlaps = getOverlappingChildren(range);
+        List<K> overlaps = getOverlappingChildren(range, strategy);
         if (!overlaps.isEmpty()) {
             throw new OverlappingIntervalException(range, overlaps);
         }
 
-        transferChildNodes(nodeToAdd);
+        transferChildNodes(nodeToAdd, strategy);
 
         this.put(range, nodeToAdd);
     }
 
-    private void transferChildNodes(InternalNode<K, V> nodeToAdd) {
-        K range = nodeToAdd.getInterval();
-        for (Iterator<InternalNode<K, V>> it = this.tailMap(range.singletonIntervalAtLowerBound()).values().iterator(); it.hasNext(); ) {
+    private void transferChildNodes(InternalNode<K, V> nodeToAdd, IntervalStrategy<K> strategy) {
+        K range = nodeToAdd.getKey();
+        for (Iterator<InternalNode<K, V>> it = this.tailMap(strategy.singletonIntervalAtLowerBound(range)).values().iterator(); it.hasNext(); ) {
             InternalNode<K, V> child = it.next();
-            if (range.contains(child.getInterval())) {
-                nodeToAdd.addChild(child);
+            if (strategy.contains(range, child.getKey())) {
+                nodeToAdd.addChild(child, strategy);
                 it.remove();
             } else {
                 break;
@@ -121,44 +107,44 @@ class ChildNodeTreeMap<K extends Interval<K>, V> extends TreeMap<K, InternalNode
     }
 
     @Override
-    public void removeChild(K interval) {
-        final InternalNode<K, V> containing = getChildContaining(interval);
+    public void removeChild(K interval, IntervalStrategy<K> strategy) {
+        final InternalNode<K, V> containing = getChildContaining(interval, strategy);
         if (containing == null) {
             return;
         }
 
-        if (interval.equals(containing.getInterval())) {
+        if (interval.equals(containing.getKey())) {
             this.remove(interval);
             for (InternalNode<K, V> node : containing.getChildren().values()) {
-                put(node.getInterval(), node);
+                put(node.getKey(), node);
             }
         } else {
-            containing.removeChild(interval);
+            containing.removeChild(interval, strategy);
         }
     }
 
-    private List<K> getOverlappingChildren(K range) {
+    private List<K> getOverlappingChildren(K range, IntervalStrategy<K> strategy) {
         List<K> result = Collections.emptyList();
-        K lowerCandidate = this.ceilingKey(range.singletonIntervalAtLowerBound());
-        if (lowerCandidate != null && overlapsButNotContained(range, lowerCandidate)) {
+        K lowerCandidate = this.ceilingKey(strategy.singletonIntervalAtLowerBound(range));
+        if (lowerCandidate != null && overlapsButNotContained(range, lowerCandidate, strategy)) {
             result = new ArrayList<K>(result);
             result.add(lowerCandidate);
         }
         K upperCandidate = this.ceilingKey(range);
-        if (upperCandidate != null && overlapsButNotContained(range, upperCandidate)) {
+        if (upperCandidate != null && overlapsButNotContained(range, upperCandidate, strategy)) {
             result = new ArrayList<K>(result);
             result.add(upperCandidate);
         }
         return result;
     }
 
-    private boolean overlapsButNotContained(K left, K right) {
-        return left.overlaps(right) && !left.contains(right) && !right.contains(left);
+    private boolean overlapsButNotContained(K left, K right, IntervalStrategy<K> strategy) {
+        return strategy.overlaps(left, right) && !strategy.contains(left, right) && !strategy.contains(right, left);
     }
 
-    private InternalNode<K, V> getChildContaining(K range) {
-        Entry<K, InternalNode<K, V>> entry = this.ceilingEntry(range.singletonIntervalAtLowerBound());
-        if (entry != null && entry.getKey().contains(range)) {
+    private InternalNode<K, V> getChildContaining(K range, IntervalStrategy<K> strategy) {
+        Entry<K, InternalNode<K, V>> entry = this.ceilingEntry(strategy.singletonIntervalAtLowerBound(range));
+        if (entry != null && strategy.contains(entry.getKey(), range)) {
             return entry.getValue();
         } else {
             return null;
@@ -166,22 +152,22 @@ class ChildNodeTreeMap<K extends Interval<K>, V> extends TreeMap<K, InternalNode
     }
 
     @Override
-    public void findExactAndAllLessSpecific(List<InternalNode<K, V>> result, K range) {
-        InternalNode<K, V> node = getChildContaining(range);
+    public void findExactAndAllLessSpecific(List<InternalNode<K, V>> result, K range, IntervalStrategy<K> strategy) {
+        InternalNode<K, V> node = getChildContaining(range, strategy);
         if (node != null) {
             result.add(node);
-            node.getChildren().findExactAndAllLessSpecific(result, range);
+            node.getChildren().findExactAndAllLessSpecific(result, range, strategy);
         }
     }
 
     @Override
-    public void findExactAndAllMoreSpecific(List<InternalNode<K, V>> result, K range) {
-        for (InternalNode<K, V> node : this.tailMap(range.singletonIntervalAtLowerBound()).values()) {
-            if (range.contains(node.getInterval())) {
+    public void findExactAndAllMoreSpecific(List<InternalNode<K, V>> result, K range, IntervalStrategy<K> strategy) {
+        for (InternalNode<K, V> node : this.tailMap(strategy.singletonIntervalAtLowerBound(range)).values()) {
+            if (strategy.contains(range, node.getKey())) {
                 result.add(node);
-                node.getChildren().addAllChildrenToList(result);
-            } else if (range.overlaps(node.getInterval())) {
-                node.getChildren().findExactAndAllMoreSpecific(result, range);
+                node.getChildren().addAllChildrenToList(result, strategy);
+            } else if (strategy.overlaps(range, node.getKey())) {
+                node.getChildren().findExactAndAllMoreSpecific(result, range, strategy);
             } else {
                 break;
             }
@@ -189,12 +175,12 @@ class ChildNodeTreeMap<K extends Interval<K>, V> extends TreeMap<K, InternalNode
     }
 
     @Override
-    public void findFirstMoreSpecific(List<InternalNode<K, V>> result, K range) {
-        for (InternalNode<K, V> node : this.tailMap(range.singletonIntervalAtLowerBound()).values()) {
-            if (range.contains(node.getInterval())) {
+    public void findFirstMoreSpecific(List<InternalNode<K, V>> result, K range, IntervalStrategy<K> strategy) {
+        for (InternalNode<K, V> node : this.tailMap(strategy.singletonIntervalAtLowerBound(range)).values()) {
+            if (strategy.contains(range, node.getKey())) {
                 result.add(node);
-            } else if (range.overlaps(node.getInterval())) {
-                node.getChildren().findFirstMoreSpecific(result, range);
+            } else if (strategy.overlaps(range, node.getKey())) {
+                node.getChildren().findFirstMoreSpecific(result, range, strategy);
             } else {
                 break;
             }
@@ -202,10 +188,10 @@ class ChildNodeTreeMap<K extends Interval<K>, V> extends TreeMap<K, InternalNode
     }
 
     @Override
-    public void addAllChildrenToList(List<InternalNode<K, V>> list) {
+    public void addAllChildrenToList(List<InternalNode<K, V>> list, IntervalStrategy<K> strategy) {
         for (InternalNode<K, V> node : this.values()) {
             list.add(node);
-            node.getChildren().addAllChildrenToList(list);
+            node.getChildren().addAllChildrenToList(list, strategy);
         }
     }
 
@@ -214,29 +200,29 @@ class ChildNodeTreeMap<K extends Interval<K>, V> extends TreeMap<K, InternalNode
         private static final long serialVersionUID = 1L;
 
         @Override
-        public void addChild(InternalNode childToAdd) {
+        public void addChild(InternalNode childToAdd, IntervalStrategy strategy) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public void removeChild(Interval interval) {
+        public void removeChild(Object interval, IntervalStrategy strategy) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public void findExactAndAllLessSpecific(List list, Interval range) {
+        public void findExactAndAllLessSpecific(List list, Object range, IntervalStrategy strategy) {
         }
 
         @Override
-        public void findExactAndAllMoreSpecific(List list, Interval range) {
+        public void findExactAndAllMoreSpecific(List list, Object range, IntervalStrategy strategy) {
         }
 
         @Override
-        public void findFirstMoreSpecific(List list, Interval interval) {
+        public void findFirstMoreSpecific(List list, Object interval, IntervalStrategy strategy) {
         }
 
         @Override
-        public void addAllChildrenToList(List list) {
+        public void addAllChildrenToList(List list, IntervalStrategy strategy) {
         }
     }
 }

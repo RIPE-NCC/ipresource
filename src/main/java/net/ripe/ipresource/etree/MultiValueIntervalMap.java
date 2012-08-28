@@ -36,11 +36,11 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-public final class MultiValueIntervalMap<K extends Interval<K>, V> implements IntervalMap<K, V> {
+public final class MultiValueIntervalMap<K, V> implements IntervalMap<K, V> {
     private final IntervalMap<K, SortedSet<V>> wrapped;
 
-    public MultiValueIntervalMap() {
-        this.wrapped = new NestedIntervalMap<K, SortedSet<V>>();
+    public MultiValueIntervalMap(IntervalStrategy<K> strategy) {
+        this.wrapped = new NestedIntervalMap<K, SortedSet<V>>(strategy);
     }
 
     @Override

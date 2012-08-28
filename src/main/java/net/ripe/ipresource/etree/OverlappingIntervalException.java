@@ -39,20 +39,20 @@ import java.util.List;
 public class OverlappingIntervalException extends IllegalArgumentException {
     private static final long serialVersionUID = 1L;
 
-    private final Interval<?> interval;
+    private final Object interval;
 
-    private final List<? extends Interval<?>> overlaps;
+    private final List<?> overlaps;
 
-    public OverlappingIntervalException(Interval<?> interval, List<? extends Interval<?>> overlaps) {
+    public OverlappingIntervalException(Object interval, List<?> overlaps) {
         super(String.format("%s overlaps with existing siblings %s", interval, overlaps));
         this.interval = interval;
-        this.overlaps = new ArrayList<Interval<?>>(overlaps);
+        this.overlaps = new ArrayList<Object>(overlaps);
     }
 
     /**
      * @return the interval that overlaps with existing intervals.
      */
-    public Interval<?> getInterval() {
+    public Object getInterval() {
         return interval;
     }
 
@@ -60,7 +60,7 @@ public class OverlappingIntervalException extends IllegalArgumentException {
      * @return the existing intervals that overlap with the interval being
      *         added.
      */
-    public List<? extends Interval<?>> getOverlaps() {
+    public List<?> getOverlaps() {
         return overlaps;
     }
 }

@@ -36,10 +36,10 @@ import java.util.List;
  * are fully contained in the other interval (in other words, siblings are not
  * allowed to overlap, but nesting is ok).
  *
- * @param <K> the type of the interval (must implement {@link Interval}).
+ * @param <K> the type of the interval (must implement {@link IntervalStrategy}).
  * @param <V> the type of the values to store.
  */
-public interface IntervalMap<K extends Interval<?>, V> {
+public interface IntervalMap<K, V> {
 
     /**
      * Associates the specified value with the specified key in this map If the

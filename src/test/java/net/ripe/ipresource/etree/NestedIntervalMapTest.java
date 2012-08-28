@@ -37,15 +37,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import net.ripe.ipresource.etree.NestedIntervalMap;
-import net.ripe.ipresource.etree.OverlappingIntervalException;
-
 import org.junit.Before;
 import org.junit.Test;
 
 public class NestedIntervalMapTest {
 
-    private NestedIntervalMap<TestInterval, TestInterval> subject = new NestedIntervalMap<TestInterval, TestInterval>();
+    private NestedIntervalMap<TestInterval, TestInterval> subject = new NestedIntervalMap<TestInterval, TestInterval>(TestInterval.STRATEGY);
     private TestInterval N1_12 = new TestInterval(1, 12);
     private TestInterval N1_4 = new TestInterval(1, 4);
     private TestInterval N5_10 = new TestInterval(5, 10);
@@ -141,7 +138,7 @@ public class NestedIntervalMapTest {
 
     @Test
     public void test_remove_key_value_nonexistant() {
-        NestedIntervalMap<TestInterval, TestInterval> copy = new NestedIntervalMap<TestInterval, TestInterval>(subject);
+        NestedIntervalMap<TestInterval, TestInterval> copy = new NestedIntervalMap<TestInterval, TestInterval>(subject, TestInterval.STRATEGY);
 
         final TestInterval resource = new TestInterval(0, 100);
         subject.remove(resource, resource);
@@ -150,7 +147,7 @@ public class NestedIntervalMapTest {
 
     @Test
     public void test_remove_nonexistant() {
-        NestedIntervalMap<TestInterval, TestInterval> copy = new NestedIntervalMap<TestInterval, TestInterval>(subject);
+        NestedIntervalMap<TestInterval, TestInterval> copy = new NestedIntervalMap<TestInterval, TestInterval>(subject, TestInterval.STRATEGY);
 
         subject.remove(new TestInterval(0, 100));
         assertEquals(copy, subject);
@@ -167,10 +164,10 @@ public class NestedIntervalMapTest {
         assertFalse(subject.equals(null));
         assertEquals(subject, subject);
         assertFalse(subject.equals(new Object()));
-        assertFalse(subject.equals(new NestedIntervalMap<TestInterval, TestInterval>()));
+        assertFalse(subject.equals(new NestedIntervalMap<TestInterval, TestInterval>(TestInterval.STRATEGY)));
 
         assertEquals(subject.hashCode(), subject.hashCode());
-        assertFalse(subject.hashCode() == new NestedIntervalMap<TestInterval, TestInterval>().hashCode());
+        assertFalse(subject.hashCode() == new NestedIntervalMap<TestInterval, TestInterval>(TestInterval.STRATEGY).hashCode());
     }
 
     @Test
@@ -255,7 +252,7 @@ public class NestedIntervalMapTest {
         TestInterval child3 = new TestInterval(16, 25);
         TestInterval overlap = new TestInterval(8, 30);
 
-        NestedIntervalMap<TestInterval, TestInterval> test = new NestedIntervalMap<TestInterval, TestInterval>();
+        NestedIntervalMap<TestInterval, TestInterval> test = new NestedIntervalMap<TestInterval, TestInterval>(TestInterval.STRATEGY);
         test.put(child1, child1);
         test.put(child2, child2);
         test.put(child3, child3);
@@ -277,7 +274,7 @@ public class NestedIntervalMapTest {
         TestInterval child3 = new TestInterval(16, 25);
         TestInterval overlap = new TestInterval(1, 21);
 
-        NestedIntervalMap<TestInterval, TestInterval> test = new NestedIntervalMap<TestInterval, TestInterval>();
+        NestedIntervalMap<TestInterval, TestInterval> test = new NestedIntervalMap<TestInterval, TestInterval>(TestInterval.STRATEGY);
         test.put(child1, child1);
         test.put(child2, child2);
         test.put(child3, child3);
@@ -299,7 +296,7 @@ public class NestedIntervalMapTest {
         TestInterval child3 = new TestInterval(16, 25);
         TestInterval overlap = new TestInterval(4, 21);
 
-        NestedIntervalMap<TestInterval, TestInterval> test = new NestedIntervalMap<TestInterval, TestInterval>();
+        NestedIntervalMap<TestInterval, TestInterval> test = new NestedIntervalMap<TestInterval, TestInterval>(TestInterval.STRATEGY);
         test.put(child1, child1);
         test.put(child2, child2);
         test.put(child3, child3);

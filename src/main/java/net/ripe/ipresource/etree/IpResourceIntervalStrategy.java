@@ -29,33 +29,38 @@
  */
 package net.ripe.ipresource.etree;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.Comparator;
 
-/**
- * Internal interface to represent a collection of non-overlapping nodes (where
- * each node can have additional child nodes, recursively).
- *
- * @param <K> the type of keys
- * @param <V> the type of values
- */
-interface ChildNodeMap<K, V> {
+import net.ripe.ipresource.IpResource;
 
-    void addChild(InternalNode<K, V> nodeToAdd, IntervalStrategy<K> strategy);
 
-    void removeChild(K interval, IntervalStrategy<K> strategy);
+public class IpResourceIntervalStrategy<T extends IpResource> implements IntervalStrategy<T> {
 
-    void findExactAndAllLessSpecific(List<InternalNode<K, V>> list, K interval, IntervalStrategy<K> strategy);
+    private final Comparator<T> upperBoundComparator = new Comparator<T>() {
+        @Override
+        public int compare(T o1, T o2) {
+            return o1.getEnd().compareTo(o2.getEnd());
+        }
+    };
 
-    void findExactAndAllMoreSpecific(List<InternalNode<K, V>> list, K interval, IntervalStrategy<K> strategy);
+    @Override
+    public boolean contains(T left, T right) {
+        return left.contains(right);
+    }
 
-    void findFirstMoreSpecific(List<InternalNode<K, V>> list, K interval, IntervalStrategy<K> strategy);
+    @Override
+    public boolean overlaps(T left, T right) {
+        return left.overlaps(right);
+    }
 
-    void addAllChildrenToList(List<InternalNode<K, V>> list, IntervalStrategy<K> strategy);
+    @SuppressWarnings("unchecked")
+    @Override
+    public T singletonIntervalAtLowerBound(T interval) {
+        return (T) interval.getStart().upTo(interval.getStart());
+    }
 
-    boolean isEmpty();
-
-    void clear();
-
-    Collection<InternalNode<K, V>> values();
+    @Override
+    public Comparator<T> upperBoundComparator() {
+        return upperBoundComparator;
+    }
 }

@@ -31,16 +31,16 @@ package net.ripe.ipresource.etree;
 
 import java.util.List;
 
-public final class SynchronizedIntervalMap<K extends Interval<K>, V> implements IntervalMap<K, V> {
+public final class SynchronizedIntervalMap<K extends IntervalStrategy<K>, V> implements IntervalMap<K, V> {
 
     private final Object mutex;
     private final IntervalMap<K, V> wrapped;
 
-    public static <K extends Interval<K>, V> IntervalMap<K, V> synchronizedMap(IntervalMap<K, V> toWrap) {
+    public static <K extends IntervalStrategy<K>, V> IntervalMap<K, V> synchronizedMap(IntervalMap<K, V> toWrap) {
         return new SynchronizedIntervalMap<K, V>(toWrap);
     }
 
-    public static <K extends Interval<K>, V> IntervalMap<K, V> synchronizedMap(IntervalMap<K, V> toWrap, final Object mutex) {
+    public static <K extends IntervalStrategy<K>, V> IntervalMap<K, V> synchronizedMap(IntervalMap<K, V> toWrap, final Object mutex) {
         return new SynchronizedIntervalMap<K, V>(toWrap, mutex);
     }
 

@@ -49,17 +49,20 @@ import org.apache.commons.lang.Validate;
  * structural modification.) This is typically accomplished by synchronizing on
  * some object that naturally encapsulates the map.
  *
- * @param <K> the type of the interval (must implement {@link Interval}).
+ * @param <K> the type of the interval (must implement {@link IntervalStrategy}).
  * @param <V> the type of the values to store.
  */
-public final class NestedIntervalMap<K extends Interval<K>, V> implements IntervalMap<K, V> {
+public final class NestedIntervalMap<K, V> implements IntervalMap<K, V> {
     private final ChildNodeMap<K, V> children;
+
+    private final IntervalStrategy<K> strategy;
 
     /**
      * Construct an empty {@link NestedIntervalMap}.
      */
-    public NestedIntervalMap() {
-        this.children = new ChildNodeTreeMap<K, V>();
+    public NestedIntervalMap(IntervalStrategy<K> strategy) {
+        this.strategy = strategy;
+        this.children = new ChildNodeTreeMap<K, V>(strategy);
     }
 
     /**
@@ -68,21 +71,22 @@ public final class NestedIntervalMap<K extends Interval<K>, V> implements Interv
      *
      * @param source the source to copy.
      */
-    public NestedIntervalMap(NestedIntervalMap<K, V> source) {
-        this.children = new ChildNodeTreeMap<K, V>(source.children);
+    public NestedIntervalMap(NestedIntervalMap<K, V> source, IntervalStrategy<K> strategy) {
+        this.strategy = strategy;
+        this.children = new ChildNodeTreeMap<K, V>(source.children, strategy);
     }
 
     @Override
     public void put(K key, V value) {
         Validate.notNull(key);
         Validate.notNull(value);
-        children.addChild(new InternalNode<K, V>(key, value));
+        children.addChild(new InternalNode<K, V>(key, value), strategy);
     }
 
     @Override
     public void remove(K key) {
         Validate.notNull(key);
-        children.removeChild(key);
+        children.removeChild(key, strategy);
     }
 
     @Override
@@ -217,7 +221,7 @@ public final class NestedIntervalMap<K extends Interval<K>, V> implements Interv
             return result;
         }
         InternalNode<K, V> last = result.get(result.size() - 1);
-        if (last.getInterval().equals(range)) {
+        if (last.getKey().equals(range)) {
             return result.subList(0, result.size() - 1);
         } else {
             return result;
@@ -226,7 +230,7 @@ public final class NestedIntervalMap<K extends Interval<K>, V> implements Interv
 
     private List<InternalNode<K, V>> internalFindExactAndAllLessSpecific(K range) {
         List<InternalNode<K, V>> result = new ArrayList<InternalNode<K, V>>();
-        children.findExactAndAllLessSpecific(result, range);
+        children.findExactAndAllLessSpecific(result, range, strategy);
         return result;
     }
 
@@ -236,7 +240,7 @@ public final class NestedIntervalMap<K extends Interval<K>, V> implements Interv
             return null;
         }
         InternalNode<K, V> last = exactAndAllLessSpecific.get(exactAndAllLessSpecific.size() - 1);
-        if (last.getInterval().equals(range)) {
+        if (last.getKey().equals(range)) {
             return last;
         }
         return null;
@@ -246,16 +250,16 @@ public final class NestedIntervalMap<K extends Interval<K>, V> implements Interv
         List<InternalNode<K, V>> result = new ArrayList<InternalNode<K, V>>();
         InternalNode<K, V> container = internalFindExactOrFirstLessSpecific(range);
         if (container == null) {
-            children.findFirstMoreSpecific(result, range);
+            children.findFirstMoreSpecific(result, range, strategy);
         } else {
-            container.getChildren().findFirstMoreSpecific(result, range);
+            container.getChildren().findFirstMoreSpecific(result, range, strategy);
         }
         return result;
     }
 
     private List<InternalNode<K, V>> internalFindAllMoreSpecific(K range) {
         List<InternalNode<K, V>> result = internalFindExactAndAllMoreSpecific(range);
-        if (!result.isEmpty() && result.get(0).getInterval().equals(range)) {
+        if (!result.isEmpty() && result.get(0).getKey().equals(range)) {
             return result.subList(1, result.size());
         } else {
             return result;
@@ -266,17 +270,17 @@ public final class NestedIntervalMap<K extends Interval<K>, V> implements Interv
         List<InternalNode<K, V>> result = new ArrayList<InternalNode<K, V>>();
         InternalNode<K, V> containing = internalFindExactOrFirstLessSpecific(range);
         if (containing == null) {
-            children.findExactAndAllMoreSpecific(result, range);
+            children.findExactAndAllMoreSpecific(result, range, strategy);
         } else {
-            if (containing.getInterval().equals(range)) {
+            if (containing.getKey().equals(range)) {
                 result.add(containing);
             }
-            containing.getChildren().findExactAndAllMoreSpecific(result, range);
+            containing.getChildren().findExactAndAllMoreSpecific(result, range, strategy);
         }
         return result;
     }
 
-    public abstract static class Key<K extends Interval<K>> {
+    public abstract static class Key<K extends IntervalStrategy<K>> {
         private final K key;
 
         public Key(K key) {

@@ -29,8 +29,38 @@
  */
 package net.ripe.ipresource.etree;
 
+import java.util.Comparator;
 
-public class TestInterval implements Comparable<TestInterval>, Interval<TestInterval> {
+
+public class TestInterval implements Comparable<TestInterval> {
+
+    public static final IntervalStrategy<TestInterval> STRATEGY = new IntervalStrategy<TestInterval>() {
+
+        @Override
+        public Comparator<TestInterval> upperBoundComparator() {
+            return new Comparator<TestInterval>() {
+                @Override
+                public int compare(TestInterval o1, TestInterval o2) {
+                    return o1.compareUpperBound(o2);
+                }
+            };
+        }
+
+        @Override
+        public TestInterval singletonIntervalAtLowerBound(TestInterval interval) {
+            return interval.singletonIntervalAtLowerBound();
+        }
+
+        @Override
+        public boolean overlaps(TestInterval left, TestInterval right) {
+            return left.overlaps(right);
+        }
+
+        @Override
+        public boolean contains(TestInterval left, TestInterval right) {
+            return left.contains(right);
+        }
+    };
 
     private final long start;
     private final long end;
@@ -69,22 +99,18 @@ public class TestInterval implements Comparable<TestInterval>, Interval<TestInte
         return end - start + 1;
     }
 
-    @Override
     public boolean contains(TestInterval that) {
         return start <= that.start && end >= that.end;
     }
 
-    @Override
     public boolean overlaps(TestInterval that) {
         return this.start <= that.end && this.end >= that.start;
     }
 
-    @Override
     public TestInterval singletonIntervalAtLowerBound() {
         return new TestInterval(start, start);
     }
 
-    @Override
     public int compareUpperBound(TestInterval that) {
         if (this.end < that.end) {
             return -1;
