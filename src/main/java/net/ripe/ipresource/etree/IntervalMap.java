@@ -88,18 +88,18 @@ public interface IntervalMap<K, V> {
      *
      * @param key the key to find the closest enclosing interval for
      * @return the value associated with the closest enclosing interval of
-     *         <code>key</code>, or an empty list if no such mapping exists.
+     *         <code>key</code>, or null if no such mapping exists.
      */
-    List<V> findFirstLessSpecific(K key);
+    V findFirstLessSpecific(K key);
 
     /**
      * Finds the value associated with <code>key</code>, if it exists.
      *
      * @param key the key to find the mapping for
-     * @return the value associated with <code>key</code> or an empty list if no
+     * @return the value associated with <code>key</code> or null if no
      *         such value exists
      */
-    List<V> findExact(K key);
+    V findExact(K key);
 
     /**
      * Finds the value associated with <code>key</code>, or its closest
@@ -107,9 +107,9 @@ public interface IntervalMap<K, V> {
      *
      * @param key the key to find the mapping for
      * @return the value associated with <code>key</code> or its closest
-     *         containing interval, or an empty list if no such value exists
+     *         containing interval, or null if no such value exists
      */
-    List<V> findExactOrFirstLessSpecific(K key);
+    V findExactOrFirstLessSpecific(K key);
 
     /**
      * Finds all values that are associated to intervals that contain

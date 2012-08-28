@@ -29,7 +29,6 @@
  */
 package net.ripe.ipresource.etree;
 
-import static net.ripe.ipresource.etree.NestedIntervalMap.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -119,7 +118,7 @@ public class NestedIntervalMapRandomTest {
     @Test
     public void should_find_every_interval_individually() {
         for (TestInterval interval : everything) {
-            assertThat("failed with seed: " + seed, subject.findExact(interval), contains(interval));
+            assertThat("failed with seed: " + seed, subject.findExact(interval), is(interval));
         }
     }
 
@@ -167,7 +166,7 @@ public class NestedIntervalMapRandomTest {
             NestedIntervalMap<TestInterval, TestInterval> copy = new NestedIntervalMap<TestInterval, TestInterval>(subject, TestInterval.STRATEGY);
             TestInterval interval = everything.get(random.nextInt(everything.size()));
             if (childrenByParent.containsKey(interval)) {
-                TestInterval parent = uniqueResult(copy.findFirstLessSpecific(interval));
+                TestInterval parent = copy.findFirstLessSpecific(interval);
                 if (parent != null) {
                     copy.remove(interval);
                     List<TestInterval> actual = copy.findFirstMoreSpecific(parent);

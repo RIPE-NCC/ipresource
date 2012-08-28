@@ -92,14 +92,14 @@ public class NestedIntervalMapTest {
     public void clear() {
         subject.put(N1_12, N1_1);
         subject.clear();
-        assertThat(subject.findExact(N1_12), not(contains(N1_12)));
-        assertThat(subject.findExact(N1_12), not(contains(N1_1)));
+        assertThat(subject.findExact(N1_12), is(not(N1_12)));
+        assertThat(subject.findExact(N1_12), is(not(N1_1)));
     }
 
     @Test
     public void test_replace_n1_10() {
         subject.put(N1_12, N1_1);
-        assertThat(subject.findExact(N1_12), contains(N1_1));
+        assertThat(subject.findExact(N1_12), is(N1_1));
     }
 
     @Test
@@ -116,7 +116,7 @@ public class NestedIntervalMapTest {
     @Test
     public void test_remove_n1_10() {
         subject.remove(N1_12);
-        assertThat(subject.findExact(N1_12), hasSize(0));
+        assertThat(subject.findExact(N1_12), nullValue());
         assertThat(subject.findFirstMoreSpecific(N1_12), contains(N1_4, N5_10, N11_12));
     }
 
@@ -124,7 +124,7 @@ public class NestedIntervalMapTest {
     public void test_remove_n5_8() {
         assertEquals(asList(N5_5, N6_6, N7_7), subject.findFirstMoreSpecific(N5_8));
         subject.remove(N5_8);
-        assertThat(subject.findExact(N5_8), hasSize(0));
+        assertThat(subject.findExact(N5_8), nullValue());
         assertThat(subject.findFirstMoreSpecific(N5_8), contains(N5_5, N6_6, N7_7));
     }
 
@@ -132,7 +132,7 @@ public class NestedIntervalMapTest {
     public void test_remove_key_value() {
         assertEquals(asList(N5_5, N6_6, N7_7), subject.findFirstMoreSpecific(N5_8));
         subject.remove(N5_8, N5_8);
-        assertThat(subject.findExact(N5_8), hasSize(0));
+        assertThat(subject.findExact(N5_8), nullValue());
         assertThat(subject.findFirstMoreSpecific(N5_8), contains(N5_5, N6_6, N7_7));
     }
 
@@ -192,23 +192,23 @@ public class NestedIntervalMapTest {
 
     @Test
     public void test_find_exact_or_first_less_specific() {
-        assertThat(subject.findExactOrFirstLessSpecific(new TestInterval(0, 100)), hasSize(0));
-        assertThat(subject.findExactOrFirstLessSpecific(new TestInterval(5, 13)), hasSize(0));
+        assertThat(subject.findExactOrFirstLessSpecific(new TestInterval(0, 100)), nullValue());
+        assertThat(subject.findExactOrFirstLessSpecific(new TestInterval(5, 13)), nullValue());
 
-        assertThat(subject.findExactOrFirstLessSpecific(N1_12), contains(N1_12));
-        assertThat(subject.findExactOrFirstLessSpecific(N6_6), contains(N6_6));
-        assertThat(subject.findExactOrFirstLessSpecific(N8_8), contains(N5_8));
-        assertThat(subject.findExactOrFirstLessSpecific(N2_2), contains(N2_2));
+        assertThat(subject.findExactOrFirstLessSpecific(N1_12), is(N1_12));
+        assertThat(subject.findExactOrFirstLessSpecific(N6_6), is(N6_6));
+        assertThat(subject.findExactOrFirstLessSpecific(N8_8), is(N5_8));
+        assertThat(subject.findExactOrFirstLessSpecific(N2_2), is(N2_2));
     }
 
     @Test
     public void testFindFirstLessSpecific() {
-        assertThat(subject.findFirstLessSpecific(N1_12), hasSize(0));
+        assertThat(subject.findFirstLessSpecific(N1_12), nullValue());
 
-        assertThat(subject.findFirstLessSpecific(N6_6), contains(N5_8));
-        assertThat(subject.findFirstLessSpecific(N8_8), contains(N5_8));
-        assertThat(subject.findFirstLessSpecific(N2_2), contains(N1_4));
-        assertThat(subject.findFirstLessSpecific(new TestInterval(3, 7)), contains(N1_12));
+        assertThat(subject.findFirstLessSpecific(N6_6), is(N5_8));
+        assertThat(subject.findFirstLessSpecific(N8_8), is(N5_8));
+        assertThat(subject.findFirstLessSpecific(N2_2), is(N1_4));
+        assertThat(subject.findFirstLessSpecific(new TestInterval(3, 7)), is(N1_12));
     }
 
     @Test
@@ -228,7 +228,7 @@ public class NestedIntervalMapTest {
     @Test
     public void testFindExact() {
         for (TestInterval n : all) {
-            assertThat(subject.findExact(n), contains(n));
+            assertThat(subject.findExact(n), is(n));
         }
     }
 
@@ -264,7 +264,7 @@ public class NestedIntervalMapTest {
             assertEquals(asList(child1), expected.getOverlaps());
         }
 
-        assertThat(subject.findExact(overlap), hasSize(0));
+        assertThat(subject.findExact(overlap), nullValue());
     }
 
     @Test
@@ -286,7 +286,7 @@ public class NestedIntervalMapTest {
             assertEquals(asList(child3), expected.getOverlaps());
         }
 
-        assertThat(subject.findExact(overlap), hasSize(0));
+        assertThat(subject.findExact(overlap), nullValue());
     }
 
     @Test
@@ -308,6 +308,6 @@ public class NestedIntervalMapTest {
             assertEquals(asList(child1, child3), expected.getOverlaps());
         }
 
-        assertThat(subject.findExact(overlap), hasSize(0));
+        assertThat(subject.findExact(overlap), nullValue());
     }
 }

@@ -31,7 +31,6 @@ package net.ripe.ipresource.etree;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang.Validate;
@@ -94,16 +93,16 @@ public final class NestedIntervalMap<K, V> implements IntervalMap<K, V> {
         Validate.notNull(key);
         Validate.notNull(value);
 
-        if (value.equals(uniqueResult(findExact(key)))) {
+        if (value.equals(findExact(key))) {
             remove(key);
         }
     }
 
     @Override
-    public List<V> findFirstLessSpecific(K key) {
+    public V findFirstLessSpecific(K key) {
         Validate.notNull(key);
         InternalNode<K, V> node = internalFindFirstLessSpecific(key);
-        return mapToValues(node);
+        return mapToValue(node);
     }
 
     @Override
@@ -119,16 +118,16 @@ public final class NestedIntervalMap<K, V> implements IntervalMap<K, V> {
     }
 
     @Override
-    public List<V> findExact(K key) {
+    public V findExact(K key) {
         Validate.notNull(key);
         InternalNode<K, V> node = internalFindExact(key);
-        return mapToValues(node);
+        return node == null ? null : node.getValue();
     }
 
     @Override
-    public List<V> findExactOrFirstLessSpecific(K key) {
+    public V findExactOrFirstLessSpecific(K key) {
         Validate.notNull(key);
-        return mapToValues(internalFindExactOrFirstLessSpecific(key));
+        return mapToValue(internalFindExactOrFirstLessSpecific(key));
     }
 
     @Override
@@ -185,12 +184,8 @@ public final class NestedIntervalMap<K, V> implements IntervalMap<K, V> {
         return children.toString();
     }
 
-    private List<V> mapToValues(InternalNode<K, V> node) {
-        if (node == null) {
-            return Collections.emptyList();
-        }
-
-        return Collections.singletonList(node.getValue());
+    private V mapToValue(InternalNode<K, V> node) {
+        return node == null ? null : node.getValue();
     }
 
     private List<V> mapToValues(Collection<InternalNode<K, V>> nodes) {
@@ -315,17 +310,6 @@ public final class NestedIntervalMap<K, V> implements IntervalMap<K, V> {
         @Override
         public String toString() {
             return "IpResource(" + key + ")";
-        }
-    }
-
-    static <T> T uniqueResult(final List<T> list) {
-        switch (list.size()) {
-        case 0:
-            return null;
-        case 1:
-            return list.get(0);
-        default:
-            throw new IllegalStateException("Unexpected number of elements in list: " + list.size());
         }
     }
 }
