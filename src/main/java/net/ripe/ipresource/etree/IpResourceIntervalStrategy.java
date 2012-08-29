@@ -36,6 +36,12 @@ import net.ripe.ipresource.IpResource;
 
 public class IpResourceIntervalStrategy<T extends IpResource> implements IntervalStrategy<T> {
 
+    private IpResourceIntervalStrategy() {
+    }
+
+    public static <T extends IpResource> IpResourceIntervalStrategy<T> getInstance() {
+        return new IpResourceIntervalStrategy<T>();
+    }
     private final Comparator<T> upperBoundComparator = new Comparator<T>() {
         @Override
         public int compare(T o1, T o2) {

@@ -80,6 +80,14 @@ public interface IntervalMap<K, V> {
      */
     void remove(K key, V value);
 
+    /**
+     * @return true if the interval map is empty.
+     */
+    public boolean isEmpty();
+
+    /**
+     * Removes all entries from this interval map. Afterwards this map {@link #isEmpty()}.
+     */
     void clear();
 
     /**

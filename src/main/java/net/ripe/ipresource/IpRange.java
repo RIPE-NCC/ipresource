@@ -29,8 +29,6 @@
  */
 package net.ripe.ipresource;
 
-import static net.ripe.ipresource.IpResourceType.*;
-
 import java.math.BigInteger;
 import java.util.LinkedList;
 import java.util.List;
@@ -102,7 +100,7 @@ public class IpRange extends IpResourceRange {
     public List<IpRange> splitToPrefixes() {
         BigInteger rangeEnd = getEnd().getValue();
         BigInteger currentRangeStart = getStart().getValue();
-        int startingPrefixLength = (getType() == IPv4) ? 32 : 128;
+        int startingPrefixLength = getType().getBitSize();
         List<IpRange> prefixes = new LinkedList<IpRange>();
 
         while (currentRangeStart.compareTo(rangeEnd) <= 0) {

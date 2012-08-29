@@ -76,6 +76,11 @@ public final class NestedIntervalMap<K, V> implements IntervalMap<K, V> {
     }
 
     @Override
+    public boolean isEmpty() {
+        return children.isEmpty();
+    }
+
+    @Override
     public void put(K key, V value) {
         Validate.notNull(key);
         Validate.notNull(value);
