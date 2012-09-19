@@ -29,6 +29,8 @@
  */
 package net.ripe.ipresource;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -40,16 +42,17 @@ import org.apache.commons.lang.Validate;
  */
 public class Asn extends UniqueIpResource {
 
-	private static final long serialVersionUID = 2L;
+    private static final long serialVersionUID = 2L;
 
-	private static final Pattern ASN_TEXT_PATTERN = Pattern.compile("(?:AS)?(\\d+)(\\.(\\d+))?", Pattern.CASE_INSENSITIVE);
+    private static final Pattern ASN_TEXT_PATTERN = Pattern.compile("(?:AS)?(\\d+)(\\.(\\d+))?", Pattern.CASE_INSENSITIVE);
 
     public static long ASN_MIN_VALUE = 0L;
     public static long ASN16_MAX_VALUE = (1L << 16) - 1L;
     public static long ASN32_MAX_VALUE = (1L << 32) - 1L;
 
-    // Int is more memory efficient, so use value() accessor to get correct unsigned long value.
-    private final int value;
+    // Int is more memory efficient, so use value() accessor to get correct
+    // unsigned long value.
+    private int intValue;
 
     @Deprecated
     public Asn(BigInteger value) {
@@ -58,7 +61,7 @@ public class Asn extends UniqueIpResource {
 
     public Asn(long value) {
         checkRange(value, ASN32_MAX_VALUE);
-        this.value = (int) value;
+        this.intValue = (int) value;
     }
 
     @Override
@@ -103,12 +106,12 @@ public class Asn extends UniqueIpResource {
     }
 
     public final long longValue() {
-        return value & ASN32_MAX_VALUE;
+        return intValue & ASN32_MAX_VALUE;
     }
 
     @Override
     protected int doHashCode() {
-        return value;
+        return intValue;
     }
 
     @Override
@@ -152,4 +155,11 @@ public class Asn extends UniqueIpResource {
         return BigInteger.valueOf(longValue());
     }
 
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        ObjectInputStream.GetField gf = in.readFields();
+        if (!gf.defaulted("intValue"))
+            this.intValue = gf.get("intValue", 0);
+        else
+            this.intValue = (int) gf.get("value", 0L);
+    }
 }

@@ -29,6 +29,8 @@
  */
 package net.ripe.ipresource;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.math.BigInteger;
 
 import org.apache.commons.lang.Validate;
@@ -45,7 +47,7 @@ public class Ipv4Address extends IpAddress {
 	private static final long MAXIMUM_VALUE = (1L << NUMBER_OF_BITS) - 1;
 
     // Int is more memory efficient, so use longValue() accessor to get correct unsigned long value.
-    private final int value;
+    private int intValue;
 
     @Deprecated
     public Ipv4Address(BigInteger value) {
@@ -54,7 +56,7 @@ public class Ipv4Address extends IpAddress {
 
 	public Ipv4Address(long value) {
 		Validate.isTrue(value >= MINIMUM_VALUE && value <= MAXIMUM_VALUE, "value out of range");
-		this.value = (int) value;
+		this.intValue = (int) value;
 	}
 
     @Override
@@ -142,7 +144,7 @@ public class Ipv4Address extends IpAddress {
 
     @Override
     protected int doHashCode() {
-        return value;
+        return intValue;
     }
 
     @Override
@@ -193,6 +195,14 @@ public class Ipv4Address extends IpAddress {
     }
 
     private long value() {
-        return value & MAXIMUM_VALUE;
+        return intValue & MAXIMUM_VALUE;
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        ObjectInputStream.GetField gf = in.readFields();
+        if (!gf.defaulted("intValue"))
+            this.intValue = gf.get("intValue", 0);
+        else
+            this.intValue = (int) gf.get("value", 0L);
     }
 }

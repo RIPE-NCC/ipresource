@@ -29,11 +29,13 @@
  */
 package net.ripe.ipresource;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.math.BigInteger;
 
 public abstract class UniqueIpResource extends IpResource {
 
-    private static final long serialVersionUID = 2L;
+    private static final long serialVersionUID = 1L;
 
     public abstract BigInteger getValue();
 
@@ -111,4 +113,12 @@ public abstract class UniqueIpResource extends IpResource {
         }
     }
 
+    private void readObject(java.io.ObjectInputStream in)
+            throws IOException, ClassNotFoundException {
+        ObjectInputStream.GetField gf = in.readFields();
+        try {
+            gf.get("type", null); // Ignore, but for older version compatibility.
+        } catch (IllegalArgumentException ignored) {
+        }
+    }
 }
