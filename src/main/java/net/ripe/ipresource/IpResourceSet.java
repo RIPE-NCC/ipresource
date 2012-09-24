@@ -29,13 +29,13 @@
  */
 package net.ripe.ipresource;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 
 public class IpResourceSet implements Iterable<IpResource>, Serializable {
 
@@ -44,7 +44,7 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
     public static final IpResourceSet ALL_PRIVATE_USE_RESOURCES = IpResourceSet.parse("AS64512-AS65534,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7");
 
     private static final long serialVersionUID = 1L;
-    
+
     private SortedSet<IpResource> resources = new TreeSet<IpResource>();
 
     public IpResourceSet() {
@@ -59,7 +59,13 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
     public IpResourceSet(IpResourceSet resources) {
         this.resources = new TreeSet<IpResource>(resources.resources);
     }
-    
+
+    public IpResourceSet(Collection<? extends IpResource> resources) {
+        for (IpResource resource : resources) {
+            add(resource);
+        }
+    }
+
     public void addAll(IpResourceSet ipResourceSet) {
     	for (IpResource ipResource: ipResourceSet.resources) {
     		add(ipResource);
@@ -111,7 +117,7 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
         }
         return false;
     }
-    
+
     public static IpResourceSet parse(String s) {
         if ("INHERITED".equalsIgnoreCase(s)) {
             return InheritedIpResourceSet.getInstance();
@@ -192,7 +198,7 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
         normalize();
         return resources.iterator();
     }
-    
+
     public boolean remove(IpResource prefix) {
         SortedSet<IpResource> temp = new TreeSet<IpResource>();
         for (IpResource resource : resources) {
@@ -219,7 +225,7 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
             resources.clear();
             return;
         }
-        
+
         SortedSet<IpResource> temp = new TreeSet<IpResource>();
         Iterator<IpResource> thisIterator = this.iterator();
         Iterator<IpResource> thatIterator = other.iterator();
