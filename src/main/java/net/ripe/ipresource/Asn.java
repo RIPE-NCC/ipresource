@@ -46,9 +46,9 @@ public class Asn extends UniqueIpResource {
 
     private static final Pattern ASN_TEXT_PATTERN = Pattern.compile("(?:AS)?(\\d+)(\\.(\\d+))?", Pattern.CASE_INSENSITIVE);
 
-    public static long ASN_MIN_VALUE = 0L;
-    public static long ASN16_MAX_VALUE = (1L << 16) - 1L;
-    public static long ASN32_MAX_VALUE = (1L << 32) - 1L;
+    public static final long ASN_MIN_VALUE = 0L;
+    public static final long ASN16_MAX_VALUE = (1L << 16) - 1L;
+    public static final long ASN32_MAX_VALUE = (1L << 32) - 1L;
 
     // Int is more memory efficient, so use value() accessor to get correct
     // unsigned long value.
