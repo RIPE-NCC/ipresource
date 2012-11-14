@@ -29,17 +29,17 @@
  */
 package net.ripe.ipresource;
 
-import java.math.BigInteger;
-
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.builder.HashCodeBuilder;
+
+import java.math.BigInteger;
 
 /**
  * Example: AS1-AS20
  */
 public class IpResourceRange extends IpResource {
 
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     private UniqueIpResource start;
     private UniqueIpResource end;
@@ -65,9 +65,6 @@ public class IpResourceRange extends IpResource {
         this.start = start;
         this.end = end;
     }
-
-    // ------------------------------------------------------------ Range
-    // Interface
 
     @Override
     public UniqueIpResource getStart() {
@@ -135,90 +132,85 @@ public class IpResourceRange extends IpResource {
      * @see IpResourceSet
      */
     public static IpResourceRange parse(String s) {
-        if(s.indexOf(',') >= 0) {
-        	return parseCommaPrefixNotation(s);
+        if (s.indexOf(',') >= 0) {
+            return parseCommaPrefixNotation(s);
+        } else if (s.indexOf('/') >= 0) {
+            return parseAsSingleSlashNotatedRange(s);
+        } else if (s.indexOf('-') >= 0) {
+            return parseAsRangeDenotedBySingleStartAndEndAddress(s);
         }
-
-        if (s.indexOf('/') >= 0) {
-        	return parseAsSingleSlashNotatedRange(s);
-        }
-
-        if (s.indexOf('-') >= 0) {
-        	return parseAsRangeDenotedBySingleStartAndEndAddress(s);
-        }
-
         throw new IllegalArgumentException("illegal resource range: " + s);
     }
 
-	private static IpResourceRange parseAsRangeDenotedBySingleStartAndEndAddress(String s) {
-		int idx = s.indexOf('-');
-		UniqueIpResource start = UniqueIpResource.parse(s.substring(0, idx));
-		UniqueIpResource end = UniqueIpResource.parse(s.substring(idx + 1));
-		if (start.getType() != end.getType()) {
-		    throw new IllegalArgumentException("resource types in range do not match");
-		}
-		return IpResourceRange.range(start, end);
-	}
+    private static IpResourceRange parseAsRangeDenotedBySingleStartAndEndAddress(String s) {
+        int idx = s.indexOf('-');
+        UniqueIpResource start = UniqueIpResource.parse(s.substring(0, idx));
+        UniqueIpResource end = UniqueIpResource.parse(s.substring(idx + 1));
+        if (start.getType() != end.getType()) {
+            throw new IllegalArgumentException("resource types in range do not match");
+        }
+        return IpResourceRange.range(start, end);
+    }
 
-	private static IpResourceRange parseAsSingleSlashNotatedRange(String s) {
-		int idx = s.indexOf('/');
-		IpAddress prefix = IpAddress.parse(s.substring(0, idx), true);
-		int length = Integer.parseInt(s.substring(idx + 1));
-		return IpRange.prefix(prefix, length);
-	}
+    private static IpResourceRange parseAsSingleSlashNotatedRange(String s) {
+        int idx = s.indexOf('/');
+        IpAddress prefix = IpAddress.parse(s.substring(0, idx), true);
+        int length = Integer.parseInt(s.substring(idx + 1));
+        return IpRange.prefix(prefix, length);
+    }
 
-	/**
-	 * <p>Expects a notation like: "10.0.0.0/16,/24,/25,/31"</P>
-	 * <p>This parses:</p>
-	 * <ul>
-	 * <li>10.0.0.0/16 plus the adjacent prefixes:
-	 * <li>/24
-	 * <li>/25
-	 * <li>/31
-	 * </ul>
-	 * <p><b>Note</b> that the mask of these <b>prefixes</b> MUST increase. I.e. go from big to small..</p>
-	 */
-	private static IpResourceRange parseCommaPrefixNotation(String s) {
-		int slashIdx = s.indexOf('/');
+    /**
+     * <p>Expects a notation like: "10.0.0.0/16,/24,/25,/31"</P>
+     * <p>This parses:</p>
+     * <ul>
+     * <li>10.0.0.0/16 plus the adjacent prefixes:
+     * <li>/24
+     * <li>/25
+     * <li>/31
+     * </ul>
+     * <p><b>Note</b> that the mask of these <b>prefixes</b> MUST increase. I.e. go from big to small..</p>
+     */
+    private static IpResourceRange parseCommaPrefixNotation(String s) {
+        int slashIdx = s.indexOf('/');
 
-		if (slashIdx == -1) {
-			throw new IllegalArgumentException("Comma separated notation can only be used for adjacent prefix notations like: 10.0.0.0/16,/24,/25,/31");
-		}
+        if (slashIdx == -1) {
+            throw new IllegalArgumentException("Comma separated notation can only be used for adjacent prefix notations like: 10.0.0.0/16,/24,/25,/31");
+        }
 
-		String startAddress = s.substring(0, slashIdx);
+        String startAddress = s.substring(0, slashIdx);
 
-		UniqueIpResource start = UniqueIpResource.parse(startAddress);
-		UniqueIpResource end = UniqueIpResource.parse(startAddress);
+        UniqueIpResource start = UniqueIpResource.parse(startAddress);
+        UniqueIpResource end = UniqueIpResource.parse(startAddress);
 
-		String prefixSizeList = s.substring(slashIdx);
-		int lastSeenPrefixMask = -1;
-		for(String prefixStr: prefixSizeList.split(",")) {
-			int prefixMask = Integer.parseInt(prefixStr.substring(1)); // Will throw IllegalArgumentException when string is not a valid Integer
-			if (lastSeenPrefixMask < prefixMask) {
-				end = end.upperBoundForPrefix(prefixMask).successor();
-				lastSeenPrefixMask = prefixMask;
-			} else {
-				throw new IllegalArgumentException("Mask of prefix " + prefixMask + " is bigger than previous: " + lastSeenPrefixMask);
-			}
-		}
+        String prefixSizeList = s.substring(slashIdx);
+        int lastSeenPrefixMask = -1;
+        for(String prefixStr: prefixSizeList.split(",")) {
+            int prefixMask = Integer.parseInt(prefixStr.substring(1)); // Will throw IllegalArgumentException when string is not a valid Integer
+            if (lastSeenPrefixMask < prefixMask) {
+                end = end.upperBoundForPrefix(prefixMask).successor();
+                lastSeenPrefixMask = prefixMask;
+            } else {
+                throw new IllegalArgumentException("Mask of prefix " + prefixMask + " is bigger than previous: " + lastSeenPrefixMask);
+            }
+        }
 
-		return IpResourceRange.range(start, end.predecessor());
-	}
+        return IpResourceRange.range(start, end.predecessor());
+    }
 
     public static IpResourceRange assemble(BigInteger start, BigInteger end, IpResourceType type) {
         return type.fromBigInteger(start).upTo(type.fromBigInteger(end));
     }
 
-	public static IpResourceRange parseWithNetmask(String ipStr, String netmaskStr) {
-		UniqueIpResource start = UniqueIpResource.parse(ipStr);
-		UniqueIpResource netmask = UniqueIpResource.parse(netmaskStr);
-		if (!netmask.isValidNetmask()) {
-		    throw new IllegalArgumentException("netmask '" + netmaskStr + "' is not a valid netmask");
-		}
+    public static IpResourceRange parseWithNetmask(String ipStr, String netmaskStr) {
+        UniqueIpResource start = UniqueIpResource.parse(ipStr);
+        UniqueIpResource netmask = UniqueIpResource.parse(netmaskStr);
+        if (!netmask.isValidNetmask()) {
+            throw new IllegalArgumentException("netmask '" + netmaskStr + "' is not a valid netmask");
+        }
 
-		int size = netmask.getValue().bitCount();
+        int size = netmask.getValue().bitCount();
         UniqueIpResource end = start.upperBoundForPrefix(size);
 
         return IpResourceRange.range(start, end);
-	}
+    }
 }

@@ -29,16 +29,17 @@
  */
 package net.ripe.ipresource;
 
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 public class SerializationTest {
+
     private static final IpResourceSet RESOURCES = IpResourceSet.parse("AS1-AS100,10/8,ffff::/16");
 
     @Test

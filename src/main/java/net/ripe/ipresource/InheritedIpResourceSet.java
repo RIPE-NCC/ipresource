@@ -37,7 +37,8 @@ public class InheritedIpResourceSet extends IpResourceSet {
     private static final long serialVersionUID = 1L;
     private static final InheritedIpResourceSet INSTANCE = new InheritedIpResourceSet();
 
-    private InheritedIpResourceSet() {}
+    private InheritedIpResourceSet() {
+    }
     
     public static InheritedIpResourceSet getInstance() {
         return INSTANCE;

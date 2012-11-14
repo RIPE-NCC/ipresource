@@ -29,12 +29,12 @@
  */
 package net.ripe.ipresource;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+
 import java.math.BigInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 
 /**
  * Ipv6 address. This implementation has no support for interfaces.
@@ -189,9 +189,6 @@ public class Ipv6Address extends IpAddress {
             return init + "::" + tail;
         }
     }
-
-
-    // -------------------------------------------------------------------------------- HELPERS
 
     @Override
     public final BigInteger getValue() {

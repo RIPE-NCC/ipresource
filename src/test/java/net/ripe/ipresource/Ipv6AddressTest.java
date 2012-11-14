@@ -29,26 +29,26 @@
  */
 package net.ripe.ipresource;
 
-import static net.ripe.ipresource.Ipv6Address.*;
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 import java.math.BigInteger;
 
-import org.junit.Test;
+import static net.ripe.ipresource.Ipv6Address.parse;
+import static org.junit.Assert.*;
 
 public class Ipv6AddressTest {
-	private final static String ADDRESS_ALL = "::";
+    private final static String ADDRESS_ALL = "::";
 
-	private final static String COMPRESSED_NOTATION = "12::34";
-	private final static String EXPECTED_COMPRESSED_NOTATION = "12::34";
+    private final static String COMPRESSED_NOTATION = "12::34";
+    private final static String EXPECTED_COMPRESSED_NOTATION = "12::34";
 
-	private final static String COMPRESSED_NOTATION_AT_END = "12::";
-	private final static String EXPECTED_COMPRESSED_NOTATION_AT_END = "12::";
+    private final static String COMPRESSED_NOTATION_AT_END = "12::";
+    private final static String EXPECTED_COMPRESSED_NOTATION_AT_END = "12::";
 
-	private final static String COMPRESSED_NOTATION_AT_BEGIN = "::12";
-	private final static String EXPECTED_NOTATION_AT_BEGIN = "::12";
+    private final static String COMPRESSED_NOTATION_AT_BEGIN = "::12";
+    private final static String EXPECTED_NOTATION_AT_BEGIN = "::12";
 
-	private final static String CLASSLESS_NOTATION = "1:2:3:4/64";
+    private final static String CLASSLESS_NOTATION = "1:2:3:4/64";
 
 
     @Test
@@ -311,19 +311,19 @@ public class Ipv6AddressTest {
         }
     }
 
-	@Test
-	public void testExpandAllString() {
-		assertEquals(ADDRESS_ALL, parse(ADDRESS_ALL).toString());
-	}
+    @Test
+    public void testExpandAllString() {
+        assertEquals(ADDRESS_ALL, parse(ADDRESS_ALL).toString());
+    }
 
-	@Test
-	public void testExplandToExpandString() {
-		assertEquals(EXPECTED_COMPRESSED_NOTATION, parse(COMPRESSED_NOTATION).toString());
-		assertEquals(EXPECTED_COMPRESSED_NOTATION_AT_END, parse(COMPRESSED_NOTATION_AT_END).toString());
+    @Test
+    public void testExplandToExpandString() {
+        assertEquals(EXPECTED_COMPRESSED_NOTATION, parse(COMPRESSED_NOTATION).toString());
+        assertEquals(EXPECTED_COMPRESSED_NOTATION_AT_END, parse(COMPRESSED_NOTATION_AT_END).toString());
 
-		assertEquals(new BigInteger("12", 16), parse(COMPRESSED_NOTATION_AT_BEGIN).getValue());
-		assertEquals(EXPECTED_NOTATION_AT_BEGIN, parse(COMPRESSED_NOTATION_AT_BEGIN).toString());
-	}
+        assertEquals(new BigInteger("12", 16), parse(COMPRESSED_NOTATION_AT_BEGIN).getValue());
+        assertEquals(EXPECTED_NOTATION_AT_BEGIN, parse(COMPRESSED_NOTATION_AT_BEGIN).toString());
+    }
 
      @Test(expected = IllegalArgumentException.class)
     public void shouldFailSinceUniqueAddressIsNotARange() {

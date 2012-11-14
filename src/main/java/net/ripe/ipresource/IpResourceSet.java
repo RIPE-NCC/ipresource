@@ -29,13 +29,14 @@
  */
 package net.ripe.ipresource;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 
 public class IpResourceSet implements Iterable<IpResource>, Serializable {
 
@@ -67,10 +68,10 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
     }
 
     public void addAll(IpResourceSet ipResourceSet) {
-    	for (IpResource ipResource: ipResourceSet.resources) {
-    		add(ipResource);
-    	}
-    	normalize();
+        for (IpResource ipResource: ipResourceSet.resources) {
+            add(ipResource);
+        }
+        normalize();
     }
 
     public void add(IpResource resource) {
@@ -135,21 +136,21 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
 
     @Override
     public boolean equals(Object obj) {
-    	if (this == obj) {
-    		return true;
-    	}
-    	if (! (obj instanceof IpResourceSet)) {
-    		return false;
-    	}
-    	normalize();
-    	IpResourceSet other = (IpResourceSet) obj;
-    	other.normalize();
+        if (this == obj) {
+            return true;
+        }
+        if (! (obj instanceof IpResourceSet)) {
+            return false;
+        }
+        normalize();
+        IpResourceSet other = (IpResourceSet) obj;
+        other.normalize();
         return resources.equals(other.resources);
     }
 
     @Override
     public int hashCode() {
-    	normalize();
+        normalize();
         return resources.hashCode();
     }
 

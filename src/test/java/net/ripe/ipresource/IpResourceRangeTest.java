@@ -29,13 +29,13 @@
  */
 package net.ripe.ipresource;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
 
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class IpResourceRangeTest {
 
@@ -52,29 +52,29 @@ public class IpResourceRangeTest {
 
     @Test
     public void shouldParseIpv6Range() {
-    	assertEquals(IPV6_RANGE_STR, IPV6_RANGE.toString());
+        assertEquals(IPV6_RANGE_STR, IPV6_RANGE.toString());
     }
-    
+
     @Test
     public void shouldParseIpv4Range() {
-    	assertEquals("10.0.0.0-10.1.2.3", IpResourceRange.parse("10.0.0.0-10.1.2.3").toString());
+        assertEquals("10.0.0.0-10.1.2.3", IpResourceRange.parse("10.0.0.0-10.1.2.3").toString());
     }
-    
+
     @Test(expected=IllegalArgumentException.class)
     public void shouldRejectParsingOfCommaseparatedIpAddresses() {
-    	IpResourceRange.parse("10.0.0.0, 10.0.0.255");
+        IpResourceRange.parse("10.0.0.0, 10.0.0.255");
     }
-    
 
-    
+
+
     @Test
     public void shouldSupportAsnRange() {
         assertEquals(new IpResourceRange(Asn.parse("AS3333"), Asn.parse("AS4444")), IpResourceRange.parse("AS3333-AS4444"));
     }
-    
+
     @Test
     public void shouldSupportAsnRangeDenotedAsPlainNumbers() {
-    	assertEquals(new IpResourceRange(Asn.parse("AS3333"), Asn.parse("AS4444")), IpResourceRange.parse("3333-4444"));
+        assertEquals(new IpResourceRange(Asn.parse("AS3333"), Asn.parse("AS4444")), IpResourceRange.parse("3333-4444"));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -97,15 +97,15 @@ public class IpResourceRangeTest {
     public void shouldParseCommaPrefixNotation() {
         assertEquals("10.0.0.0-10.1.1.129", IpResourceRange.parse("10.0.0.0/16,/24,/25,/31").toString());
     }
-    
+
     @Test(expected=IllegalArgumentException.class)
     public void shouldRejectParseCommaPrefixNotationWithWrongOrder() {
-    	assertEquals("10.0.0.0-10.1.1.129", IpResourceRange.parse("10.0.0.0/16,/25,/24,/31").toString());
+        assertEquals("10.0.0.0-10.1.1.129", IpResourceRange.parse("10.0.0.0/16,/25,/24,/31").toString());
     }
-    
+
     @Test(expected=IllegalArgumentException.class)
     public void shouldRejectParsingCommaSeparatedNonPrefixNotation() {
-    	IpResourceRange.parse("10.0.0.0/24,10.0.1.0/24");
+        IpResourceRange.parse("10.0.0.0/24,10.0.1.0/24");
     }
 
     @Test
@@ -129,12 +129,12 @@ public class IpResourceRangeTest {
 
     @Test
     public void singletonRangeShouldEqualUniqueIpv4Resource() {
-    	singletonRangeShouldEqualUniqueIpResource("127.0.0.1");
+        singletonRangeShouldEqualUniqueIpResource("127.0.0.1");
     }
 
     @Test
     public void singletonRangeShouldEqualUniqueIpv6Resource() {
-    	singletonRangeShouldEqualUniqueIpResource("127::1");
+        singletonRangeShouldEqualUniqueIpResource("127::1");
     }
 
     public void singletonRangeShouldEqualUniqueIpResource(String resource) {
@@ -150,7 +150,7 @@ public class IpResourceRangeTest {
 
     @Test
     public void shouldParseIPv6ClasslessNotation() {
-    	IpResourceRange.parse("1:2:3::/64");
+        IpResourceRange.parse("1:2:3::/64");
     }
 
     @Test

@@ -29,22 +29,22 @@
  */
 package net.ripe.ipresource;
 
+import org.apache.commons.lang.Validate;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.math.BigInteger;
 
-import org.apache.commons.lang.Validate;
-
 public class Ipv4Address extends IpAddress {
 
-	private static final long serialVersionUID = 2L;
+    private static final long serialVersionUID = 2L;
 
-	private static final int BYTE_MASK = 0xff;
+    private static final int BYTE_MASK = 0xff;
 
-	public static final int NUMBER_OF_BITS = 32;
+    public static final int NUMBER_OF_BITS = 32;
 
-	private static final long MINIMUM_VALUE = 0;
-	private static final long MAXIMUM_VALUE = (1L << NUMBER_OF_BITS) - 1;
+    private static final long MINIMUM_VALUE = 0;
+    private static final long MAXIMUM_VALUE = (1L << NUMBER_OF_BITS) - 1;
 
     // Int is more memory efficient, so use longValue() accessor to get correct unsigned long value.
     private int intValue;
@@ -54,29 +54,29 @@ public class Ipv4Address extends IpAddress {
         this(value.longValue());
     }
 
-	public Ipv4Address(long value) {
-		Validate.isTrue(value >= MINIMUM_VALUE && value <= MAXIMUM_VALUE, "value out of range");
-		this.intValue = (int) value;
-	}
+    public Ipv4Address(long value) {
+        Validate.isTrue(value >= MINIMUM_VALUE && value <= MAXIMUM_VALUE, "value out of range");
+        this.intValue = (int) value;
+    }
 
     @Override
     public IpResourceType getType() {
         return IpResourceType.IPv4;
     }
 
-	public static Ipv4Address parse(String s) {
-	    return parse(s, false);
-	}
+    public static Ipv4Address parse(String s) {
+        return parse(s, false);
+    }
 
-	public static Ipv4Address parse(String s, boolean defaultMissingOctets) {
+    public static Ipv4Address parse(String s, boolean defaultMissingOctets) {
         s = s.trim();
 
-	    int length = s.length();
-	    if (length == 0 || !Character.isDigit(s.charAt(0)) || !Character.isDigit(s.charAt(s.length() - 1))) {
+        int length = s.length();
+        if (length == 0 || !Character.isDigit(s.charAt(0)) || !Character.isDigit(s.charAt(s.length() - 1))) {
             throw new IllegalArgumentException("invalid IPv4 address: " + s);
-	    }
+        }
 
-	    long value = 0;
+        long value = 0;
         int octet = 0;
         int octetCount = 1;
 
@@ -107,7 +107,7 @@ public class Ipv4Address extends IpAddress {
         }
 
         return new Ipv4Address(value);
-	}
+    }
 
     private static long addOctet(long value, int octet) {
         if (octet < 0 || octet > 255) {
@@ -200,9 +200,10 @@ public class Ipv4Address extends IpAddress {
 
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         ObjectInputStream.GetField gf = in.readFields();
-        if (!gf.defaulted("intValue"))
+        if (!gf.defaulted("intValue")) {
             this.intValue = gf.get("intValue", 0);
-        else
+        } else {
             this.intValue = (int) gf.get("value", 0L);
+        }
     }
 }

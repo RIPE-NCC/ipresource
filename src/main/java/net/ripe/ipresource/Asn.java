@@ -29,12 +29,13 @@
  */
 package net.ripe.ipresource;
 
+import org.apache.commons.lang.Validate;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.lang.Validate;
 
 /**
  * Immutable value object for Autonomous System Numbers.
@@ -155,9 +156,10 @@ public class Asn extends UniqueIpResource {
 
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         ObjectInputStream.GetField gf = in.readFields();
-        if (!gf.defaulted("intValue"))
+        if (!gf.defaulted("intValue")) {
             this.intValue = gf.get("intValue", 0);
-        else
+        } else {
             this.intValue = (int) gf.get("value", 0L);
+        }
     }
 }

@@ -95,18 +95,16 @@ public abstract class UniqueIpResource extends IpResource {
         return getType().fromBigInteger(getValue().add(BigInteger.ONE));
     }
 
-    // Parsing.
-
     public static UniqueIpResource parse(String s) {
         try {
             try {
                 return Ipv4Address.parse(s);
             } catch (IllegalArgumentException ex4) {
-            	try {
-            		return Ipv6Address.parse(s);
-            	} catch (IllegalArgumentException ex6) {
-            		return Asn.parse(s);
-            	}
+                try {
+                    return Ipv6Address.parse(s);
+                } catch (IllegalArgumentException ex6) {
+                    return Asn.parse(s);
+                }
             }
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException(String.format("Invalid IPv4, IPv6 or ASN resource: %s", s));

@@ -29,20 +29,18 @@
  */
 package net.ripe.ipresource;
 
+import org.apache.commons.lang.Validate;
+
 import java.math.BigInteger;
 import java.util.LinkedList;
 import java.util.List;
-
-import org.apache.commons.lang.Validate;
 
 /**
  * Example IP Range: 192.168.0.1-192.168.1.10
  */
 public class IpRange extends IpResourceRange {
 
-	private static final long serialVersionUID = 1L;
-
-	// Construction.
+    private static final long serialVersionUID = 1L;
 
     public static IpRange range(IpAddress start, IpAddress end) {
         return new IpRange(start, end);
@@ -58,8 +56,6 @@ public class IpRange extends IpResourceRange {
     protected IpRange(IpAddress start, IpAddress end) {
         super(start, end);
     }
-
-    // Parsing.
 
     /**
      * Parses an IP address range in either <em>prefix</em> or <em>range</em>
@@ -77,9 +73,6 @@ public class IpRange extends IpResourceRange {
         Validate.isTrue(result instanceof IpRange, "range is not an IP address range: " + s);
         return (IpRange) result;
     }
-
-    // ------------------------------------------------------------ Prefix
-    // behavior
 
     protected IpRange(IpAddress networkNumber, int prefixLength) {
         this(networkNumber, networkNumber.upperBoundForPrefix(prefixLength));
@@ -110,7 +103,6 @@ public class IpRange extends IpResourceRange {
 
             while ((currentSizeOfPrefix.compareTo(maximumSizeOfPrefix) > 0) && (maximumPrefixLength > 0)) {
                 maximumPrefixLength--;
-
                 currentSizeOfPrefix = BigInteger.valueOf(2).pow(maximumPrefixLength);
             }
 
