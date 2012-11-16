@@ -2,38 +2,44 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>net.ripe.commons</groupId>
     <artifactId>commons-internet-resources</artifactId>
+    <packaging>jar</packaging>
     <version>1.44-SNAPSHOT</version>
+
+    <parent>
+        <groupId>org.sonatype.oss</groupId>
+        <artifactId>oss-parent</artifactId>
+        <version>7</version>
+    </parent>
 
     <name>RIPE NCC Commons - Internet Resources</name>
     <description>IPv4, IPv6 and ASN definitions.</description>
+    <url>https://github.com/RIPE-NCC/commons-internet-resources</url>
     <organization>
         <name>RIPE NCC, the Netherlands</name>
         <url>http://www.ripe.net/</url>
     </organization>
+    <developers>
+        <developer>
+            <name>RIPE NCC - Business Applications Department</name>
+        </developer>
+    </developers>
+    <licenses>
+        <license>
+            <name>The BSD License</name>
+            <url>https://raw.github.com/RIPE-NCC/commons-internet-resources/master/LICENSE.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
     <properties>
-        <dist.repo.url>nexus.ripe.net</dist.repo.url>
-        <dist.repo.snapshot.url>nexus.ripe.net</dist.repo.snapshot.url>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <scm>
-        <connection>scm:svn:https://svn.ripe.net/svn/ba/commons-internet-resources/trunk/</connection>
+        <url>https://github.com/RIPE-NCC/commons-internet-resources</url>
+        <connection>scm:git:git://github.com/RIPE-NCC/commons-internet-resources.git</connection>
+        <developerConnection>scm:git:git@github.com:RIPE-NCC/commons-internet-resources.git</developerConnection>
     </scm>
-
-    <distributionManagement>
-        <repository>
-            <id>ripe-releases</id>
-            <name>BA repository (nexus)</name>
-            <url>http://${dist.repo.url}/nexus/content/repositories/releases</url>
-        </repository>
-        <snapshotRepository>
-            <id>bad-public-snapshots</id>
-            <name>BA snapshots repository (nexus)</name>
-            <url>http://${dist.repo.snapshot.url}/nexus/content/repositories/snapshots</url>
-            <uniqueVersion>false</uniqueVersion>
-        </snapshotRepository>
-    </distributionManagement>
 
     <dependencies>
         <dependency>
