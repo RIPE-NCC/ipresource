@@ -1,4 +1,4 @@
-RIPE NCC Commons - Internet Resources
+RIPE NCC - IP Resource
 ====================================
 
 License

@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>net.ripe.commons</groupId>
-    <artifactId>commons-internet-resources</artifactId>
+    <groupId>net.ripe.ipresource</groupId>
+    <artifactId>ipresource</artifactId>
     <packaging>jar</packaging>
     <version>1.44-SNAPSHOT</version>
 
@@ -11,9 +11,9 @@
         <version>7</version>
     </parent>
 
-    <name>RIPE NCC Commons - Internet Resources</name>
+    <name>RIPE NCC - IP Resource</name>
     <description>IPv4, IPv6 and ASN definitions.</description>
-    <url>https://github.com/RIPE-NCC/commons-internet-resources</url>
+    <url>https://github.com/RIPE-NCC/ipresource</url>
     <organization>
         <name>RIPE NCC, the Netherlands</name>
         <url>http://www.ripe.net/</url>
@@ -26,7 +26,7 @@
     <licenses>
         <license>
             <name>The BSD License</name>
-            <url>https://raw.github.com/RIPE-NCC/commons-internet-resources/master/LICENSE.txt</url>
+            <url>https://raw.github.com/RIPE-NCC/ipresource/master/LICENSE.txt</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
@@ -36,9 +36,9 @@
     </properties>
 
     <scm>
-        <url>https://github.com/RIPE-NCC/commons-internet-resources</url>
-        <connection>scm:git:git://github.com/RIPE-NCC/commons-internet-resources.git</connection>
-        <developerConnection>scm:git:git@github.com:RIPE-NCC/commons-internet-resources.git</developerConnection>
+        <url>https://github.com/RIPE-NCC/ipresource.git</url>
+        <connection>scm:git:git@github.com:RIPE-NCC/ipresource.git</connection>
+        <developerConnection>scm:git:git@github.com:RIPE-NCC/ipresource.git</developerConnection>
     </scm>
 
     <dependencies>
