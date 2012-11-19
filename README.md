@@ -13,7 +13,7 @@ RIPE NCC - IP Resource
 License
 -------
 This library is distributed under the BSD License.
-See: https://raw.github.com/RIPE-NCC/commons-internet-resources/master/LICENSE.txt
+See: https://raw.github.com/RIPE-NCC/ipresource/master/LICENSE.txt
 
 Description
 -----------
