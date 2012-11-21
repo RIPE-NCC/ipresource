@@ -1,12 +1,3 @@
----
----
-
-# NOTE: DO NOT use this repository yet!
-We are in the process of open-sourcing this project. Once everything is in place this notice will be removed.
-
----
----
-
 RIPE NCC - IP Resource
 ====================================
 
