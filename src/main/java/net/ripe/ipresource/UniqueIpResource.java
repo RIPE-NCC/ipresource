@@ -33,6 +33,10 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.math.BigInteger;
 
+/**
+ * Represents a single number resource, as opposed to a block or range of
+ * resources.
+ */
 public abstract class UniqueIpResource extends IpResource {
 
     private static final long serialVersionUID = 1L;
