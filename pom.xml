@@ -31,10 +31,6 @@
         </license>
     </licenses>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
     <scm>
         <url>https://github.com/RIPE-NCC/ipresource.git</url>
         <connection>scm:git:git@github.com:RIPE-NCC/ipresource.git</connection>
