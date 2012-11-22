@@ -29,15 +29,22 @@
  */
 package net.ripe.ipresource;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Map.Entry;
+import java.util.NavigableMap;
 import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.TreeMap;
+import org.apache.commons.lang.Validate;
 
+/**
+ * A mutable set of IP resources. Resources can be ASNs, IPv4 addresses, IPv6
+ * addresses, or ranges. Adjacent resources are merged. Single-sized ranges are
+ * normalized into single resources.
+ */
 public class IpResourceSet implements Iterable<IpResource>, Serializable {
 
     public static final IpResourceSet IP_PRIVATE_USE_RESOURCES = IpResourceSet.parse("10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7");
@@ -46,64 +53,70 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private SortedSet<IpResource> resources = new TreeSet<IpResource>();
+
+    /*
+     * Resources keyed by their end-point. This allows fast lookup to find potentially overlapping resources:
+     *
+     * resourcesByEndPoint.ceilingEntry(resourceToLookup.getStart())
+     */
+    private NavigableMap<IpResource, IpResource> resourcesByEndPoint;
 
     public IpResourceSet() {
+        this.resourcesByEndPoint = new TreeMap<IpResource, IpResource>();
+    }
+
+    public IpResourceSet(IpResourceSet resources) {
+        this.resourcesByEndPoint = new TreeMap<IpResource, IpResource>(resources.resourcesByEndPoint);
     }
 
     public IpResourceSet(IpResource... resources) {
+        this();
         for (IpResource resource : resources) {
             add(resource);
         }
     }
 
-    public IpResourceSet(IpResourceSet resources) {
-        this.resources = new TreeSet<IpResource>(resources.resources);
-    }
-
     public IpResourceSet(Collection<? extends IpResource> resources) {
+        this();
         for (IpResource resource : resources) {
             add(resource);
         }
     }
 
     public void addAll(IpResourceSet ipResourceSet) {
-        for (IpResource ipResource: ipResourceSet.resources) {
+        for (IpResource ipResource: ipResourceSet.resourcesByEndPoint.values()) {
             add(ipResource);
         }
-        normalize();
     }
 
     public void add(IpResource resource) {
         Validate.notNull(resource, "resource is null");
-        resources.add(resource);
+        UniqueIpResource start = resource.getStart();
+        if (!start.equals(start.getType().getMinimum())) {
+            start = start.predecessor();
+        }
+        Entry<IpResource, IpResource> potentialMatch = resourcesByEndPoint.ceilingEntry(start);
+        if (potentialMatch != null && resource.isMergeable(potentialMatch.getValue())) {
+            resourcesByEndPoint.remove(potentialMatch.getKey());
+            add(resource.merge(potentialMatch.getValue()));
+        } else {
+            IpResource normalized = normalize(resource);
+            resourcesByEndPoint.put(normalized.getEnd(), normalized);
+        }
     }
 
     public boolean isEmpty() {
-        return resources.isEmpty();
+        return resourcesByEndPoint.isEmpty();
     }
 
     public boolean contains(IpResource resource) {
-        return contains(new IpResourceSet(resource));
+        Entry<IpResource, IpResource> potentialMatch = resourcesByEndPoint.ceilingEntry(resource.getStart());
+        return potentialMatch != null && potentialMatch.getValue().contains(resource);
     }
 
     public boolean contains(IpResourceSet other) {
-        if (isEmpty()) {
-            return other.isEmpty();
-        }
-
-        normalize();
-        other.normalize();
-
-        Iterator<IpResource> it1 = resources.iterator();
-        Iterator<IpResource> it2 = other.resources.iterator();
-        IpResource r1 = it1.next();
-        while (it2.hasNext()) {
-            IpResource r2 = it2.next();
-            while (!r1.contains(r2) && it1.hasNext()) {
-                r1 = it1.next();
-            }
-            if (!r1.contains(r2)) {
+        for (IpResource resource: other) {
+            if (!contains(resource)) {
                 return false;
             }
         }
@@ -111,7 +124,7 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
     }
 
     public boolean containsType(IpResourceType type) {
-        for (IpResource resource: resources) {
+        for (IpResource resource: resourcesByEndPoint.values()) {
             if (type == resource.getType()) {
                 return true;
             }
@@ -127,8 +140,9 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
         String[] resources = s.split(",");
         IpResourceSet result = new IpResourceSet();
         for (String r : resources) {
-            if (!StringUtils.isBlank(r)) {
-                result.add(IpResource.parse(r.trim()));
+            String trimmed = r.trim();
+            if (!trimmed.isEmpty()) {
+                result.add(IpResource.parse(trimmed));
             }
         }
         return result;
@@ -142,53 +156,19 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
         if (! (obj instanceof IpResourceSet)) {
             return false;
         }
-        normalize();
         IpResourceSet other = (IpResourceSet) obj;
-        other.normalize();
-        return resources.equals(other.resources);
+        return resourcesByEndPoint.equals(other.resourcesByEndPoint);
     }
 
     @Override
     public int hashCode() {
-        normalize();
-        return resources.hashCode();
+        return resourcesByEndPoint.hashCode();
     }
 
     @Override
     public String toString() {
-        normalize();
-        String s = resources.toString();
+        String s = resourcesByEndPoint.values().toString();
         return s.substring(1, s.length() - 1);
-    }
-
-    /**
-     * Normalizes this resource set: turns singleton ranges into single
-     * resources, merges adjacent resources into ranges, and removes enclosed
-     * ranges.
-     *
-     * Depends on the <code>resources</code> being sorted!
-     */
-    private void normalize() {
-        if (resources.isEmpty()) {
-            return;
-        }
-
-        TreeSet<IpResource> normalized = new TreeSet<IpResource>();
-        Iterator<IpResource> it = resources.iterator();
-        IpResource current = it.next();
-        while (it.hasNext()) {
-            IpResource next = it.next();
-            if (current.contains(next)) {
-                // Skip.
-            } else if (current.isMergeable(next)) {
-                current = current.merge(next);
-            } else {
-                normalized.add(normalize(current));
-                current = next;
-            }
-        }
-        normalized.add(normalize(current));
-        resources = normalized;
     }
 
     private IpResource normalize(IpResource resource) {
@@ -196,17 +176,16 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
     }
 
     public Iterator<IpResource> iterator() {
-        normalize();
-        return resources.iterator();
+        return resourcesByEndPoint.values().iterator();
     }
 
-    public boolean remove(IpResource prefix) {
-        SortedSet<IpResource> temp = new TreeSet<IpResource>();
-        for (IpResource resource : resources) {
-            temp.addAll(resource.subtract(prefix));
-        }
-        if (!temp.equals(resources)) {
-            resources = temp;
+    public boolean remove(IpResource resource) {
+        Entry<IpResource, IpResource> potentialMatch = resourcesByEndPoint.ceilingEntry(resource.getStart());
+        if (potentialMatch != null && potentialMatch.getValue().overlaps(resource)) {
+            resourcesByEndPoint.remove(potentialMatch.getKey());
+            for (IpResource remains: potentialMatch.getValue().subtract(resource)) {
+                add(remains);
+            }
             return true;
         } else {
             return false;
@@ -223,11 +202,11 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
         if (this.isEmpty()) {
             return;
         } else if (other.isEmpty()) {
-            resources.clear();
+            resourcesByEndPoint.clear();
             return;
         }
 
-        SortedSet<IpResource> temp = new TreeSet<IpResource>();
+        NavigableMap<IpResource, IpResource> temp = new TreeMap<IpResource, IpResource>();
         Iterator<IpResource> thisIterator = this.iterator();
         Iterator<IpResource> thatIterator = other.iterator();
         IpResource thisResource = thisIterator.next();
@@ -235,7 +214,7 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
         while (thisResource != null && thatResource != null) {
             IpResource intersect = thisResource.intersect(thatResource);
             if (intersect != null) {
-                temp.add(intersect);
+                temp.put(intersect.getEnd(), intersect);
             }
             int compareTo = thisResource.getEnd().compareTo(thatResource.getEnd());
             if (compareTo <= 0) {
@@ -245,6 +224,20 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
                 thatResource = thatIterator.hasNext() ? thatIterator.next() : null;
             }
         }
-        this.resources = temp;
+        this.resourcesByEndPoint = temp;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+        ObjectInputStream.GetField gf = in.readFields();
+        if (!gf.defaulted("resourcesByEndPoint")) {
+            resourcesByEndPoint = (NavigableMap<IpResource, IpResource>) gf.get("resourcesByEndPoint", null);
+        } else {
+            SortedSet<IpResource> resources = (SortedSet<IpResource>) gf.get("resources", null);
+            resourcesByEndPoint = new TreeMap<IpResource, IpResource>();
+            for (IpResource resource: resources) {
+                resourcesByEndPoint.put(resource.getEnd(), resource);
+            }
+        }
     }
 }

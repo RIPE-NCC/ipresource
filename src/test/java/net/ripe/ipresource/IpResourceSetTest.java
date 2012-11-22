@@ -29,11 +29,21 @@
  */
 package net.ripe.ipresource;
 
-import static net.ripe.ipresource.IpResource.parse;
+import static net.ripe.ipresource.IpResource.*;
 import static org.junit.Assert.*;
+
 import org.junit.Test;
 
 public class IpResourceSetTest {
+
+    private IpResourceSet subject = new IpResourceSet();
+
+    @Test
+    public void containsAllIpv4Resources() {
+        IpResourceSet resources = new IpResourceSet();
+        resources.add(parse("0.0.0.0/0"));
+        assertEquals("0.0.0.0/0", resources.toString());
+    }
 
     @Test
     public void shouldNormalizeAccordingToRfc3779() {
@@ -53,6 +63,47 @@ public class IpResourceSetTest {
     public void shouldNormalizeSingletonRangeToUniqueIpResource() {
         IpResourceSet resources = new IpResourceSet(parse("127.0.0.1-127.0.0.1"));
         assertEquals("127.0.0.1", resources.toString());
+    }
+
+    @Test
+    public void shouldMergeAdjacentResources_lowerPartFirst() {
+        subject.add(parse("10.0.0.0/9"));
+        subject.add(parse("10.128.0.0/9"));
+
+        assertEquals("10.0.0.0/8", subject.toString());
+    }
+
+    @Test
+    public void shouldMergeAdjacentResources_higherPartFirst() {
+        subject.add(parse("10.128.0.0/9"));
+        subject.add(parse("10.0.0.0/9"));
+
+        assertEquals("10.0.0.0/8", subject.toString());
+
+    }
+
+    @Test
+    public void shouldCheckForType() {
+        subject.add(parse("AS13"));
+        assertTrue(subject.containsType(IpResourceType.ASN));
+        assertFalse(subject.containsType(IpResourceType.IPv4));
+    }
+
+    @Test
+    public void shouldNormalizeUniqueResources() {
+        subject.add(parse("AS1-AS10"));
+        assertEquals(IpResourceRange.class, subject.iterator().next().getClass());
+
+        subject.remove(parse("AS2-AS10"));
+        assertEquals(Asn.class, subject.iterator().next().getClass());
+    }
+
+    @Test
+    public void shouldMergeOverlappingResources() {
+        subject.add(parse("AS5-AS13"));
+        subject.add(parse("AS3-AS8"));
+
+        assertEquals("AS3-AS13", subject.toString());
     }
 
     @Test
@@ -83,15 +134,39 @@ public class IpResourceSetTest {
 
         assertTrue(a.contains(IpResource.parse("AS3333-AS4444")));
         assertEquals("AS3333-AS4444, 10.0.0.0-10.4.255.255, 10.6.0.0-10.255.255.255", a.toString());
+
+        a.remove(parse("2000::/16"));
+        assertEquals("AS3333-AS4444, 10.0.0.0-10.4.255.255, 10.6.0.0-10.255.255.255", a.toString());
     }
-    
+
+    @Test
+    public void testRemoveAll() {
+        IpResourceSet a = IpResourceSet.parse("AS3333-AS4444,10.0.0.0/8");
+        a.removeAll(IpResourceSet.parse("10.5.0.0/16, AS3335"));
+        assertEquals(IpResourceSet.parse("AS3333-AS3334, AS3336-AS4444, 10.0.0.0-10.4.255.255, 10.6.0.0-10.255.255.255"), a);
+    }
+
     @Test
     public void testRetainAll() {
+        IpResourceSet empty = IpResourceSet.parse("");
+        empty.retainAll(IpResourceSet.parse("AS1-AS10,AS3300-AS4420,10.0.0.0/9"));
+        assertEquals("", empty.toString());
+
         IpResourceSet a = IpResourceSet.parse("AS8-AS3315,AS3333-AS4444,10.0.0.0/8");
         a.retainAll(IpResourceSet.parse("AS1-AS10,AS3300-AS4420,10.0.0.0/9"));
         assertEquals(IpResourceSet.parse("AS8-AS10,AS3300-AS3315,AS3333-AS4420,10.0.0.0/9"), a);
+
+        a.retainAll(IpResourceSet.parse("AS3300-AS3320"));
+        assertEquals("AS3300-AS3315", a.toString());
+
+        a.retainAll(IpResourceSet.parse("AS3300-AS3320, 10.0.0.0/9"));
+        assertEquals("AS3300-AS3315", a.toString());
+
+        a.retainAll(empty);
+        assertTrue(a.isEmpty());
+        assertEquals("", a.toString());
     }
-    
+
     @Test
     public void shouldSupportInheritedResources() {
         assertEquals(InheritedIpResourceSet.getInstance(), IpResourceSet.parse("inherited"));
