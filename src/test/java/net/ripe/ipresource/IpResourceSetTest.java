@@ -166,9 +166,4 @@ public class IpResourceSetTest {
         assertTrue(a.isEmpty());
         assertEquals("", a.toString());
     }
-
-    @Test
-    public void shouldSupportInheritedResources() {
-        assertEquals(InheritedIpResourceSet.getInstance(), IpResourceSet.parse("inherited"));
-    }
 }
