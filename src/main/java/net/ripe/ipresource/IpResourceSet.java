@@ -176,16 +176,19 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
     }
 
     public boolean remove(IpResource resource) {
+        boolean removed = false;
         Entry<IpResource, IpResource> potentialMatch = resourcesByEndPoint.ceilingEntry(resource.getStart());
-        if (potentialMatch != null && potentialMatch.getValue().overlaps(resource)) {
+        while (potentialMatch != null && potentialMatch.getValue().overlaps(resource)) {
             resourcesByEndPoint.remove(potentialMatch.getKey());
+            removed = true;
+
             for (IpResource remains: potentialMatch.getValue().subtract(resource)) {
                 add(remains);
             }
-            return true;
-        } else {
-            return false;
+
+            potentialMatch = resourcesByEndPoint.ceilingEntry(resource.getStart());
         }
+        return removed;
     }
 
     public void removeAll(IpResourceSet other) {

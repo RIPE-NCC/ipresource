@@ -32,6 +32,11 @@ package net.ripe.ipresource;
 import static net.ripe.ipresource.IpResource.*;
 import static org.junit.Assert.*;
 
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
 import org.junit.Test;
 
 public class IpResourceSetTest {
@@ -165,5 +170,45 @@ public class IpResourceSetTest {
         a.retainAll(empty);
         assertTrue(a.isEmpty());
         assertEquals("", a.toString());
+    }
+
+    @Test
+    public void test_removal_of_multiple_overlapping_resources() {
+        subject = IpResourceSet.parse("AS1-AS3, AS5-AS10, AS13-AS15");
+        subject.remove(IpResource.parse("AS1-AS10"));
+        assertEquals("AS13-AS15", subject.toString());
+    }
+
+    @Test
+    public void randomized_testing() {
+        List<IpResourceRange> ranges = new ArrayList<IpResourceRange>();
+        Random random = new Random();
+        for (int i = 0; i < 100; ++i) {
+            BigInteger start = BigInteger.valueOf(random.nextInt(Integer.MAX_VALUE - Integer.MAX_VALUE / 8 - 1));
+            BigInteger end = start.add(BigInteger.valueOf(random.nextInt(Integer.MAX_VALUE / 8))).add(BigInteger.ONE);
+            IpResourceRange range = IpResourceRange.range(new Asn(start), new Asn(end));
+            ranges.add(range);
+            subject.add(range);
+        }
+
+        for (IpResourceRange range: ranges) {
+            assertTrue(range + " contained in set", subject.contains(range));
+        }
+
+        Iterator<IpResource> iterator = subject.iterator();
+        IpResource previous = iterator.next();
+        while (iterator.hasNext()) {
+            IpResource next = iterator.next();
+            assertTrue("resources out of order <" + previous + "> not before <" + next + ">", previous.compareTo(next) < 0);
+            assertFalse("no mergeable resource in set", previous.isMergeable(next));
+            previous = next;
+        }
+
+
+        for (IpResourceRange range: ranges) {
+            subject.remove(range);
+        }
+
+        assertTrue("all resources removed", subject.isEmpty());
     }
 }
