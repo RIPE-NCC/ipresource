@@ -153,39 +153,13 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
         return result;
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (! (obj instanceof IpResourceSet)) {
-            return false;
-        }
-        IpResourceSet other = (IpResourceSet) obj;
-        return resourcesByEndPoint.equals(other.resourcesByEndPoint);
-    }
-
-    @Override
-    public int hashCode() {
-        return resourcesByEndPoint.hashCode();
-    }
-
-    @Override
-    public String toString() {
-        String s = resourcesByEndPoint.values().toString();
-        return s.substring(1, s.length() - 1);
-    }
-
-    private IpResource normalize(IpResource resource) {
-        return resource.isUnique() ? resource.unique() : resource;
-    }
-
     public Iterator<IpResource> iterator() {
         return resourcesByEndPoint.values().iterator();
     }
 
     public boolean remove(IpResource resource) {
         boolean removed = false;
+
         Entry<IpResource, IpResource> potentialMatch = resourcesByEndPoint.ceilingEntry(resource.getStart());
         while (potentialMatch != null && potentialMatch.getValue().overlaps(resource)) {
             resourcesByEndPoint.remove(potentialMatch.getKey());
@@ -197,6 +171,7 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
 
             potentialMatch = resourcesByEndPoint.ceilingEntry(resource.getStart());
         }
+
         return removed;
     }
 
@@ -233,6 +208,33 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
             }
         }
         this.resourcesByEndPoint = temp;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (! (obj instanceof IpResourceSet)) {
+            return false;
+        }
+        IpResourceSet other = (IpResourceSet) obj;
+        return resourcesByEndPoint.equals(other.resourcesByEndPoint);
+    }
+
+    @Override
+    public int hashCode() {
+        return resourcesByEndPoint.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        String s = resourcesByEndPoint.values().toString();
+        return s.substring(1, s.length() - 1);
+    }
+
+    private IpResource normalize(IpResource resource) {
+        return resource.isUnique() ? resource.unique() : resource;
     }
 
     @SuppressWarnings("unchecked")
