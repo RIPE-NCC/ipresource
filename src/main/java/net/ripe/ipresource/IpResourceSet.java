@@ -91,18 +91,27 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
 
     public void add(IpResource resource) {
         Validate.notNull(resource, "resource is null");
+
         UniqueIpResource start = resource.getStart();
         if (!start.equals(start.getType().getMinimum())) {
             start = start.predecessor();
         }
-        Entry<IpResource, IpResource> potentialMatch = resourcesByEndPoint.ceilingEntry(start);
-        if (potentialMatch != null && resource.isMergeable(potentialMatch.getValue())) {
-            resourcesByEndPoint.remove(potentialMatch.getKey());
-            add(resource.merge(potentialMatch.getValue()));
-        } else {
-            IpResource normalized = normalize(resource);
-            resourcesByEndPoint.put(normalized.getEnd(), normalized);
+
+        IpResource resourceToAdd = normalize(resource);
+
+        Iterator<IpResource> iterator = resourcesByEndPoint.tailMap(start, true).values().iterator();
+        while (iterator.hasNext()) {
+            IpResource potentialMatch = iterator.next();
+            if (resourceToAdd.isMergeable(potentialMatch)) {
+                iterator.remove();
+                resourceToAdd = resourceToAdd.merge(potentialMatch);
+            } else {
+                break;
+            }
         }
+
+        IpResource normalized = normalize(resourceToAdd);
+        resourcesByEndPoint.put(normalized.getEnd(), normalized);
     }
 
     public boolean isEmpty() {

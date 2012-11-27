@@ -183,9 +183,9 @@ public class IpResourceSetTest {
     public void randomized_testing() {
         List<IpResourceRange> ranges = new ArrayList<IpResourceRange>();
         Random random = new Random();
-        for (int i = 0; i < 100; ++i) {
-            BigInteger start = BigInteger.valueOf(random.nextInt(Integer.MAX_VALUE - Integer.MAX_VALUE / 8 - 1));
-            BigInteger end = start.add(BigInteger.valueOf(random.nextInt(Integer.MAX_VALUE / 8))).add(BigInteger.ONE);
+        for (int i = 0; i < 1000; ++i) {
+            BigInteger start = BigInteger.valueOf(random.nextInt(Integer.MAX_VALUE - Integer.MAX_VALUE / 256 - 1));
+            BigInteger end = start.add(BigInteger.valueOf(random.nextInt(Integer.MAX_VALUE / 256))).add(BigInteger.ONE);
             IpResourceRange range = IpResourceRange.range(new Asn(start), new Asn(end));
             ranges.add(range);
             subject.add(range);
