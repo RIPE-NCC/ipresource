@@ -29,6 +29,8 @@
  */
 package net.ripe.ipresource;
 
+import org.apache.commons.lang3.Validate;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
@@ -38,7 +40,6 @@ import java.util.Map.Entry;
 import java.util.NavigableMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
-import org.apache.commons.lang.Validate;
 
 /**
  * A mutable set of IP resources. Resources can be ASNs, IPv4 addresses, IPv6

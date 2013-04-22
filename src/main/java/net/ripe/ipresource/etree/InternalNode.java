@@ -29,7 +29,7 @@
  */
 package net.ripe.ipresource.etree;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 
 final class InternalNode<K, V> {
 

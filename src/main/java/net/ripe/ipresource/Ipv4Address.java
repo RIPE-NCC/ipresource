@@ -29,7 +29,7 @@
  */
 package net.ripe.ipresource;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

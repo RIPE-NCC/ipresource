@@ -194,7 +194,7 @@ public class Ipv6AddressTest {
         parse(":::::::");
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = NullPointerException.class)
     public void shouldNotParseNull() {
         parse(null);
     }

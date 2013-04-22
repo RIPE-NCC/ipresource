@@ -29,8 +29,8 @@
  */
 package net.ripe.ipresource;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 
 import java.math.BigInteger;
 import java.util.regex.Matcher;

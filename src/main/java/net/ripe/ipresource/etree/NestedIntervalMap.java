@@ -29,11 +29,11 @@
  */
 package net.ripe.ipresource.etree;
 
+import org.apache.commons.lang3.Validate;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import org.apache.commons.lang.Validate;
 
 /**
  * A map with intervals as keys. Intervals are only allowed to overlap if they
