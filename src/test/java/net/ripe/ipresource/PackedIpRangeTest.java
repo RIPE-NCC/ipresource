@@ -31,6 +31,7 @@ package net.ripe.ipresource;
 
 import com.pholser.junit.quickcheck.Property;
 import com.pholser.junit.quickcheck.runner.JUnitQuickcheck;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.math.BigInteger;
@@ -50,8 +51,7 @@ public class PackedIpRangeTest {
         assumeThat(s, greaterThan(0));
         assumeThat(e, greaterThan(s));
         IpRange range = IpRange.range(new Ipv4Address(s), new Ipv4Address(e));
-        IpRange unpacked = new PackedIpRange(range).toIpRange();
-        assertEquals(range, unpacked);
+        assertSameRange(range);
     }
 
     @Property(trials = 1000)
@@ -61,8 +61,17 @@ public class PackedIpRangeTest {
         assumeThat(s, lessThan(maxIpv6));
         assumeThat(e, lessThan(maxIpv6));
         IpRange range = IpRange.range(new Ipv6Address(s), new Ipv6Address(e));
+        assertSameRange(range);
+    }
+
+    @Test
+    public void specialCases() {
+        assertSameRange(IpRange.parse("128.0.1.0/24"));
+        assertSameRange(IpRange.parse("1.0.0.0/8"));
+    }
+
+    private void assertSameRange(IpRange range) {
         IpRange unpacked = new PackedIpRange(range).toIpRange();
         assertEquals(range, unpacked);
     }
-
 }
