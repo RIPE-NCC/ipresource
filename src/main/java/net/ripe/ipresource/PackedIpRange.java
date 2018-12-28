@@ -1,0 +1,85 @@
+/**
+ * The BSD License
+ *
+ * Copyright (c) 2010-2012 RIPE NCC
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *   - Redistributions of source code must retain the above copyright notice,
+ *     this list of conditions and the following disclaimer.
+ *   - Redistributions in binary form must reproduce the above copyright notice,
+ *     this list of conditions and the following disclaimer in the documentation
+ *     and/or other materials provided with the distribution.
+ *   - Neither the name of the RIPE NCC nor the names of its contributors may be
+ *     used to endorse or promote products derived from this software without
+ *     specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+package net.ripe.ipresource;
+
+import java.math.BigInteger;
+import java.nio.ByteBuffer;
+
+import static net.ripe.ipresource.IpResourceType.IPv4;
+import static net.ripe.ipresource.IpResourceType.IPv6;
+
+public class PackedIpRange {
+    private final byte[] content;
+
+    public PackedIpRange(IpRange ipRange) {
+        if (ipRange.getType() == IPv4) {
+            int start = ipRange.getStart().getValue().intValue();
+            int end = ipRange.getEnd().getValue().intValue();
+            content = ByteBuffer.allocate(8)
+                    .putInt(start)
+                    .putInt(end).array();
+        } else if (ipRange.getType() == IPv6) {
+            byte[] start = ipRange.getStart().getValue().toByteArray();
+            byte[] end = ipRange.getEnd().getValue().toByteArray();
+            content = ByteBuffer.allocate(34)
+                    .put((byte) start.length)
+                    .put(start)
+                    .put((byte) end.length)
+                    .put(end)
+                    .array();
+        } else {
+            throw new IllegalArgumentException("Asn is not supported here");
+        }
+    }
+
+    public IpRange toIpRange() {
+        if (content.length == 8) {
+            ByteBuffer byteBuffer = ByteBuffer.wrap(content);
+            int start = byteBuffer.getInt(0);
+            int end = byteBuffer.getInt(4);
+            return IpRange.range(new Ipv4Address(start), new Ipv4Address(end));
+        } else if (content.length == 34) {
+            final ByteBuffer byteBuffer = ByteBuffer.wrap(content);
+
+            final int sLen = byteBuffer.get();
+            byte[] tmp = new byte[sLen];
+            byteBuffer.get(tmp, 0, sLen);
+            final BigInteger start = new BigInteger(tmp);
+
+            final int eLen = byteBuffer.get();
+            tmp = new byte[eLen];
+            byteBuffer.get(tmp, 0, eLen);
+
+            final BigInteger end = new BigInteger(tmp);
+            return IpRange.range(new Ipv6Address(start), new Ipv6Address(end));
+        }
+        return null;
+    }
+}

@@ -52,6 +52,16 @@
             <artifactId>hamcrest-library</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.pholser</groupId>
+            <artifactId>junit-quickcheck-core</artifactId>
+            <version>0.7</version>
+        </dependency>
+        <dependency>
+            <groupId>com.pholser</groupId>
+            <artifactId>junit-quickcheck-generators</artifactId>
+            <version>0.7</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -64,7 +74,7 @@
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
-                <version>4.10</version>
+                <version>4.12</version>
             </dependency>
             <dependency>
                 <groupId>org.hamcrest</groupId>
