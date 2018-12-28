@@ -35,8 +35,11 @@ import java.nio.ByteBuffer;
 import static net.ripe.ipresource.IpResourceType.IPv4;
 import static net.ripe.ipresource.IpResourceType.IPv6;
 
+/**
+ * Class to store IPv4 and IPv6 ranges in an memory-optimised way.
+ */
 public class PackedIpRange {
-    private final byte[] content;
+    private byte[] content;
 
     public PackedIpRange(IpRange ipRange) {
         if (ipRange.getType() == IPv4) {
@@ -48,7 +51,13 @@ public class PackedIpRange {
         } else if (ipRange.getType() == IPv6) {
             byte[] start = ipRange.getStart().getValue().toByteArray();
             byte[] end = ipRange.getEnd().getValue().toByteArray();
-            content = ByteBuffer.allocate(34)
+            int wholeLen = start.length + end.length + 2;
+
+            // never make it 8 because that's the only way to distinguish between IPv4 and IPv6
+            if (wholeLen == 8) {
+                wholeLen++;
+            }
+            content = ByteBuffer.allocate(wholeLen)
                     .put((byte) start.length)
                     .put(start)
                     .put((byte) end.length)
@@ -61,11 +70,13 @@ public class PackedIpRange {
 
     public IpRange toIpRange() {
         if (content.length == 8) {
+            // it's IPv4
             ByteBuffer byteBuffer = ByteBuffer.wrap(content);
             int start = byteBuffer.getInt(0);
             int end = byteBuffer.getInt(4);
             return IpRange.range(new Ipv4Address(start), new Ipv4Address(end));
-        } else if (content.length == 34) {
+        } else {
+            // it's IPv6
             final ByteBuffer byteBuffer = ByteBuffer.wrap(content);
 
             final int sLen = byteBuffer.get();
@@ -80,6 +91,5 @@ public class PackedIpRange {
             final BigInteger end = new BigInteger(tmp);
             return IpRange.range(new Ipv6Address(start), new Ipv6Address(end));
         }
-        return null;
     }
 }
