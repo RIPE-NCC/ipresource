@@ -41,13 +41,17 @@ public abstract class IpAddress extends UniqueIpResource {
 
     public static IpAddress parse(String s, boolean defaultMissingOctets) {
         try {
-            try {
-                return Ipv4Address.parse(s, defaultMissingOctets);
-            } catch (IllegalArgumentException e) {
+            if (findFirstDotOrColumn(s) == ':') {
                 return Ipv6Address.parse(s);
+            } else {
+                try {
+                    return Ipv4Address.parse(s, defaultMissingOctets);
+                } catch (IllegalArgumentException e) {
+                    return Ipv6Address.parse(s);
+                }
             }
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(String.format("Invalid IP address: " + s));
+            throw new IllegalArgumentException("Invalid IP address: " + s);
         }
     }
 
@@ -102,4 +106,13 @@ public abstract class IpAddress extends UniqueIpResource {
     }
 
     public abstract String toString(boolean defaultMissingOctets);
+
+    private static char findFirstDotOrColumn(String s) {
+        char c;
+        for (int i = 0; i < s.length(); i++) {
+            c = s.charAt(i);
+            if (c == '.' || c == ':') return c;
+        }
+        return Character.MIN_VALUE;
+    }
 }
