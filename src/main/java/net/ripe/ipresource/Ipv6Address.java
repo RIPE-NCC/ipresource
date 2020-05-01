@@ -33,7 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 
 import java.math.BigInteger;
-import java.util.regex.Matcher;
+import java.nio.ByteBuffer;
 import java.util.regex.Pattern;
 
 /**
@@ -137,18 +137,19 @@ public class Ipv6Address extends IpAddress {
      * @return Address as BigInteger
      */
     private static BigInteger ipv6StringtoBigInteger(String ipAddressString) {
-        Pattern p = Pattern.compile("([0-9a-fA-F]{0,4}):([0-9a-fA-F]{0,4}):([0-9a-fA-F]{0,4}):([0-9a-fA-F]{0,4}):([0-9a-fA-F]{0,4}):([0-9a-fA-F]{0,4}):([0-9a-fA-F]{0,4}):([0-9a-fA-F]{0,4})");
-        Matcher m = p.matcher(ipAddressString);
-        m.find();
-
-        String ipv6Number = "";
-        for (int i = 1; i <= m.groupCount(); i++) {
-            String part = m.group(i);
-            String padding = "0000".substring(0, 4 - part.length());
-            ipv6Number = ipv6Number + padding + part;
+        final ByteBuffer byteBuffer = ByteBuffer.allocate(16);
+        int groupValue = 0;
+        for (int i = 0; i < ipAddressString.length(); i++) {
+            final char c = ipAddressString.charAt(i);
+            if (c == ':') {
+                byteBuffer.putShort((short) groupValue);
+                groupValue = 0;
+            } else {
+                groupValue = (groupValue << 4) + Character.digit(c, 16);
+            }
         }
-
-        return new BigInteger(ipv6Number, 16);
+        byteBuffer.putShort((short) groupValue);
+        return new BigInteger(1, byteBuffer.array());
     }
 
     @Override
