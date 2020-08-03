@@ -203,6 +203,7 @@ public class Ipv6AddressTest {
     public void shouldParseIpv4EmbeddedIpv6Address() {
         assertEquals("1:2:3:4:5:6:102:304", parse("1:2:3:4:5:6:1.2.3.4").toString());
         assertEquals("::102:304", parse("0:0:0:0:0:0:1.2.3.4").toString());
+        assertEquals("::ffff:c8c9:cacb", parse("::ffff:200.201.202.203").toString());
     }
 
     @Test

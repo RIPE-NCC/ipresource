@@ -40,19 +40,14 @@ public abstract class IpAddress extends UniqueIpResource {
     }
 
     public static IpAddress parse(String s, boolean defaultMissingOctets) {
-        try {
-            if (findFirstDotOrColumn(s) == ':') {
-                return Ipv6Address.parse(s);
-            } else {
-                try {
-                    return Ipv4Address.parse(s, defaultMissingOctets);
-                } catch (IllegalArgumentException e) {
-                    return Ipv6Address.parse(s);
-                }
-            }
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid IP address: " + s);
+        if (findFirstDotOrColon(s) == '.') {
+            return Ipv4Address.parse(s, defaultMissingOctets);
+        } else if (findFirstDotOrColon(s) == ':') {
+            return Ipv6Address.parse(s);
+        } else if (defaultMissingOctets) {
+            return Ipv4Address.parse(s, true);
         }
+        throw new IllegalArgumentException("Invalid IP address: " + s);
     }
 
     protected static BigInteger bitMask(int prefixLength, IpResourceType type) {
@@ -107,7 +102,7 @@ public abstract class IpAddress extends UniqueIpResource {
 
     public abstract String toString(boolean defaultMissingOctets);
 
-    private static char findFirstDotOrColumn(String s) {
+    private static char findFirstDotOrColon(String s) {
         char c;
         for (int i = 0; i < s.length(); i++) {
             c = s.charAt(i);
