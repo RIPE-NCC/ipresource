@@ -33,23 +33,48 @@ import org.junit.Test;
 
 import java.math.BigInteger;
 
-import static net.ripe.ipresource.Ipv6Address.parse;
-import static org.junit.Assert.*;
+import static net.ripe.ipresource.IpAddress.parse;
+import static net.ripe.ipresource.Ipv6AddressTest.ADDRESS_ALL;
+import static net.ripe.ipresource.Ipv6AddressTest.COMPRESSED_NOTATION;
+import static net.ripe.ipresource.Ipv6AddressTest.COMPRESSED_NOTATION_AT_BEGIN;
+import static net.ripe.ipresource.Ipv6AddressTest.COMPRESSED_NOTATION_AT_END;
+import static net.ripe.ipresource.Ipv6AddressTest.EXPECTED_COMPRESSED_NOTATION;
+import static net.ripe.ipresource.Ipv6AddressTest.EXPECTED_COMPRESSED_NOTATION_AT_END;
+import static net.ripe.ipresource.Ipv6AddressTest.EXPECTED_NOTATION_AT_BEGIN;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
-public class Ipv6AddressTest {
-    final static String ADDRESS_ALL = "::";
+public class IpAddressTest {
 
-    final static String COMPRESSED_NOTATION = "12::34";
-    final static String EXPECTED_COMPRESSED_NOTATION = "12::34";
+    @Test
+    public void shouldParseDottedDecimalNotation() {
+        assertEquals("127.0.8.23", parse("127.0.8.23").toString());
+        assertEquals("193.168.15.255", parse("193.168.15.255").toString());
+    }
 
-    final static String COMPRESSED_NOTATION_AT_END = "12::";
-    final static String EXPECTED_COMPRESSED_NOTATION_AT_END = "12::";
+    @Test
+    public void shouldOptionallyDefaultMissingOctets() {
+        assertEquals("0", parse("0", true).toString(true));
+        assertEquals("127", parse("127", true).toString(true));
+        assertEquals("127.3", parse("127.3", true).toString(true));
+        assertEquals("127.0.8", parse("127.0.8", true).toString(true));
+        assertEquals("127.0.8.12", parse("127.0.8.12", true).toString(true));
+    }
 
-    final static String COMPRESSED_NOTATION_AT_BEGIN = "::12";
-    final static String EXPECTED_NOTATION_AT_BEGIN = "::12";
+    @Test
+    public void shouldParseIPv4AddressWithLeadingAndTrailingSpaces() {
+        assertEquals("127.0.8.12", parse("  127.0.8.12  ").toString());
+    }
 
-    final static String CLASSLESS_NOTATION = "1:2:3:4/64";
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldFailOnOutOfBoundsByte() {
+        parse("256.0.0.0");
+    }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldFailOnOutOfBoundsByte_NegativeByte() {
+        parse("13.-40.0.0");
+    }
 
     @Test
     public void shouldParseFullAddressesCaseInsensitively() {
@@ -203,7 +228,6 @@ public class Ipv6AddressTest {
     public void shouldParseIpv4EmbeddedIpv6Address() {
         assertEquals("1:2:3:4:5:6:102:304", parse("1:2:3:4:5:6:1.2.3.4").toString());
         assertEquals("::102:304", parse("0:0:0:0:0:0:1.2.3.4").toString());
-        assertEquals("::ffff:c8c9:cacb", parse("::ffff:200.201.202.203").toString());
     }
 
     @Test
@@ -326,41 +350,4 @@ public class Ipv6AddressTest {
         assertEquals(EXPECTED_NOTATION_AT_BEGIN, parse(COMPRESSED_NOTATION_AT_BEGIN).toString());
     }
 
-     @Test(expected = IllegalArgumentException.class)
-    public void shouldFailSinceUniqueAddressIsNotARange() {
-        assertEquals(CLASSLESS_NOTATION, parse(CLASSLESS_NOTATION).toString());
-    }
-
-    @Test
-    public void testCompareTo() {
-        assertTrue(parse("ffce::32").compareTo(parse("ffce::32")) == 0);
-        assertTrue(parse("ffce::32").compareTo(parse("ffce::33")) < 0);
-        assertTrue(parse("ffce::32").compareTo(parse("ffcd::32")) > 0);
-        assertTrue(parse("ffce::32").compareTo(parse("ffce::32").upTo(parse("ffce::32"))) == 0);
-        assertTrue(parse("ffce::32").upTo(parse("ffce::32")).compareTo(parse("ffce::32")) == 0);
-    }
-
-    @Test
-    public void shouldCalculateCommonPrefix() {
-        assertEquals(parse("ffce::"), parse("ffce::1").getCommonPrefix(parse("ffce:de::")));
-        assertEquals(parse("::"), parse("::1").getCommonPrefix(parse("fd::")));
-        assertEquals(parse("23:23:33:112:33:fce:fa:0"), parse("23:23:33:112:33:fce:fa:16").getCommonPrefix(parse("23:23:33:112:33:fce:fa:24")));
-    }
-
-    @Test
-    public void shouldCalculatePrefixRange() {
-        assertEquals(parse("ffce:abc0::"), parse("ffce:abcd::").lowerBoundForPrefix(28));
-        assertEquals(parse("ffce:abcf:ffff:ffff:ffff:ffff:ffff:ffff"), parse("ffce:abcd::").upperBoundForPrefix(28));
-    }
-
-    @Test
-    public void testIsValidNetmask() {
-        assertTrue(parse("ffff::").isValidNetmask());
-        assertTrue(parse("8000::").isValidNetmask());
-        assertTrue(parse("c000::").isValidNetmask());
-        assertTrue(parse("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ff80").isValidNetmask());
-        assertTrue(parse("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff").isValidNetmask());
-        assertFalse(parse("ffff::ffff").isValidNetmask());
-        assertFalse(parse("::").isValidNetmask());
-    }
 }
