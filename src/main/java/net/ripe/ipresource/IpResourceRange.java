@@ -123,10 +123,10 @@ public class IpResourceRange extends IpResource {
      * <p>For a collection of ranges and/or single resources of multiple types see IpResourceSet</p>
      * <p>Allowed notations:</p>
      * <ul>
-     *   <li>IpResourceRange.parse("10.0.0.0/16") => The usual format for an IPv4 Prefix
-     *   <li>IpResourceRange.parse("10.0.0.0-10.1.2.3") => Arbitrary ranges are denoted with a "-"
-     *   <li>IpResourceRange.parse("10.0.0.0/16,/24,/25,/31") => Parses 10.0.0.0/16 plus the adjacent networks /24, /25 and /31. Note that the mask of these networks MUST increase. I.e. go from big to small..
-     *   <li>IpResourceRange.parse("AS0-AS4294967295") => For AS numbers ranges may be used
+     *   <li>IpResourceRange.parse("10.0.0.0/16") &rarr; The usual format for an IPv4 Prefix
+     *   <li>IpResourceRange.parse("10.0.0.0-10.1.2.3") &rarr; Arbitrary ranges are denoted with a "-"
+     *   <li>IpResourceRange.parse("10.0.0.0/16,/24,/25,/31") &rarr; Parses 10.0.0.0/16 plus the adjacent networks /24, /25 and /31. Note that the mask of these networks MUST increase. I.e. go from big to small..
+     *   <li>IpResourceRange.parse("AS0-AS4294967295") &rarr; For AS numbers ranges may be used
      * </ul>
      *
      * @see IpResourceSet

@@ -56,8 +56,7 @@ public interface IntervalMap<K, V> {
 
     /**
      * Removes the mapping for a key from this map if it is present.
-     * <p/>
-     * <p/>
+     * <p>
      * The map will not contain a mapping for the specified key once the call
      * returns.
      *
@@ -68,14 +67,12 @@ public interface IntervalMap<K, V> {
 
     /**
      * Removes the mapping for a key and value from this map if both are present.
-     * <p/>
-     * <p/>
+     * <p>
      * The map will not contain a mapping for the specified key with the specified value
      * once the call returns.
      *
      * @param key   key whose mapping is to be removed from the map
      * @param value value with the key to be removed from the map
-     *
      * @throws IllegalArgumentException if the specified key or value is null
      */
     void remove(K key, V value);
@@ -122,8 +119,7 @@ public interface IntervalMap<K, V> {
     /**
      * Finds all values that are associated to intervals that contain
      * <code>key</code> but are not equal to <code>key</code>.
-     * <p/>
-     * <p/>
+     * <p>
      * The resulting values are ordered from least specific interval to most
      * specific interval.
      *
@@ -137,8 +133,7 @@ public interface IntervalMap<K, V> {
     /**
      * Finds all values that are associated to intervals that contain
      * <code>key</code>.
-     * <p/>
-     * <p/>
+     * <p>
      * The resulting values are ordered from least specific interval to most
      * specific interval. So if a mapping for <code>key</code> exists the last
      * element of the returned list will contain the value associated with
@@ -154,8 +149,7 @@ public interface IntervalMap<K, V> {
      * Finds all values associated with intervals that are more specific
      * (contained in) <code>key</code>, but excluding the values that are nested
      * inside the matching intervals.
-     * <p/>
-     * <p/>
+     * <p>
      * The resulting values are ordered from least specific interval to most
      * specific interval.
      *
@@ -168,8 +162,7 @@ public interface IntervalMap<K, V> {
     /**
      * Finds all values associated with intervals that are contained within
      * (more specific than) <code>key</code>, but not equal to <code>key</code>.
-     * <p/>
-     * <p/>
+     * <p>
      * The resulting values are ordered from least specific interval to most
      * specific interval.
      *
@@ -183,8 +176,7 @@ public interface IntervalMap<K, V> {
      * Finds all values associated with intervals that are equal to
      * <code>key</code> or contained within (more specific than)
      * <code>key</code>.
-     * <p/>
-     * <p/>
+     * <p>
      * The resulting values are ordered from least specific interval to most
      * specific interval. So if a mapping for <code>key</code> exists the first
      * element of the returned list will contain the value associated with

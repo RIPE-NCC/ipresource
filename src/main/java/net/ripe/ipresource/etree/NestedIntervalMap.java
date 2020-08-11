@@ -39,7 +39,7 @@ import java.util.List;
  * A map with intervals as keys. Intervals are only allowed to overlap if they
  * are fully contained in the other interval (in other words, siblings are not
  * allowed to overlap, but nesting is ok).
- * <p/>
+ * <p>
  * <strong>Note that this implementation is not synchronized.</strong> If
  * multiple threads access a map concurrently, and at least one of the threads
  * modifies the map structurally, it <i>must</i> be synchronized externally. (A
