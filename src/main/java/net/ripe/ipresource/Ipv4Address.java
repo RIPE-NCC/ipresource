@@ -151,13 +151,7 @@ public class Ipv4Address extends IpAddress {
     protected int doCompareTo(IpResource obj) {
         if (obj instanceof Ipv4Address) {
             long otherValue = ((Ipv4Address) obj).value();
-            if (value() < otherValue) {
-                return -1;
-            } else if (value() > otherValue) {
-                return +1;
-            } else {
-                return 0;
-            }
+            return Long.compare(value(), otherValue);
         } else {
             return super.doCompareTo(obj);
         }

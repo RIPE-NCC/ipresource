@@ -117,13 +117,7 @@ public class Asn extends UniqueIpResource {
     protected int doCompareTo(IpResource obj) {
         if (obj instanceof Asn) {
             long otherValue = ((Asn) obj).longValue();
-            if (longValue() < otherValue) {
-                return -1;
-            } else if (longValue() > otherValue) {
-                return +1;
-            } else {
-                return 0;
-            }
+            return Long.compare(longValue(), otherValue);
         } else {
             return super.doCompareTo(obj);
         }
