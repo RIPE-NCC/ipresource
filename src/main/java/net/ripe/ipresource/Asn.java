@@ -85,13 +85,13 @@ public class Asn extends UniqueIpResource {
         long low;
 
         if (matcher.group(3) != null) {
-            low = Long.valueOf(matcher.group(3));
-            high = Long.valueOf(matcher.group(1));
+            low = Long.parseLong(matcher.group(3));
+            high = Long.parseLong(matcher.group(1));
 
             checkRange(high, ASN16_MAX_VALUE);
             checkRange(low, ASN16_MAX_VALUE);
         } else {
-            low = Long.valueOf(matcher.group(1));
+            low = Long.parseLong(matcher.group(1));
 
             checkRange(low, ASN32_MAX_VALUE);
         }
