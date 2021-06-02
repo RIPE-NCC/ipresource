@@ -40,9 +40,10 @@ public abstract class IpAddress extends UniqueIpResource {
     }
 
     public static IpAddress parse(String s, boolean defaultMissingOctets) {
-        if (findFirstDotOrColon(s) == '.') {
+        final char firstDotOrColon = findFirstDotOrColon(s);
+        if (firstDotOrColon == '.') {
             return Ipv4Address.parse(s, defaultMissingOctets);
-        } else if (findFirstDotOrColon(s) == ':') {
+        } else if (firstDotOrColon == ':') {
             return Ipv6Address.parse(s);
         } else if (defaultMissingOctets) {
             return Ipv4Address.parse(s, true);
@@ -102,7 +103,7 @@ public abstract class IpAddress extends UniqueIpResource {
 
     public abstract String toString(boolean defaultMissingOctets);
 
-    private static char findFirstDotOrColon(String s) {
+    private static char findFirstDotOrColon(final String s) {
         char c;
         for (int i = 0; i < s.length(); i++) {
             c = s.charAt(i);
