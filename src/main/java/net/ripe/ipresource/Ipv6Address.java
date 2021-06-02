@@ -52,7 +52,7 @@ public class Ipv6Address extends IpAddress {
     /**
      * Mask for 16 bits, which is the length of one part of an IPv6 address.
      */
-    private BigInteger PART_MASK = BigInteger.valueOf(0xffff);
+    private final BigInteger PART_MASK = BigInteger.valueOf(0xffff);
 
     private final BigInteger value;
 

@@ -41,8 +41,8 @@ public class IpResourceRange extends IpResource {
 
     private static final long serialVersionUID = 1L;
 
-    private UniqueIpResource start;
-    private UniqueIpResource end;
+    private final UniqueIpResource start;
+    private final UniqueIpResource end;
 
     public static IpResourceRange range(UniqueIpResource start, UniqueIpResource end) {
         if (start instanceof IpAddress && end instanceof IpAddress) {

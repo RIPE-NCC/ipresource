@@ -39,7 +39,7 @@ import static net.ripe.ipresource.IpResourceType.IPv6;
  * Class to store IPv4 and IPv6 ranges in an memory-optimised way.
  */
 public class PackedIpRange {
-    private byte[] content;
+    private final byte[] content;
 
     public PackedIpRange(IpRange ipRange) {
         if (ipRange.getType() == IPv4) {
