@@ -171,7 +171,7 @@ public class Ipv4Address extends IpAddress {
 
     @Override
     public Ipv4Address lowerBoundForPrefix(int prefixLength) {
-        long mask = -(1L << (NUMBER_OF_BITS - prefixLength));
+        long mask = ~((1L << (NUMBER_OF_BITS - prefixLength)) -  1);
         return new Ipv4Address(value() & mask);
     }
 
