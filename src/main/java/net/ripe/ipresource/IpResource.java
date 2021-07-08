@@ -133,12 +133,16 @@ public abstract class IpResource implements Serializable, Comparable<IpResource>
         } else if (value.contains(this)) {
             return Collections.emptyList();
         } else {
-            List<IpResourceRange> result = new ArrayList<IpResourceRange>(2);
-            if (getStart().compareTo(value.getStart()) < 0) {
-                result.add(getStart().upTo(value.getStart().predecessor()));
+            final List<IpResourceRange> result = new ArrayList<IpResourceRange>(2);
+            final UniqueIpResource start = getStart();
+            final UniqueIpResource valueStart = value.getStart();
+            if (start.compareTo(valueStart) < 0) {
+                result.add(start.upTo(valueStart.predecessor()));
             }
-            if (value.getEnd().compareTo(getEnd()) < 0) {
-                result.add(value.getEnd().successor().upTo(getEnd()));
+            final UniqueIpResource valueEnd = value.getEnd();
+            final UniqueIpResource end = getEnd();
+            if (valueEnd.compareTo(end) < 0) {
+                result.add(valueEnd.successor().upTo(end));
             }
             return result;
         }

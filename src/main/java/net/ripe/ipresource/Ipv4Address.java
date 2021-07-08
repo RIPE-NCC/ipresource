@@ -101,7 +101,7 @@ public class Ipv4Address extends IpAddress {
         value = addOctet(value, octet);
 
         if (defaultMissingOctets) {
-            value <<= 8 * (4 - octetCount);
+            value <<= 8L * (4 - octetCount);
         } else if (octetCount != 4) {
             throw new IllegalArgumentException("invalid IPv4 address: " + s);
         }
@@ -151,13 +151,7 @@ public class Ipv4Address extends IpAddress {
     protected int doCompareTo(IpResource obj) {
         if (obj instanceof Ipv4Address) {
             long otherValue = ((Ipv4Address) obj).value();
-            if (value() < otherValue) {
-                return -1;
-            } else if (value() > otherValue) {
-                return +1;
-            } else {
-                return 0;
-            }
+            return Long.compare(value(), otherValue);
         } else {
             return super.doCompareTo(obj);
         }
