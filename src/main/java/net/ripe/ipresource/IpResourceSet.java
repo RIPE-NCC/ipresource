@@ -198,7 +198,7 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
         while (thisResource != null && thatResource != null) {
             IpResource intersect = thisResource.intersect(thatResource);
             if (intersect != null) {
-                temp.put(intersect.getEnd(), intersect);
+                temp.put(intersect.getEnd(), normalize(intersect));
             }
             int compareTo = thisResource.getEnd().compareTo(thatResource.getEnd());
             if (compareTo <= 0) {
