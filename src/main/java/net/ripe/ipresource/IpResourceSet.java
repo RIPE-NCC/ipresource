@@ -60,7 +60,7 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
      *
      * resourcesByEndPoint.ceilingEntry(resourceToLookup.getStart())
      */
-    private NavigableMap<IpResource, IpResource> resourcesByEndPoint;
+    NavigableMap<IpResource, IpResource> resourcesByEndPoint;
 
     public IpResourceSet() {
         this.resourcesByEndPoint = new TreeMap<IpResource, IpResource>();
