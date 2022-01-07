@@ -173,6 +173,14 @@ public class IpResourceSetTest {
     }
 
     @Test
+    public void shouldNormalizeRetainedResources() {
+        // Without normalization on retainAll the single IP resource was retained as the range AS64513-AS64513.
+        IpResourceSet subject = IpResourceSet.parse("AS64513");
+        subject.retainAll(IpResourceSet.ALL_PRIVATE_USE_RESOURCES);
+        assertEquals("AS64513", subject.toString());
+    }
+
+    @Test
     public void test_removal_of_multiple_overlapping_resources() {
         subject = IpResourceSet.parse("AS1-AS3, AS5-AS10, AS13-AS15");
         subject.remove(IpResource.parse("AS1-AS10"));
