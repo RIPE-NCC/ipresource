@@ -140,6 +140,7 @@
                         <exclude>**/*.txt</exclude>
                         <exclude>.gitignore</exclude>
                         <exclude>.idea/**/*.*</exclude>
+                        <exclude>.github/**/*</exclude>
                     </excludes>
                 </configuration>
                 <executions>
