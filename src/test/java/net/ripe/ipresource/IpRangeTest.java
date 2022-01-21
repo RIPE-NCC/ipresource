@@ -102,6 +102,16 @@ public class IpRangeTest {
         assertThat(prefixes, is(Arrays.asList(IpRange.parse("2001::/16"))));
     }
 
+    @Test
+    public void shouldIpv4ZerosInsideIpv6() {
+        assertEquals(IpRange.parse("::ffff:2da4:7c00/120"), IpRange.parse("::ffff:45.164.124.0/120"));
+    }
+
+    @Test
+    public void shouldParseIpv4ZerosInsideIpv6() {
+        assertEquals(IpRange.parse("::ffff:0:0/96"), IpRange.parse("::ffff:0.0.0.0/96"));
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void shouldRejectAsnRanges() {
         IpRange.parse("AS3333-AS4444");

@@ -123,8 +123,14 @@ public class Ipv6Address extends IpAddress {
         String ipv6Section = StringUtils.substringBeforeLast(ipAddressString, ":");
         String ipv4Section = StringUtils.substringAfterLast(ipAddressString, ":");
         try {
-            String ipv4SectionInIpv6Notation = StringUtils.join(new Ipv6Address(Ipv4Address.parse(ipv4Section).getValue()).toString().split(":"), ":", 2, 4);
-            return ipv6Section + ":" + ipv4SectionInIpv6Notation;
+            final String v6 = new Ipv6Address(Ipv4Address.parse(ipv4Section).getValue()).toString();
+            final String[] split = v6.split(":");
+            if (split.length == 0) {
+                return ipv6Section;
+            } else {
+                String ipv4SectionInIpv6Notation = StringUtils.join(split, ":", 2, 4);
+                return ipv6Section + ":" + ipv4SectionInIpv6Notation;
+            }
         } catch(IllegalArgumentException e) {
             throw new IllegalArgumentException("Embedded Ipv4 in IPv6 address is invalid: " + ipAddressString, e);
         }
