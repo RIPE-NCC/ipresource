@@ -126,6 +126,7 @@ public class Ipv6Address extends IpAddress {
             final String v6 = new Ipv6Address(Ipv4Address.parse(ipv4Section).getValue()).toString();
             final String[] split = v6.split(":");
             if (split.length == 0) {
+                // that means that IPv4 part has a special shortcut such as "0" and can be ignored
                 return ipv6Section;
             } else {
                 String ipv4SectionInIpv6Notation = StringUtils.join(split, ":", 2, 4);
