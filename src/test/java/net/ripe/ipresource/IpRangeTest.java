@@ -113,6 +113,11 @@ public class IpRangeTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
+    public void shouldNotParseInvalidIpv4InsideIpv6() {
+        assertNull(IpRange.parse("2001:123.456:DEAD:BEEF.123"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
     public void shouldRejectAsnRanges() {
         IpRange.parse("AS3333-AS4444");
     }
