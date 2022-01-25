@@ -3,7 +3,7 @@
     <groupId>net.ripe.ipresource</groupId>
     <artifactId>ipresource</artifactId>
     <packaging>jar</packaging>
-    <version>1.49-SNAPSHOT</version>
+    <version>1.49</version>
 
     <parent>
         <groupId>org.sonatype.oss</groupId>
