@@ -199,6 +199,26 @@ public class ImmutableResourceSetTest {
     }
 
     @Test
+    public void test_intersects() {
+        for (int i = 0; i < RANDOM_SIZE; ++i) {
+            ImmutableResourceSet a = randomSet(i);
+
+            assertFalse(a.intersects(empty()));
+            assertFalse(a.intersects(a.complement()));
+            assertTrue(a.isEmpty() || a.intersects(a));
+            assertTrue(a.isEmpty() || a.intersects(universal()));
+        }
+
+        for (int i = 0; i < RANDOM_SIZE; ++i) {
+            ImmutableResourceSet a = randomSet(i);
+            ImmutableResourceSet b = randomSet(i);
+
+            assertTrue(a.isEmpty() || b.isEmpty() || (a.union(b).intersects(a) && a.union(b).intersects(b)));
+            assertTrue(a.intersection(b).isEmpty() != a.intersects(b));
+        }
+    }
+
+    @Test
     public void union_is_associative() {
         for (int i = 0; i < RANDOM_SIZE; ++i) {
             ImmutableResourceSet a = randomSet(i);

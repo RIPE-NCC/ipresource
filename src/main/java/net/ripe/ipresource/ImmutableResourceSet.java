@@ -132,7 +132,10 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
         }
     }
 
-    public  ImmutableResourceSet remove(IpResource value) {
+    public ImmutableResourceSet remove(IpResource value) {
+        if (!this.intersects(value)) {
+            return this;
+        }
         ImmutableResourceSet result = new ImmutableResourceSet(this);
         result.doRemove(value);
         return result;
@@ -234,6 +237,34 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
         for (IpResource resource: resourcesByEndPoint.values()) {
             if (type == resource.getType()) {
                 return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean intersects(IpResource resource) {
+        Entry<IpResource, IpResource> potentialMatch = resourcesByEndPoint.ceilingEntry(resource.getStart());
+        return potentialMatch != null && potentialMatch.getValue().overlaps(resource);
+    }
+
+    public boolean intersects(ImmutableResourceSet that) {
+        if (this.isEmpty() || that.isEmpty()) {
+            return false;
+        }
+        Iterator<IpResource> thisIterator = this.iterator();
+        Iterator<IpResource> thatIterator = that.iterator();
+        IpResource thisResource = thisIterator.next();
+        IpResource thatResource = thatIterator.next();
+        while (thisResource != null && thatResource != null) {
+            if (thisResource.overlaps(thatResource)) {
+                return true;
+            }
+            int compareTo = thisResource.getEnd().compareTo(thatResource.getEnd());
+            if (compareTo <= 0) {
+                thisResource = thisIterator.hasNext() ? thisIterator.next() : null;
+            }
+            if (compareTo >= 0) {
+                thatResource = thatIterator.hasNext() ? thatIterator.next() : null;
             }
         }
         return false;
