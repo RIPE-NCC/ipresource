@@ -36,9 +36,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map.Entry;
-import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.TreeMap;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -69,7 +69,7 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
      *
      * resourcesByEndPoint.ceilingEntry(resourceToLookup.getStart())
      */
-    private final NavigableMap<IpResource, IpResource> resourcesByEndPoint;
+    private final TreeMap<IpResource, IpResource> resourcesByEndPoint;
 
     private ImmutableResourceSet() {
         this.resourcesByEndPoint = new TreeMap<>();
@@ -97,7 +97,7 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
         this.resourcesByEndPoint = new TreeMap<>(resources.resourcesByEndPoint);
     }
 
-    private ImmutableResourceSet(NavigableMap<IpResource, IpResource> resourcesByEndPoint) {
+    private ImmutableResourceSet(TreeMap<IpResource, IpResource> resourcesByEndPoint) {
         this.resourcesByEndPoint = resourcesByEndPoint;
     }
 
@@ -113,16 +113,12 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
         return new ImmutableResourceSet(resources);
     }
 
-    public static Collector<IpResource, IpResourceSet, ImmutableResourceSet> collector() {
+    public static Collector<IpResource, ImmutableResourceSet, ImmutableResourceSet> collector() {
         return Collector.of(
-            IpResourceSet::new,
-            IpResourceSet::add,
-            (a, b) -> {
-                IpResourceSet r = new IpResourceSet(a);
-                a.addAll(b);
-                return r;
-            },
-            ImmutableResourceSet::new
+            ImmutableResourceSet::new,
+            ImmutableResourceSet::doAdd,
+            ImmutableResourceSet::union,
+            Collector.Characteristics.UNORDERED
         );
     }
 
@@ -164,7 +160,7 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
         } else if (that.isEmpty()) {
             return that;
         } else {
-            NavigableMap<IpResource, IpResource> temp = new TreeMap<>();
+            TreeMap<IpResource, IpResource> temp = new TreeMap<>();
             Iterator<IpResource> thisIterator = this.iterator();
             Iterator<IpResource> thatIterator = that.iterator();
             IpResource thisResource = thisIterator.next();
@@ -208,7 +204,8 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
 
     @Override
     public Spliterator<IpResource> spliterator() {
-        return Collections.unmodifiableMap(resourcesByEndPoint).values().spliterator();
+        return Spliterators.spliterator(resourcesByEndPoint.values(),
+            Spliterator.DISTINCT | Spliterator.SORTED | Spliterator.IMMUTABLE);
     }
 
     public Stream<IpResource> stream() {

@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Stream;
 
 import static net.ripe.ipresource.ImmutableResourceSet.empty;
 import static net.ripe.ipresource.ImmutableResourceSet.universal;
@@ -46,7 +47,9 @@ import static org.junit.Assert.assertTrue;
 
 public class ImmutableResourceSetTest {
 
-    public static final int RANDOM_SIZE = 1000;
+    public static final int RANDOM_SIZE = 250;
+
+    private final Random random = new Random();
 
     @Test
     public void containsAllIpv4Resources() {
@@ -99,6 +102,7 @@ public class ImmutableResourceSetTest {
         ImmutableResourceSet subject = ImmutableResourceSet.of(parse("AS13"));
         assertTrue(subject.containsType(IpResourceType.ASN));
         assertFalse(subject.containsType(IpResourceType.IPv4));
+        assertFalse(subject.containsType(IpResourceType.IPv6));
     }
 
     @Test
@@ -283,19 +287,6 @@ public class ImmutableResourceSetTest {
 
     }
 
-    private ImmutableResourceSet randomSet(int size) {
-        Random random = new Random();
-        ImmutableResourceSet result = empty();
-        for (int i = 0; i < random.nextInt(size + 1); ++i) {
-            IpResourceType type = IpResourceType.values()[random.nextInt(IpResourceType.values().length)];
-            BigInteger start = BigInteger.valueOf(random.nextInt(Integer.MAX_VALUE - Integer.MAX_VALUE / 256 - 1));
-            BigInteger end = start.add(BigInteger.valueOf(random.nextInt(Integer.MAX_VALUE / 256))).add(BigInteger.ONE);
-            IpResourceRange range = IpResourceRange.range(type.fromBigInteger(start), type.fromBigInteger(end));
-            result = result.add(range);
-        }
-        return result;
-    }
-
     @Test
     public void randomized_testing() {
         ImmutableResourceSet subject = empty();
@@ -327,5 +318,18 @@ public class ImmutableResourceSetTest {
         }
 
         assertTrue("all resources removed: " + subject, subject.isEmpty());
+    }
+
+    private ImmutableResourceSet randomSet(int size) {
+        return Stream.generate(this::randomResourceRange)
+            .limit(random.nextInt(size + 1))
+            .collect(ImmutableResourceSet.collector());
+    }
+
+    private IpResourceRange randomResourceRange() {
+        IpResourceType type = IpResourceType.values()[random.nextInt(IpResourceType.values().length)];
+        BigInteger start = BigInteger.valueOf(random.nextInt(Integer.MAX_VALUE - Integer.MAX_VALUE / 256 - 1));
+        BigInteger end = start.add(BigInteger.valueOf(random.nextInt(Integer.MAX_VALUE / 256))).add(BigInteger.ONE);
+        return IpResourceRange.range(type.fromBigInteger(start), type.fromBigInteger(end));
     }
 }
