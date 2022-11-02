@@ -98,21 +98,18 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
             start = start.predecessor();
         }
 
-        IpResource resourceToAdd = normalize(resource);
-
         Iterator<IpResource> iterator = resourcesByEndPoint.tailMap(start, true).values().iterator();
         while (iterator.hasNext()) {
             IpResource potentialMatch = iterator.next();
-            if (resourceToAdd.isMergeable(potentialMatch)) {
+            if (resource.isMergeable(potentialMatch)) {
                 iterator.remove();
-                resourceToAdd = resourceToAdd.merge(potentialMatch);
+                resource = resource.merge(potentialMatch);
             } else {
                 break;
             }
         }
 
-        IpResource normalized = normalize(resourceToAdd);
-        resourcesByEndPoint.put(normalized.getEnd(), normalized);
+        resourcesByEndPoint.put(resource.getEnd(), normalize(resource));
     }
 
     public boolean isEmpty() {
@@ -235,7 +232,7 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
     }
 
     private IpResource normalize(IpResource resource) {
-        return resource.isUnique() ? resource.unique() : resource;
+        return resource.isUnique() ? resource.getStart() : resource;
     }
 
     @SuppressWarnings("unchecked")
