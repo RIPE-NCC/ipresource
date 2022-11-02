@@ -47,9 +47,9 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
     public static final IpRange ALL_IPV4_RESOURCES = IpRange.parse("0.0.0.0/0");
     public static final IpRange ALL_IPV6_RESOURCES = IpRange.parse("::/0");
 
-    public static final ImmutableResourceSet IP_PRIVATE_USE_RESOURCES = ImmutableResourceSet.parse("10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7");
-    public static final ImmutableResourceSet ASN_PRIVATE_USE_RESOURCES = ImmutableResourceSet.parse("AS64512-AS65534");
-    public static final ImmutableResourceSet ALL_PRIVATE_USE_RESOURCES = ASN_PRIVATE_USE_RESOURCES.union(IP_PRIVATE_USE_RESOURCES);
+    public static final ImmutableResourceSet IP_PRIVATE_USE_RESOURCES = ImmutableResourceSet.of(IpResourceSet.IP_PRIVATE_USE_RESOURCES);
+    public static final ImmutableResourceSet ASN_PRIVATE_USE_RESOURCES = ImmutableResourceSet.of(IpResourceSet.ASN_PRIVATE_USE_RESOURCES);
+    public static final ImmutableResourceSet ALL_PRIVATE_USE_RESOURCES = ImmutableResourceSet.of(IpResourceSet.ALL_PRIVATE_USE_RESOURCES);
 
     private static final long serialVersionUID = 1L;
 

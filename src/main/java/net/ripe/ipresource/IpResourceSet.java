@@ -37,7 +37,6 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map.Entry;
-import java.util.NavigableMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 
@@ -60,7 +59,7 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
      *
      * resourcesByEndPoint.ceilingEntry(resourceToLookup.getStart())
      */
-    NavigableMap<IpResource, IpResource> resourcesByEndPoint;
+    private TreeMap<IpResource, IpResource> resourcesByEndPoint;
 
     public IpResourceSet() {
         this.resourcesByEndPoint = new TreeMap<IpResource, IpResource>();
@@ -187,7 +186,7 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
             return;
         }
 
-        NavigableMap<IpResource, IpResource> temp = new TreeMap<IpResource, IpResource>();
+        TreeMap<IpResource, IpResource> temp = new TreeMap<IpResource, IpResource>();
         Iterator<IpResource> thisIterator = this.iterator();
         Iterator<IpResource> thatIterator = other.iterator();
         IpResource thisResource = thisIterator.next();
@@ -239,7 +238,7 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         ObjectInputStream.GetField gf = in.readFields();
         if (!gf.defaulted("resourcesByEndPoint")) {
-            resourcesByEndPoint = (NavigableMap<IpResource, IpResource>) gf.get("resourcesByEndPoint", null);
+            resourcesByEndPoint = (TreeMap<IpResource, IpResource>) gf.get("resourcesByEndPoint", null);
         } else {
             SortedSet<IpResource> resources = (SortedSet<IpResource>) gf.get("resources", null);
             resourcesByEndPoint = new TreeMap<IpResource, IpResource>();
