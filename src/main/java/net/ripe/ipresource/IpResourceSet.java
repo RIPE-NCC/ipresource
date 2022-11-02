@@ -44,6 +44,9 @@ import java.util.TreeMap;
  * A mutable set of IP resources. Resources can be ASNs, IPv4 addresses, IPv6
  * addresses, or ranges. Adjacent resources are merged. Single-sized ranges are
  * normalized into single resources.
+ * <p>
+ *     Note: the {@link ImmutableResourceSet} is now preferred to this class.
+ * </p>
  */
 public class IpResourceSet implements Iterable<IpResource>, Serializable {
 
