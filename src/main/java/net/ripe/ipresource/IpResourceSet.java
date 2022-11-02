@@ -62,14 +62,14 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
      *
      * resourcesByEndPoint.ceilingEntry(resourceToLookup.getStart())
      */
-    private TreeMap<IpResource, IpResource> resourcesByEndPoint;
+    private TreeMap<UniqueIpResource, IpResource> resourcesByEndPoint;
 
     public IpResourceSet() {
-        this.resourcesByEndPoint = new TreeMap<IpResource, IpResource>();
+        this.resourcesByEndPoint = new TreeMap<>();
     }
 
     public IpResourceSet(IpResourceSet resources) {
-        this.resourcesByEndPoint = new TreeMap<IpResource, IpResource>(resources.resourcesByEndPoint);
+        this.resourcesByEndPoint = new TreeMap<>(resources.resourcesByEndPoint);
     }
 
     public IpResourceSet(IpResource... resources) {
@@ -119,7 +119,7 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
     }
 
     public boolean contains(IpResource resource) {
-        Entry<IpResource, IpResource> potentialMatch = resourcesByEndPoint.ceilingEntry(resource.getStart());
+        Entry<UniqueIpResource, IpResource> potentialMatch = resourcesByEndPoint.ceilingEntry(resource.getStart());
         return potentialMatch != null && potentialMatch.getValue().contains(resource);
     }
 
@@ -160,7 +160,7 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
     public boolean remove(IpResource resource) {
         boolean removed = false;
 
-        Entry<IpResource, IpResource> potentialMatch = resourcesByEndPoint.ceilingEntry(resource.getStart());
+        Entry<UniqueIpResource, IpResource> potentialMatch = resourcesByEndPoint.ceilingEntry(resource.getStart());
         while (potentialMatch != null && potentialMatch.getValue().overlaps(resource)) {
             resourcesByEndPoint.remove(potentialMatch.getKey());
             removed = true;
@@ -189,7 +189,7 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
             return;
         }
 
-        TreeMap<IpResource, IpResource> temp = new TreeMap<IpResource, IpResource>();
+        TreeMap<UniqueIpResource, IpResource> temp = new TreeMap<>();
         Iterator<IpResource> thisIterator = this.iterator();
         Iterator<IpResource> thatIterator = other.iterator();
         IpResource thisResource = thisIterator.next();
@@ -241,10 +241,10 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         ObjectInputStream.GetField gf = in.readFields();
         if (!gf.defaulted("resourcesByEndPoint")) {
-            resourcesByEndPoint = (TreeMap<IpResource, IpResource>) gf.get("resourcesByEndPoint", null);
+            resourcesByEndPoint = (TreeMap<UniqueIpResource, IpResource>) gf.get("resourcesByEndPoint", null);
         } else {
             SortedSet<IpResource> resources = (SortedSet<IpResource>) gf.get("resources", null);
-            resourcesByEndPoint = new TreeMap<IpResource, IpResource>();
+            resourcesByEndPoint = new TreeMap<>();
             for (IpResource resource: resources) {
                 resourcesByEndPoint.put(resource.getEnd(), resource);
             }

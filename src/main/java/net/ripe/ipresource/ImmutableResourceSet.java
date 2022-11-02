@@ -61,13 +61,13 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
      *
      * resourcesByEndPoint.ceilingEntry(resourceToLookup.getStart())
      */
-    private final TreeMap<IpResource, IpResource> resourcesByEndPoint;
+    private final TreeMap<UniqueIpResource, IpResource> resourcesByEndPoint;
 
     private ImmutableResourceSet() {
         this.resourcesByEndPoint = new TreeMap<>();
     }
 
-    private ImmutableResourceSet(TreeMap<IpResource, IpResource> resourcesByEndPoint) {
+    private ImmutableResourceSet(TreeMap<UniqueIpResource, IpResource> resourcesByEndPoint) {
         this.resourcesByEndPoint = resourcesByEndPoint;
     }
 
@@ -77,7 +77,7 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
     }
 
     public static ImmutableResourceSet of(IpResource resource) {
-        TreeMap<IpResource, IpResource> resourcesByEndpoint = new TreeMap<>();
+        TreeMap<UniqueIpResource, IpResource> resourcesByEndpoint = new TreeMap<>();
         resourcesByEndpoint.put(resource.getEnd(), normalize(resource));
         return new ImmutableResourceSet(resourcesByEndpoint);
     }
@@ -145,7 +145,7 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
         } else if (that.isEmpty()) {
             return that;
         } else {
-            TreeMap<IpResource, IpResource> temp = new TreeMap<>();
+            TreeMap<UniqueIpResource, IpResource> temp = new TreeMap<>();
             Iterator<IpResource> thisIterator = this.iterator();
             Iterator<IpResource> thatIterator = that.iterator();
             IpResource thisResource = thisIterator.next();
@@ -198,7 +198,7 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
     }
 
     public boolean contains(IpResource resource) {
-        Entry<IpResource, IpResource> potentialMatch = resourcesByEndPoint.ceilingEntry(resource.getStart());
+        Entry<UniqueIpResource, IpResource> potentialMatch = resourcesByEndPoint.ceilingEntry(resource.getStart());
         return potentialMatch != null && potentialMatch.getValue().contains(resource);
     }
 
@@ -221,7 +221,7 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
     }
 
     public boolean intersects(IpResource resource) {
-        Entry<IpResource, IpResource> potentialMatch = resourcesByEndPoint.ceilingEntry(resource.getStart());
+        Entry<UniqueIpResource, IpResource> potentialMatch = resourcesByEndPoint.ceilingEntry(resource.getStart());
         return potentialMatch != null && potentialMatch.getValue().overlaps(resource);
     }
 
@@ -283,7 +283,7 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
     }
 
     public static class Builder {
-        private final TreeMap<IpResource, IpResource> resourcesByEndPoint;
+        private final TreeMap<UniqueIpResource, IpResource> resourcesByEndPoint;
 
         public Builder() {
             this.resourcesByEndPoint = new TreeMap<>();
@@ -341,7 +341,7 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
         }
 
         public Builder remove(IpResource resource) {
-            Entry<IpResource, IpResource> potentialMatch = resourcesByEndPoint.ceilingEntry(resource.getStart());
+            Entry<UniqueIpResource, IpResource> potentialMatch = resourcesByEndPoint.ceilingEntry(resource.getStart());
             while (potentialMatch != null && potentialMatch.getValue().overlaps(resource)) {
                 resourcesByEndPoint.remove(potentialMatch.getKey());
 
