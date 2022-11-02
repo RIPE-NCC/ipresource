@@ -29,17 +29,9 @@
  */
 package net.ripe.ipresource;
 
-import org.apache.commons.lang3.Validate;
-
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.TreeMap;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -57,12 +49,12 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
 
     public static final ImmutableResourceSet IP_PRIVATE_USE_RESOURCES = ImmutableResourceSet.parse("10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7");
     public static final ImmutableResourceSet ASN_PRIVATE_USE_RESOURCES = ImmutableResourceSet.parse("AS64512-AS65534");
-    public static final ImmutableResourceSet ALL_PRIVATE_USE_RESOURCES = ImmutableResourceSet.parse("AS64512-AS65534,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7");
+    public static final ImmutableResourceSet ALL_PRIVATE_USE_RESOURCES = ASN_PRIVATE_USE_RESOURCES.union(IP_PRIVATE_USE_RESOURCES);
 
     private static final long serialVersionUID = 1L;
 
     private static final ImmutableResourceSet EMPTY = new ImmutableResourceSet();
-    private static final ImmutableResourceSet UNIVERSAL = new ImmutableResourceSet(ALL_AS_RESOURCES, ALL_IPV4_RESOURCES, ALL_IPV6_RESOURCES);
+    private static final ImmutableResourceSet UNIVERSAL = ImmutableResourceSet.of(ALL_AS_RESOURCES, ALL_IPV4_RESOURCES, ALL_IPV6_RESOURCES);
 
     /*
      * Resources keyed by their end-point. This allows fast lookup to find potentially overlapping resources:
@@ -75,30 +67,31 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
         this.resourcesByEndPoint = new TreeMap<>();
     }
 
-    public ImmutableResourceSet(ImmutableResourceSet resources) {
-        this.resourcesByEndPoint = new TreeMap<>(resources.resourcesByEndPoint);
-    }
-
-    public ImmutableResourceSet(IpResource... resources) {
-        this();
-        for (IpResource resource : resources) {
-            doAdd(resource);
-        }
-    }
-
-    public ImmutableResourceSet(Collection<? extends IpResource> resources) {
-        this();
-        for (IpResource resource : resources) {
-            doAdd(resource);
-        }
-    }
-
-    public ImmutableResourceSet(IpResourceSet resources) {
-        this.resourcesByEndPoint = new TreeMap<>(resources.resourcesByEndPoint);
-    }
-
     private ImmutableResourceSet(TreeMap<IpResource, IpResource> resourcesByEndPoint) {
         this.resourcesByEndPoint = resourcesByEndPoint;
+    }
+
+
+    public static ImmutableResourceSet of() {
+        return empty();
+    }
+
+    public static ImmutableResourceSet of(IpResource resource) {
+        TreeMap<IpResource, IpResource> resourcesByEndpoint = new TreeMap<>();
+        resourcesByEndpoint.put(resource.getEnd(), normalize(resource));
+        return new ImmutableResourceSet(resourcesByEndpoint);
+    }
+
+    public static ImmutableResourceSet of(IpResource... resources) {
+        return resources.length == 0 ? empty() : ImmutableResourceSet.of(Arrays.asList(resources));
+    }
+
+    public static ImmutableResourceSet of(Collection<? extends IpResource> resources) {
+        return resources.isEmpty() ? empty() : new Builder(resources).build();
+    }
+
+    public static ImmutableResourceSet of(IpResourceSet resources) {
+        return resources.isEmpty() ? empty() : new Builder(resources).build();
     }
 
     public static ImmutableResourceSet empty() {
@@ -109,15 +102,12 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
         return UNIVERSAL;
     }
 
-    public static ImmutableResourceSet of(IpResource... resources) {
-        return new ImmutableResourceSet(resources);
-    }
-
-    public static Collector<IpResource, ImmutableResourceSet, ImmutableResourceSet> collector() {
+    public static Collector<IpResource, ImmutableResourceSet.Builder, ImmutableResourceSet> collector() {
         return Collector.of(
-            ImmutableResourceSet::new,
-            ImmutableResourceSet::doAdd,
-            ImmutableResourceSet::union,
+            Builder::new,
+            Builder::add,
+            (a, b) -> a.addAll(b.resourcesByEndPoint.values()),
+            Builder::build,
             Collector.Characteristics.UNORDERED
         );
     }
@@ -126,9 +116,7 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
         if (this.contains(value)) {
             return this;
         } else {
-            ImmutableResourceSet result = new ImmutableResourceSet(this);
-            result.doAdd(value);
-            return result;
+            return new Builder(this).add(value).build();
         }
     }
 
@@ -136,9 +124,7 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
         if (!this.intersects(value)) {
             return this;
         }
-        ImmutableResourceSet result = new ImmutableResourceSet(this);
-        result.doRemove(value);
-        return result;
+        return new Builder(this).remove(value).build();
     }
 
     public ImmutableResourceSet union(ImmutableResourceSet that) {
@@ -147,13 +133,9 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
         } else if (that.isEmpty()) {
             return this;
         } else if (this.resourcesByEndPoint.size() < that.resourcesByEndPoint.size()) {
-            ImmutableResourceSet result = new ImmutableResourceSet(that);
-            result.doAddAll(this);
-            return result;
+            return new Builder(that).addAll(this.resourcesByEndPoint.values()).build();
         } else {
-            ImmutableResourceSet result = new ImmutableResourceSet(this);
-            result.doAddAll(that);
-            return result;
+            return new Builder(this).addAll(that.resourcesByEndPoint.values()).build();
         }
     }
 
@@ -186,14 +168,10 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
     }
 
     public ImmutableResourceSet difference(ImmutableResourceSet that) {
-        if (this.isEmpty() || that.isEmpty()) {
+        if (!this.intersects(that)) {
             return this;
         } else {
-            ImmutableResourceSet result = new ImmutableResourceSet(this);
-            for (IpResource resource: that) {
-                result.doRemove(resource);
-            }
-            return result;
+            return new Builder(this).removeAll(that).build();
         }
     }
 
@@ -272,14 +250,14 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
 
     public static ImmutableResourceSet parse(String s) {
         String[] resources = s.split(",");
-        ImmutableResourceSet result = new ImmutableResourceSet();
+        Builder builder = new Builder();
         for (String r : resources) {
             String trimmed = r.trim();
             if (!trimmed.isEmpty()) {
-                result.doAdd(IpResource.parse(trimmed));
+                builder.add(IpResource.parse(trimmed));
             }
         }
-        return result;
+        return builder.build();
     }
 
     @Override
@@ -304,52 +282,81 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
         return resourcesByEndPoint.hashCode();
     }
 
-    private void doAddAll(ImmutableResourceSet ipResourceSet) {
-        for (IpResource ipResource: ipResourceSet.resourcesByEndPoint.values()) {
-            doAdd(ipResource);
-        }
-    }
+    public static class Builder {
+        private final TreeMap<IpResource, IpResource> resourcesByEndPoint;
 
-    private void doAdd(IpResource resource) {
-        Validate.notNull(resource, "resource is null");
-
-        UniqueIpResource start = resource.getStart();
-        if (!start.equals(start.getType().getMinimum())) {
-            start = start.predecessor();
+        public Builder() {
+            this.resourcesByEndPoint = new TreeMap<>();
         }
 
-        IpResource resourceToAdd = normalize(resource);
+        public Builder(ImmutableResourceSet resources) {
+            this.resourcesByEndPoint = new TreeMap<>(resources.resourcesByEndPoint);
+        }
 
-        Iterator<IpResource> iterator = resourcesByEndPoint.tailMap(start, true).values().iterator();
-        while (iterator.hasNext()) {
-            IpResource potentialMatch = iterator.next();
-            if (resourceToAdd.isMergeable(potentialMatch)) {
-                iterator.remove();
-                resourceToAdd = resourceToAdd.merge(potentialMatch);
-            } else {
-                break;
+        public Builder(Iterable<? extends IpResource> resources) {
+            this();
+            for (IpResource resource : resources) {
+                add(resource);
             }
         }
 
-        IpResource normalized = normalize(resourceToAdd);
-        resourcesByEndPoint.put(normalized.getEnd(), normalized);
-    }
+        public ImmutableResourceSet build() {
+            return resourcesByEndPoint.isEmpty() ? empty() : new ImmutableResourceSet(resourcesByEndPoint);
+        }
 
-    private void doRemove(IpResource resource) {
-        Entry<IpResource, IpResource> potentialMatch = resourcesByEndPoint.ceilingEntry(resource.getStart());
-        while (potentialMatch != null && potentialMatch.getValue().overlaps(resource)) {
-            resourcesByEndPoint.remove(potentialMatch.getKey());
+        public Builder addAll(Iterable<? extends IpResource> resources) {
+            for (IpResource ipResource: resources) {
+                add(ipResource);
+            }
+            return this;
+        }
 
-            for (IpResource remains: potentialMatch.getValue().subtract(resource)) {
-                doAdd(remains);
+        public Builder removeAll(Iterable<? extends IpResource> resources) {
+            for (IpResource resource: resources) {
+                remove(resource);
+            }
+            return this;
+        }
+
+        public Builder add(IpResource resource) {
+            UniqueIpResource start = resource.getStart();
+            if (!start.equals(start.getType().getMinimum())) {
+                start = start.predecessor();
             }
 
-            potentialMatch = resourcesByEndPoint.ceilingEntry(resource.getStart());
+            Iterator<IpResource> iterator = resourcesByEndPoint.tailMap(start, true).values().iterator();
+            while (iterator.hasNext()) {
+                IpResource potentialMatch = iterator.next();
+                if (resource.isMergeable(potentialMatch)) {
+                    iterator.remove();
+                    resource = resource.merge(potentialMatch);
+                } else {
+                    break;
+                }
+            }
+
+            resourcesByEndPoint.put(resource.getEnd(), normalize(resource));
+
+            return this;
+        }
+
+        public Builder remove(IpResource resource) {
+            Entry<IpResource, IpResource> potentialMatch = resourcesByEndPoint.ceilingEntry(resource.getStart());
+            while (potentialMatch != null && potentialMatch.getValue().overlaps(resource)) {
+                resourcesByEndPoint.remove(potentialMatch.getKey());
+
+                for (IpResource remains: potentialMatch.getValue().subtract(resource)) {
+                    resourcesByEndPoint.put(remains.getEnd(), normalize(remains));
+                }
+
+                potentialMatch = resourcesByEndPoint.ceilingEntry(resource.getStart());
+            }
+
+            return this;
         }
     }
 
     private static IpResource normalize(IpResource resource) {
-        return resource.isUnique() ? resource.unique() : resource;
+        return resource.isUnique() ? resource.getStart() : resource;
     }
-
 }

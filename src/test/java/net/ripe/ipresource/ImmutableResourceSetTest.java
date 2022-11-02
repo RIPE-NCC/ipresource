@@ -53,13 +53,13 @@ public class ImmutableResourceSetTest {
 
     @Test
     public void containsAllIpv4Resources() {
-        ImmutableResourceSet resources = new ImmutableResourceSet(parse("0.0.0.0/0"));
+        ImmutableResourceSet resources = ImmutableResourceSet.of(parse("0.0.0.0/0"));
         assertEquals("0.0.0.0/0", resources.toString());
     }
 
     @Test
     public void shouldNormalizeAccordingToRfc3779() {
-        ImmutableResourceSet resources = new ImmutableResourceSet(
+        ImmutableResourceSet resources = ImmutableResourceSet.of(
             parse("127.0.0.1"),
             parse("10.0.0.0/8"),
             parse("255.255.255.255-255.255.255.255"),
