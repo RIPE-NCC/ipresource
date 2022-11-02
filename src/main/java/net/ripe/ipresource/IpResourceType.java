@@ -59,7 +59,9 @@ public enum IpResourceType {
 
     private final String description;
     private final int bitSize;
-    
+    private final UniqueIpResource minimum = fromBigInteger(BigInteger.ZERO);
+    private final UniqueIpResource maximum = fromBigInteger(BigInteger.ONE.shiftLeft(getBitSize()).subtract(BigInteger.ONE));
+
     private IpResourceType(String description, int bitSize) {
         this.description = description;
         this.bitSize = bitSize;
@@ -82,13 +84,13 @@ public enum IpResourceType {
     }
 
     public UniqueIpResource getMinimum() {
-        return fromBigInteger(BigInteger.ZERO);
+        return minimum;
     }
     
     public UniqueIpResource getMaximum() {
-        return fromBigInteger(BigInteger.ONE.shiftLeft(getBitSize()).subtract(BigInteger.ONE));
+        return maximum;
     }
-    
+
     public abstract UniqueIpResource fromBigInteger(BigInteger value);
 
     /**
