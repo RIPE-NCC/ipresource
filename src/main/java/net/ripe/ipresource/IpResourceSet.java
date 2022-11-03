@@ -34,11 +34,10 @@ import org.apache.commons.lang3.Validate;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.SortedSet;
-import java.util.TreeMap;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * A mutable set of IP resources. Resources can be ASNs, IPv4 addresses, IPv6
@@ -153,8 +152,19 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
         return result;
     }
 
+    @Override
     public Iterator<IpResource> iterator() {
         return resourcesByEndPoint.values().iterator();
+    }
+
+    @Override
+    public Spliterator<IpResource> spliterator() {
+        return Spliterators.spliterator(resourcesByEndPoint.values(),
+            Spliterator.DISTINCT | Spliterator.SORTED);
+    }
+
+    public Stream<IpResource> stream() {
+        return StreamSupport.stream(spliterator(), false);
     }
 
     public boolean remove(IpResource resource) {

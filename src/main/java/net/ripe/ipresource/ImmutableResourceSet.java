@@ -179,6 +179,7 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
         return universal().difference(this);
     }
 
+    @Override
     public Iterator<IpResource> iterator() {
         return Collections.unmodifiableMap(resourcesByEndPoint).values().iterator();
     }
