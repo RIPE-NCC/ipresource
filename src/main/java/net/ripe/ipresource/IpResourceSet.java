@@ -73,13 +73,17 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
      *
      * resourcesByEndPoint.ceilingEntry(resourceToLookup.getStart())
      */
-    private TreeMap<UniqueIpResource, IpResource> resourcesByEndPoint;
+    TreeMap<UniqueIpResource, IpResource> resourcesByEndPoint;
 
     public IpResourceSet() {
         this.resourcesByEndPoint = new TreeMap<>();
     }
 
     public IpResourceSet(IpResourceSet resources) {
+        this.resourcesByEndPoint = new TreeMap<>(resources.resourcesByEndPoint);
+    }
+
+    public IpResourceSet(ImmutableResourceSet resources) {
         this.resourcesByEndPoint = new TreeMap<>(resources.resourcesByEndPoint);
     }
 
@@ -91,16 +95,19 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
     }
 
     public IpResourceSet(Collection<? extends IpResource> resources) {
-        this();
-        for (IpResource resource : resources) {
-            add(resource);
-        }
+        this((Iterable<? extends IpResource>) resources);
     }
 
     public IpResourceSet(Iterable<? extends IpResource> resources) {
-        this();
-        for (IpResource resource : resources) {
-            add(resource);
+        if (resources instanceof IpResourceSet) {
+            this.resourcesByEndPoint = new TreeMap<>(((IpResourceSet) resources).resourcesByEndPoint);
+        } else if (resources instanceof ImmutableResourceSet) {
+            this.resourcesByEndPoint = new TreeMap<>(((ImmutableResourceSet) resources).resourcesByEndPoint);
+        } else {
+            this.resourcesByEndPoint = new TreeMap<>();
+            for (IpResource resource : resources) {
+                add(resource);
+            }
         }
     }
 

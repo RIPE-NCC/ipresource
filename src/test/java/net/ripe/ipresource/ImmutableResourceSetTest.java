@@ -42,10 +42,7 @@ import static net.ripe.ipresource.ImmutableResourceSet.ALL_PRIVATE_USE_RESOURCES
 import static net.ripe.ipresource.ImmutableResourceSet.empty;
 import static net.ripe.ipresource.ImmutableResourceSet.universal;
 import static net.ripe.ipresource.IpResource.parse;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class ImmutableResourceSetTest {
 
@@ -65,6 +62,20 @@ public class ImmutableResourceSetTest {
         assertThrows(IllegalStateException.class, () -> builder.addAll(ALL_PRIVATE_USE_RESOURCES));
         assertThrows(IllegalStateException.class, () -> builder.removeAll(ALL_PRIVATE_USE_RESOURCES));
         assertThrows(IllegalStateException.class, builder::build);
+    }
+
+    @Test
+    public void should_copy_from_IpResourceSet() {
+        assertSame(ImmutableResourceSet.empty(), ImmutableResourceSet.of(IpResourceSet.parse("")));
+        assertEquals("10.0.0.0/8", ImmutableResourceSet.of(IpResourceSet.parse("10.0.0.0/8")).toString());
+        assertEquals("10.0.0.0/8", ImmutableResourceSet.of((Iterable<IpResource>) IpResourceSet.parse("10.0.0.0/8")).toString());
+    }
+
+    @Test
+    public void should_share_from_ImmutableResourceSet() {
+        assertSame(ImmutableResourceSet.empty(), ImmutableResourceSet.of(ImmutableResourceSet.parse("")));
+        ImmutableResourceSet resources = ImmutableResourceSet.parse("10.0.0.0/8");
+        assertSame(resources, ImmutableResourceSet.of(resources));
     }
 
     @Test

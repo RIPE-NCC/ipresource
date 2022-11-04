@@ -58,7 +58,7 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
      *
      * resourcesByEndPoint.ceilingEntry(resourceToLookup.getStart())
      */
-    private final TreeMap<UniqueIpResource, IpResource> resourcesByEndPoint;
+    final TreeMap<UniqueIpResource, IpResource> resourcesByEndPoint;
 
     private ImmutableResourceSet() {
         this.resourcesByEndPoint = new TreeMap<>();
@@ -83,12 +83,18 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
         return resources.length == 0 ? empty() : ImmutableResourceSet.of(Arrays.asList(resources));
     }
 
-    public static ImmutableResourceSet of(Collection<? extends IpResource> resources) {
-        return resources.isEmpty() ? empty() : new Builder(resources).build();
+    public static ImmutableResourceSet of(Iterable<? extends IpResource> resources) {
+        if (resources instanceof ImmutableResourceSet) {
+            return (ImmutableResourceSet) resources;
+        } else if (resources instanceof IpResourceSet) {
+            return of((IpResourceSet) resources);
+        } else {
+            return new Builder(resources).build();
+        }
     }
 
     public static ImmutableResourceSet of(IpResourceSet resources) {
-        return resources.isEmpty() ? empty() : new Builder(resources).build();
+        return resources.isEmpty() ? empty() : new ImmutableResourceSet(resources.resourcesByEndPoint);
     }
 
     public static ImmutableResourceSet empty() {
@@ -291,10 +297,20 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
             this.resourcesByEndPoint = new TreeMap<>(resources.resourcesByEndPoint);
         }
 
+        public Builder(IpResourceSet resources) {
+            this.resourcesByEndPoint = new TreeMap<>(resources.resourcesByEndPoint);
+        }
+
         public Builder(Iterable<? extends IpResource> resources) {
-            this();
-            for (IpResource resource : resources) {
-                add(resource);
+            if (resources instanceof ImmutableResourceSet) {
+                this.resourcesByEndPoint = new TreeMap<>(((ImmutableResourceSet) resources).resourcesByEndPoint);
+            } else if (resources instanceof IpResourceSet) {
+                this.resourcesByEndPoint = new TreeMap<>(((IpResourceSet) resources).resourcesByEndPoint);
+            } else {
+                this.resourcesByEndPoint = new TreeMap<>();
+                for (IpResource resource : resources) {
+                    add(resource);
+                }
             }
         }
 
