@@ -95,7 +95,7 @@ public class ImmutableResourceSetTest {
 
     @Test
     public void shouldNormalizeSingletonRangeToUniqueIpResource() {
-        IpResourceSet resources = new IpResourceSet(parse("127.0.0.1-127.0.0.1"));
+        ImmutableResourceSet resources = ImmutableResourceSet.parse("127.0.0.1-127.0.0.1");
         assertEquals("127.0.0.1", resources.toString());
     }
 
@@ -177,39 +177,37 @@ public class ImmutableResourceSetTest {
     }
 
     @Test
-    public void testRemoveAll() {
-        IpResourceSet a = IpResourceSet.parse("AS3333-AS4444,10.0.0.0/8");
-        a.removeAll(IpResourceSet.parse("10.5.0.0/16, AS3335"));
-        assertEquals(IpResourceSet.parse("AS3333-AS3334, AS3336-AS4444, 10.0.0.0-10.4.255.255, 10.6.0.0-10.255.255.255"), a);
+    public void test_difference() {
+        ImmutableResourceSet a = ImmutableResourceSet.parse("AS3333-AS4444,10.0.0.0/8");
+        ImmutableResourceSet difference = a.difference(ImmutableResourceSet.parse("10.5.0.0/16, AS3335"));
+        assertEquals(ImmutableResourceSet.parse("AS3333-AS3334, AS3336-AS4444, 10.0.0.0-10.4.255.255, 10.6.0.0-10.255.255.255"), difference);
     }
 
     @Test
-    public void testRetainAll() {
-        IpResourceSet empty = IpResourceSet.parse("");
-        empty.retainAll(IpResourceSet.parse("AS1-AS10,AS3300-AS4420,10.0.0.0/9"));
-        assertEquals("", empty.toString());
+    public void test_intersection() {
+        ImmutableResourceSet empty = ImmutableResourceSet.parse("");
+        assertEquals("", empty.intersection(ImmutableResourceSet.parse("AS1-AS10,AS3300-AS4420,10.0.0.0/9")).toString());
 
-        IpResourceSet a = IpResourceSet.parse("AS8-AS3315,AS3333-AS4444,10.0.0.0/8");
-        a.retainAll(IpResourceSet.parse("AS1-AS10,AS3300-AS4420,10.0.0.0/9"));
-        assertEquals(IpResourceSet.parse("AS8-AS10,AS3300-AS3315,AS3333-AS4420,10.0.0.0/9"), a);
+        ImmutableResourceSet a = ImmutableResourceSet.parse("AS8-AS3315,AS3333-AS4444,10.0.0.0/8");
+        a = a.intersection(ImmutableResourceSet.parse("AS1-AS10,AS3300-AS4420,10.0.0.0/9"));
+        assertEquals(ImmutableResourceSet.parse("AS8-AS10,AS3300-AS3315,AS3333-AS4420,10.0.0.0/9"), a);
 
-        a.retainAll(IpResourceSet.parse("AS3300-AS3320"));
+        a = a.intersection(ImmutableResourceSet.parse("AS3300-AS3320"));
         assertEquals("AS3300-AS3315", a.toString());
 
-        a.retainAll(IpResourceSet.parse("AS3300-AS3320, 10.0.0.0/9"));
+        a = a.intersection(ImmutableResourceSet.parse("AS3300-AS3320, 10.0.0.0/9"));
         assertEquals("AS3300-AS3315", a.toString());
 
-        a.retainAll(empty);
+        a = a.intersection(empty);
         assertTrue(a.isEmpty());
         assertEquals("", a.toString());
     }
 
     @Test
     public void shouldNormalizeRetainedResources() {
-        // Without normalization on retainAll the single IP resource was retained as the range AS64513-AS64513.
-        IpResourceSet subject = IpResourceSet.parse("AS64513");
-        subject.retainAll(IpResourceSet.ALL_PRIVATE_USE_RESOURCES);
-        assertEquals("AS64513", subject.toString());
+        // Without normalization on difference the single IP resource was retained as the range AS64513-AS64513.
+        ImmutableResourceSet subject = ImmutableResourceSet.parse("AS64513");
+        assertEquals("AS64513", subject.intersection(ALL_PRIVATE_USE_RESOURCES).toString());
     }
 
     @Test
