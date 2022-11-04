@@ -49,9 +49,21 @@ import java.util.stream.StreamSupport;
  */
 public class IpResourceSet implements Iterable<IpResource>, Serializable {
 
-    public static final IpResourceSet IP_PRIVATE_USE_RESOURCES = IpResourceSet.parse("10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7");
-    public static final IpResourceSet ASN_PRIVATE_USE_RESOURCES = IpResourceSet.parse("AS64512-AS65534");
-    public static final IpResourceSet ALL_PRIVATE_USE_RESOURCES = IpResourceSet.parse("AS64512-AS65534,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7");
+    /**
+     * @deprecated it is not safe to use this constant since the {@code IpResourceSet} can be mutated.
+     */
+    @Deprecated
+    public static final IpResourceSet IP_PRIVATE_USE_RESOURCES = new IpResourceSet(ImmutableResourceSet.IP_PRIVATE_USE_RESOURCES);
+    /**
+     * @deprecated it is not safe to use this constant since the {@code IpResourceSet} can be mutated.
+     */
+    @Deprecated
+    public static final IpResourceSet ASN_PRIVATE_USE_RESOURCES = new IpResourceSet(ImmutableResourceSet.ASN_PRIVATE_USE_RESOURCES);
+    /**
+     * @deprecated it is not safe to use this constant since the {@code IpResourceSet} can be mutated.
+     */
+    @Deprecated
+    public static final IpResourceSet ALL_PRIVATE_USE_RESOURCES = new IpResourceSet(ImmutableResourceSet.ALL_PRIVATE_USE_RESOURCES);
 
     private static final long serialVersionUID = 1L;
 
@@ -79,6 +91,13 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
     }
 
     public IpResourceSet(Collection<? extends IpResource> resources) {
+        this();
+        for (IpResource resource : resources) {
+            add(resource);
+        }
+    }
+
+    public IpResourceSet(Iterable<? extends IpResource> resources) {
         this();
         for (IpResource resource : resources) {
             add(resource);
