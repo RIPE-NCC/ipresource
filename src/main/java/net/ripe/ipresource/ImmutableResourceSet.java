@@ -200,7 +200,7 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
         return potentialMatch != null && potentialMatch.getValue().contains(resource);
     }
 
-    public boolean contains(ImmutableResourceSet other) {
+    public boolean contains(Iterable<? extends IpResource> other) {
         for (IpResource resource: other) {
             if (!contains(resource)) {
                 return false;
