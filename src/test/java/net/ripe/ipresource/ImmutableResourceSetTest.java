@@ -58,8 +58,10 @@ public class ImmutableResourceSetTest {
         ImmutableResourceSet.Builder builder = new ImmutableResourceSet.Builder();
         builder.build();
 
-        assertThrows(IllegalStateException.class, () -> builder.add(IpAddress.parse("10.0.0.1")));
-        assertThrows(IllegalStateException.class, () -> builder.remove(IpAddress.parse("10.0.0.1")));
+        IpAddress address = IpAddress.parse("10.0.0.1");
+
+        assertThrows(IllegalStateException.class, () -> builder.add(address));
+        assertThrows(IllegalStateException.class, () -> builder.remove(address));
         assertThrows(IllegalStateException.class, () -> builder.addAll(ALL_PRIVATE_USE_RESOURCES));
         assertThrows(IllegalStateException.class, () -> builder.removeAll(ALL_PRIVATE_USE_RESOURCES));
         assertThrows(IllegalStateException.class, builder::build);
