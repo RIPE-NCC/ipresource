@@ -43,9 +43,6 @@ import java.util.stream.StreamSupport;
  * normalized into single resources.
  */
 public final class ImmutableResourceSet implements Iterable<IpResource>, Serializable {
-    public static final IpResourceRange ALL_AS_RESOURCES = IpResourceRange.parse(String.format("AS%d-AS%d", Asn.ASN_MIN_VALUE, Asn.ASN32_MAX_VALUE));
-    public static final IpRange ALL_IPV4_RESOURCES = IpRange.parse("0.0.0.0/0");
-    public static final IpRange ALL_IPV6_RESOURCES = IpRange.parse("::/0");
 
     public static final ImmutableResourceSet IP_PRIVATE_USE_RESOURCES = ImmutableResourceSet.of(IpResourceSet.IP_PRIVATE_USE_RESOURCES);
     public static final ImmutableResourceSet ASN_PRIVATE_USE_RESOURCES = ImmutableResourceSet.of(IpResourceSet.ASN_PRIVATE_USE_RESOURCES);
@@ -54,7 +51,7 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
     private static final long serialVersionUID = 1L;
 
     private static final ImmutableResourceSet EMPTY = new ImmutableResourceSet();
-    private static final ImmutableResourceSet UNIVERSAL = ImmutableResourceSet.of(ALL_AS_RESOURCES, ALL_IPV4_RESOURCES, ALL_IPV6_RESOURCES);
+    private static final ImmutableResourceSet UNIVERSAL = ImmutableResourceSet.of(IpResource.ALL_AS_RESOURCES, IpResource.ALL_IPV4_RESOURCES, IpResource.ALL_IPV6_RESOURCES);
 
     /*
      * Resources keyed by their end-point. This allows fast lookup to find potentially overlapping resources:

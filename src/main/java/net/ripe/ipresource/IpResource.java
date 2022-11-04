@@ -38,6 +38,10 @@ import java.util.List;
 
 public abstract class IpResource implements Serializable, Comparable<IpResource> {
 
+    public static final IpResourceRange ALL_AS_RESOURCES = IpResourceRange.range(new Asn(Asn.ASN_MIN_VALUE), new Asn(Asn.ASN32_MAX_VALUE));
+    public static final IpRange ALL_IPV4_RESOURCES = IpRange.parse("0.0.0.0/0");
+    public static final IpRange ALL_IPV6_RESOURCES = IpRange.parse("::/0");
+
     private static final long serialVersionUID = 1L;
 
     public abstract IpResourceType getType();
