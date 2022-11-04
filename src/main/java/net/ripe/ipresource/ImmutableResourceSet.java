@@ -284,7 +284,7 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
     }
 
     public static class Builder {
-        private final TreeMap<UniqueIpResource, IpResource> resourcesByEndPoint;
+        private TreeMap<UniqueIpResource, IpResource> resourcesByEndPoint;
 
         public Builder() {
             this.resourcesByEndPoint = new TreeMap<>();
@@ -302,10 +302,16 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
         }
 
         public ImmutableResourceSet build() {
-            return resourcesByEndPoint.isEmpty() ? empty() : new ImmutableResourceSet(resourcesByEndPoint);
+            assertNotAlreadyUsed();
+            try {
+                return resourcesByEndPoint.isEmpty() ? empty() : new ImmutableResourceSet(resourcesByEndPoint);
+            } finally {
+                resourcesByEndPoint = null;
+            }
         }
 
         public Builder addAll(Iterable<? extends IpResource> resources) {
+            assertNotAlreadyUsed();
             for (IpResource ipResource: resources) {
                 add(ipResource);
             }
@@ -313,6 +319,7 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
         }
 
         public Builder removeAll(Iterable<? extends IpResource> resources) {
+            assertNotAlreadyUsed();
             for (IpResource resource: resources) {
                 remove(resource);
             }
@@ -320,6 +327,8 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
         }
 
         public Builder add(IpResource resource) {
+            assertNotAlreadyUsed();
+
             UniqueIpResource start = resource.getStart();
             if (!start.equals(start.getType().getMinimum())) {
                 start = start.predecessor();
@@ -342,6 +351,8 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
         }
 
         public Builder remove(IpResource resource) {
+            assertNotAlreadyUsed();
+
             Entry<UniqueIpResource, IpResource> potentialMatch = resourcesByEndPoint.ceilingEntry(resource.getStart());
             while (potentialMatch != null && potentialMatch.getValue().overlaps(resource)) {
                 resourcesByEndPoint.remove(potentialMatch.getKey());
@@ -354,6 +365,12 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
             }
 
             return this;
+        }
+
+        private void assertNotAlreadyUsed() {
+            if (resourcesByEndPoint == null) {
+                throw new IllegalStateException("builder can only be used once");
+            }
         }
     }
 

@@ -38,11 +38,13 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Stream;
 
+import static net.ripe.ipresource.ImmutableResourceSet.ALL_PRIVATE_USE_RESOURCES;
 import static net.ripe.ipresource.ImmutableResourceSet.empty;
 import static net.ripe.ipresource.ImmutableResourceSet.universal;
 import static net.ripe.ipresource.IpResource.parse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 public class ImmutableResourceSetTest {
@@ -50,6 +52,18 @@ public class ImmutableResourceSetTest {
     public static final int RANDOM_SIZE = 250;
 
     private final Random random = new Random();
+
+    @Test
+    public void builder_can_only_be_used_once() {
+        ImmutableResourceSet.Builder builder = new ImmutableResourceSet.Builder();
+        builder.build();
+
+        assertThrows(IllegalStateException.class, () -> builder.add(IpAddress.parse("10.0.0.1")));
+        assertThrows(IllegalStateException.class, () -> builder.remove(IpAddress.parse("10.0.0.1")));
+        assertThrows(IllegalStateException.class, () -> builder.addAll(ALL_PRIVATE_USE_RESOURCES));
+        assertThrows(IllegalStateException.class, () -> builder.removeAll(ALL_PRIVATE_USE_RESOURCES));
+        assertThrows(IllegalStateException.class, builder::build);
+    }
 
     @Test
     public void containsAllIpv4Resources() {
