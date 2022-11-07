@@ -80,9 +80,12 @@ public class ImmutableResourceSetTest {
 
     @Test
     public void should_have_constants_for_private_use_resources() {
-        assertEquals("AS64512-AS65534", ImmutableResourceSet.ASN_PRIVATE_USE_RESOURCES.toString());
+        assertEquals("AS64512-AS65534, AS4200000000-AS4294967294", ImmutableResourceSet.ASN_PRIVATE_USE_RESOURCES.toString());
         assertEquals("10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, fc00::/7", ImmutableResourceSet.IP_PRIVATE_USE_RESOURCES.toString());
-        assertEquals("AS64512-AS65534, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, fc00::/7", ImmutableResourceSet.ALL_PRIVATE_USE_RESOURCES.toString());
+        assertEquals(
+            "AS64512-AS65534, AS4200000000-AS4294967294, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, fc00::/7",
+            ImmutableResourceSet.ALL_PRIVATE_USE_RESOURCES.toString()
+        );
     }
 
     @Test
