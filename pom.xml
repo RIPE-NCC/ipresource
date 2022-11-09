@@ -137,6 +137,7 @@
                     <strictCheck>true</strictCheck>
                     <header>LICENSE.txt</header>
                     <excludes>
+                        <exclude>.idea/**</exclude>
                         <exclude>.m2/**</exclude>
                         <exclude>**/*.txt</exclude>
                         <exclude>.gitignore</exclude>
