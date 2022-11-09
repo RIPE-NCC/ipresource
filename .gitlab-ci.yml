@@ -45,7 +45,7 @@ test:verify:
     - mvn $MAVEN_CLI_OPTS verify -Dbuild.number=${BUILD_NUMBER}
   artifacts:
     paths:
-      - target/rpki-commons-${BUILD_NUMBER}.jar
+      - target/ipresource-${BUILD_NUMBER}.jar
 
 .gpg_setup: &gpg_setup
   before_script:
@@ -85,7 +85,7 @@ release:deploy:
       fi
     - if [[ "$CI_COMMIT_TAG" =~ ^ipresource-.* ]]; then echo "Correct tag"; else exit 1; fi
     # Update version in pom.xml to match the tag
-    - mvn versions:set -DnewVersion=$(echo $CI_COMMIT_TAG | sed -e 's/rpki-commons-//')
+    - mvn versions:set -DnewVersion=$(echo $CI_COMMIT_TAG | sed -e 's/ipresource-//')
     # Use the release profile from pom.xml to deploy
     - mvn $MAVEN_CLI_OPTS deploy -s ci_settings.xml -P default,release
   only:
