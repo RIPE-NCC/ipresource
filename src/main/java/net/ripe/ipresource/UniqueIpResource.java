@@ -74,12 +74,17 @@ public abstract class UniqueIpResource extends IpResource {
     @Override
     protected int doCompareTo(IpResource obj) {
         if (obj instanceof UniqueIpResource) {
-            throw new IllegalStateException("should be overriden by subclass");
+            throw new IllegalStateException("should be overridden by subclass");
         } else if (obj instanceof IpResourceRange) {
             return upTo(this).compareTo(obj);
         } else {
             throw new IllegalArgumentException("not a valid resource type: " + obj);
         }
+    }
+
+    @Override
+    public boolean isUnique() {
+        return true;
     }
 
     @Override
