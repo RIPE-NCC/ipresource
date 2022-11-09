@@ -140,7 +140,8 @@
                         <exclude>**/*.txt</exclude>
                         <exclude>.gitignore</exclude>
                         <exclude>.idea/**/*.*</exclude>
-                        <exclude>.github/**/*</exclude>
+                        <exclude>.gitlab-ci.yml</exclude>
+                        <exclude>ci_settings.xml</exclude>
                     </excludes>
                 </configuration>
                 <executions>
