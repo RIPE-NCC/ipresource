@@ -129,6 +129,10 @@ public class IpResourceSetTest {
         assertFalse(a.contains(IpResourceSet.parse("127.0.0.1")));
         assertFalse(a.contains(IpResourceSet.parse("192.168.0.0-192.172.255.255")));
         assertFalse(a.contains(IpResourceSet.parse("10.0.0.1,192.168.0.0-192.172.255.255")));
+
+        a.addAll(ImmutableResourceSet.ASN_PRIVATE_USE_RESOURCES);
+        assertTrue(a.contains(ImmutableResourceSet.ASN_PRIVATE_USE_RESOURCES));
+        assertFalse(a.contains(ImmutableResourceSet.ALL_PRIVATE_USE_RESOURCES));
     }
 
     @Test

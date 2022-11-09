@@ -111,8 +111,8 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
         }
     }
 
-    public void addAll(IpResourceSet ipResourceSet) {
-        for (IpResource ipResource: ipResourceSet.resourcesByEndPoint.values()) {
+    public void addAll(Iterable<? extends IpResource> resources) {
+        for (IpResource ipResource: resources) {
             add(ipResource);
         }
     }
@@ -148,7 +148,7 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
         return potentialMatch != null && potentialMatch.getValue().contains(resource);
     }
 
-    public boolean contains(IpResourceSet other) {
+    public boolean contains(Iterable<? extends IpResource> other) {
         for (IpResource resource: other) {
             if (!contains(resource)) {
                 return false;
@@ -211,7 +211,7 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
         return removed;
     }
 
-    public void removeAll(IpResourceSet other) {
+    public void removeAll(Iterable<? extends IpResource> other) {
         for (IpResource resource: other) {
             remove(resource);
         }
