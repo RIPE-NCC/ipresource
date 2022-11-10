@@ -249,7 +249,7 @@ public class ImmutableResourceSetTest {
             ImmutableResourceSet b = randomSet(i);
 
             assertTrue(a.isEmpty() || b.isEmpty() || (a.union(b).intersects(a) && a.union(b).intersects(b)));
-            assertTrue(a.intersection(b).isEmpty() != a.intersects(b));
+            assertNotEquals(a.intersection(b).isEmpty(), a.intersects(b));
         }
     }
 
