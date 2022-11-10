@@ -65,6 +65,9 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
     }
 
     private ImmutableResourceSet(TreeMap<UniqueIpResource, IpResource> resourcesByEndPoint) {
+        if (resourcesByEndPoint.isEmpty()) {
+            throw new IllegalArgumentException("empty resource set must use ImmutableResourceSet.empty()");
+        }
         this.resourcesByEndPoint = resourcesByEndPoint;
     }
 
@@ -166,7 +169,7 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
                     thatResource = thatIterator.hasNext() ? thatIterator.next() : null;
                 }
             }
-            return new ImmutableResourceSet(temp);
+            return temp.isEmpty() ? ImmutableResourceSet.empty() : new ImmutableResourceSet(temp);
         }
     }
 
