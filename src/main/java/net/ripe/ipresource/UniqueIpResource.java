@@ -67,9 +67,7 @@ public abstract class UniqueIpResource extends IpResource {
         return compareTo(other) >= 0 ? this : other;
     }
 
-    protected boolean adjacent(UniqueIpResource other) {
-        return getType() == other.getType() && getValue().subtract(other.getValue()).abs().equals(BigInteger.ONE);
-    }
+    protected abstract boolean adjacent(UniqueIpResource other);
 
     @Override
     protected int doCompareTo(IpResource obj) {

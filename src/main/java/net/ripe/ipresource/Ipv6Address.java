@@ -81,6 +81,11 @@ public class Ipv6Address extends IpAddress {
     }
 
     @Override
+    protected boolean adjacent(UniqueIpResource other) {
+        return other instanceof Ipv6Address && getValue().subtract(other.getValue()).abs().equals(BigInteger.ONE);
+    }
+
+    @Override
     public int getCommonPrefixLength(UniqueIpResource other) {
         Validate.isTrue(getType() == other.getType(), "incompatible resource types");
         BigInteger temp = this.getValue().xor(other.getValue());

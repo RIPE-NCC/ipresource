@@ -163,6 +163,11 @@ public class Ipv4Address extends IpAddress {
     }
 
     @Override
+    protected boolean adjacent(UniqueIpResource other) {
+        return other instanceof Ipv4Address && Math.abs(longValue() - ((Ipv4Address) other).longValue()) == 1;
+    }
+
+    @Override
     public int getCommonPrefixLength(UniqueIpResource other) {
         Validate.isTrue(getType() == other.getType(), "incompatible resource types");
         long temp = value() ^ ((Ipv4Address) other).value();
