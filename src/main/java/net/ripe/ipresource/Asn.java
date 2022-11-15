@@ -148,6 +148,11 @@ public class Asn extends UniqueIpResource {
         return BigInteger.valueOf(longValue());
     }
 
+    @Override
+    protected boolean adjacent(UniqueIpResource other) {
+        return other instanceof Asn && Math.abs(longValue() - ((Asn) other).longValue()) == 1;
+    }
+
     private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
         ObjectInputStream.GetField gf = in.readFields();
         if (!gf.defaulted("intValue")) {

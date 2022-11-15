@@ -84,7 +84,6 @@ public class IpResourceSetTest {
         subject.add(parse("10.0.0.0/9"));
 
         assertEquals("10.0.0.0/8", subject.toString());
-
     }
 
     @Test
@@ -109,6 +108,17 @@ public class IpResourceSetTest {
         subject.add(parse("AS3-AS8"));
 
         assertEquals("AS3-AS13", subject.toString());
+    }
+
+    @Test
+    public void should_test_for_adjacency() {
+        assertTrue(parse("AS1-AS10").adjacent(parse("AS11")));
+        assertTrue(parse("AS11").adjacent(parse("AS1-AS10")));
+        assertFalse(parse("127.0.0.1").adjacent(parse("AS1-AS10")));
+        assertFalse(parse("10.0.0.0/9").adjacent(parse("11.0.0.0/9")));
+        assertFalse(parse("11.0.0.0/9").adjacent(parse("10.0.0.0/9")));
+        assertFalse(parse("10.0.0.0/8").adjacent(parse("10.0.0.0/9")));
+        assertFalse(parse("10.0.0.0/9").adjacent(parse("10.0.0.0/8")));
     }
 
     @Test

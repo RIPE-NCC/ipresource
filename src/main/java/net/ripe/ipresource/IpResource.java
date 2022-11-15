@@ -61,28 +61,41 @@ public abstract class IpResource implements Serializable, Comparable<IpResource>
         if (getType() != other.getType()) {
             return false;
         }
-        return getStart().compareTo(other.getStart()) <= 0 && getEnd().compareTo(other.getEnd()) >= 0;
+        return getStart().doCompareTo(other.getStart()) <= 0 && getEnd().doCompareTo(other.getEnd()) >= 0;
     }
 
     public boolean overlaps(IpResource other) {
         if (getType() != other.getType()) {
             return false;
         }
-        return getStart().compareTo(other.getEnd()) <= 0 && getEnd().compareTo(other.getStart()) >= 0;
+        return getStart().doCompareTo(other.getEnd()) <= 0 && getEnd().doCompareTo(other.getStart()) >= 0;
     }
 
     public boolean adjacent(IpResource other) {
         if (getType() != other.getType()) {
             return false;
         }
-        if (overlaps(other)) {
+        if (getStart().doCompareTo(other.getEnd()) > 0) {
+            return getStart().adjacent(other.getEnd());
+        } else if (other.getStart().doCompareTo(getEnd()) > 0) {
+            return other.getStart().adjacent(getEnd());
+        } else {
             return false;
         }
-        return getEnd().adjacent(other.getStart()) || getStart().adjacent(other.getEnd());
     }
 
+    /**
+     * Two resources are mergeable when they overlap or are adjacent.
+     */
     public boolean isMergeable(IpResource other) {
-        return this.overlaps(other) || this.adjacent(other);
+        if (getType() != other.getType()) {
+            return false;
+        }
+        if (getStart().doCompareTo(other.getEnd()) <= 0) {
+            return getEnd().doCompareTo(other.getStart()) >= 0 || getEnd().adjacent(other.getStart());
+        } else {
+            return getStart().adjacent(other.getEnd());
+        }
     }
 
     public IpResource merge(IpResource other) {
