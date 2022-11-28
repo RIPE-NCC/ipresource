@@ -133,6 +133,9 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
         return new Builder(this).remove(value).build();
     }
 
+    /**
+     * @return $this \cup that$
+     */
     public ImmutableResourceSet union(ImmutableResourceSet that) {
         if (this.isEmpty()) {
             return that;
@@ -145,6 +148,9 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
         }
     }
 
+    /**
+     * @return $this \cap that$
+     */
     public ImmutableResourceSet intersection(ImmutableResourceSet that) {
         if (this.isEmpty()) {
             return this;
@@ -173,7 +179,15 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
         }
     }
 
+    @Deprecated
     public ImmutableResourceSet difference(ImmutableResourceSet that) {
+        return this.minus(that);
+    }
+
+    /**
+     * @return $this \setminus that$
+     */
+    public ImmutableResourceSet minus(ImmutableResourceSet that) {
         if (!this.intersects(that)) {
             return this;
         } else {
