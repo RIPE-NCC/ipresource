@@ -207,6 +207,14 @@ public class ImmutableResourceSetTest {
     }
 
     @Test
+    public void test_symmetricDifference() {
+        ImmutableResourceSet a = ImmutableResourceSet.parse("AS64512-AS64513");
+        ImmutableResourceSet b = ImmutableResourceSet.parse("AS64513-AS64514");
+        ImmutableResourceSet symDiff = a.symmetricDifference(b);
+        assertEquals(ImmutableResourceSet.parse("AS64512, AS64514"), symDiff);
+    }
+
+    @Test
     public void test_intersection() {
         ImmutableResourceSet empty = ImmutableResourceSet.parse("");
         assertEquals("", empty.intersection(ImmutableResourceSet.parse("AS1-AS10,AS3300-AS4420,10.0.0.0/9")).toString());

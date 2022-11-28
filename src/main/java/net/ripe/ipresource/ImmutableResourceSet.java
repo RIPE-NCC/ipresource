@@ -195,6 +195,14 @@ public final class ImmutableResourceSet implements Iterable<IpResource>, Seriali
         }
     }
 
+    /**
+     * @return $this \Delta that$
+     */
+    public ImmutableResourceSet symmetricDifference(ImmutableResourceSet that) {
+        // $this \Delta that = (this \setminus that) \cup (that \setminus this)$
+        return (this.minus(that)).union((that.minus(this)));
+    }
+
     public ImmutableResourceSet complement() {
         return universal().difference(this);
     }
