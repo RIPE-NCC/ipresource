@@ -7,8 +7,8 @@ on:
 
 jobs:
   build:
+    if: github.repository == 'RIPE-NCC/ipresource'
     runs-on: ubuntu-latest
-
     steps:
       - name: Prepare environment
         run: |             
