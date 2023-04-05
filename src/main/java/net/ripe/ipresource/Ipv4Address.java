@@ -85,10 +85,10 @@ public class Ipv4Address extends IpAddress {
             if (Character.isDigit(ch)) {
                 octet = octet * 10 + (ch - '0');
             } else if (ch == '.') {
+                octetCount++;
                 if (octetCount > 4) {
                     throw new IllegalArgumentException("invalid IPv4 address: " + s);
                 }
-                octetCount++;
 
                 value = addOctet(value, octet);
 
