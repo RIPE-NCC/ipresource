@@ -67,6 +67,16 @@ public class Ipv4AddressTest {
         Ipv4Address.parse("13.-40.0.0");
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldFailOnTooManyOctets() {
+        Ipv4Address.parse("192.0.2.0.0");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldFailOnTooManyOctetsAndEnabledDefaultMissingOctets() {
+        Ipv4Address.parse("192.0.2.0.0", true);
+    }
+
     @Test
     public void shouldCalculateCommonPrefix() {
         assertEquals(Ipv4Address.parse("127.0.0.0"), Ipv4Address.parse("127.0.0.1").getCommonPrefix(Ipv4Address.parse("127.15.0.0")));
