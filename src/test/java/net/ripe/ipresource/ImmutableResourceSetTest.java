@@ -200,6 +200,21 @@ public class ImmutableResourceSetTest {
     }
 
     @Test
+    public void test_minus() {
+        ImmutableResourceSet a = ImmutableResourceSet.parse("AS3333-AS4444,10.0.0.0/8");
+        ImmutableResourceSet difference = a.minus(ImmutableResourceSet.parse("10.5.0.0/16, AS3335"));
+        assertEquals(ImmutableResourceSet.parse("AS3333-AS3334, AS3336-AS4444, 10.0.0.0-10.4.255.255, 10.6.0.0-10.255.255.255"), difference);
+    }
+
+    @Test
+    public void test_symmetricDifference() {
+        ImmutableResourceSet a = ImmutableResourceSet.parse("AS64512-AS64513");
+        ImmutableResourceSet b = ImmutableResourceSet.parse("AS64513-AS64514");
+        ImmutableResourceSet symDiff = a.symmetricDifference(b);
+        assertEquals(ImmutableResourceSet.parse("AS64512, AS64514"), symDiff);
+    }
+
+    @Test
     public void test_intersection() {
         ImmutableResourceSet empty = ImmutableResourceSet.parse("");
         assertEquals("", empty.intersection(ImmutableResourceSet.parse("AS1-AS10,AS3300-AS4420,10.0.0.0/9")).toString());
@@ -335,9 +350,9 @@ public class ImmutableResourceSetTest {
             ImmutableResourceSet b = randomSet(i);
             ImmutableResourceSet c = randomSet(i);
 
-            assertEquals(c.difference(a.intersection(b)), (c.difference(a)).union(c.difference(b)));
-            assertEquals(c.difference(a.union(b)), (c.difference(a)).intersection(c.difference(b)));
-            assertEquals(c.difference(b.difference(a)), (a.intersection(c)).union(c.difference(b)));
+            assertEquals(c.minus(a.intersection(b)), (c.minus(a)).union(c.minus(b)));
+            assertEquals(c.minus(a.union(b)), (c.minus(a)).intersection(c.minus(b)));
+            assertEquals(c.minus(b.minus(a)), (a.intersection(c)).union(c.minus(b)));
         }
 
     }
