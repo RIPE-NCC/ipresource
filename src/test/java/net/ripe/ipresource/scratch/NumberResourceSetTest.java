@@ -27,35 +27,37 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package net.ripe.ipresource;
 
+package net.ripe.ipresource.scratch;
+
+
+import net.ripe.ipresource.IpResourceType;
 import org.junit.Test;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Random;
 import java.util.stream.Stream;
 
-import static net.ripe.ipresource.ImmutableResourceSet.ALL_PRIVATE_USE_RESOURCES;
-import static net.ripe.ipresource.ImmutableResourceSet.empty;
-import static net.ripe.ipresource.ImmutableResourceSet.universal;
-import static net.ripe.ipresource.IpResource.parse;
+import static net.ripe.ipresource.scratch.NumberResourceRange.mergeable;
+import static net.ripe.ipresource.scratch.NumberResourceRange.parse;
+import static net.ripe.ipresource.scratch.NumberResourceSet.ALL_PRIVATE_USE_RESOURCES;
+import static net.ripe.ipresource.scratch.NumberResourceSet.empty;
+import static net.ripe.ipresource.scratch.NumberResourceSet.universal;
 import static org.junit.Assert.*;
 
-public class ImmutableResourceSetTest {
+public class NumberResourceSetTest {
 
     public static final int RANDOM_SIZE = 250;
 
-    private final Random random = new Random();
+    private final Random random = new Random(123);
 
     @Test
     public void builder_can_only_be_used_once() {
-        ImmutableResourceSet.Builder builder = new ImmutableResourceSet.Builder();
+        NumberResourceSet.Builder builder = new NumberResourceSet.Builder();
         builder.build();
 
-        IpAddress address = IpAddress.parse("10.0.0.1");
+        NumberResourceRange address = parse("10.0.0.1/32");
 
         assertThrows(IllegalStateException.class, () -> builder.add(address));
         assertThrows(IllegalStateException.class, () -> builder.remove(address));
@@ -65,39 +67,32 @@ public class ImmutableResourceSetTest {
     }
 
     @Test
-    public void should_copy_from_IpResourceSet() {
-        assertSame(ImmutableResourceSet.empty(), ImmutableResourceSet.of(IpResourceSet.parse("")));
-        assertEquals("10.0.0.0/8", ImmutableResourceSet.of(IpResourceSet.parse("10.0.0.0/8")).toString());
-        assertEquals("10.0.0.0/8", ImmutableResourceSet.of((Iterable<IpResource>) IpResourceSet.parse("10.0.0.0/8")).toString());
-    }
-
-    @Test
     public void should_share_from_ImmutableResourceSet() {
-        assertSame(ImmutableResourceSet.empty(), ImmutableResourceSet.of(ImmutableResourceSet.parse("")));
-        ImmutableResourceSet resources = ImmutableResourceSet.parse("10.0.0.0/8");
-        assertSame(resources, ImmutableResourceSet.of(resources));
+        assertSame(NumberResourceSet.empty(), NumberResourceSet.of(NumberResourceSet.parse("")));
+        NumberResourceSet resources = NumberResourceSet.parse("10.0.0.0/8");
+        assertSame(resources, NumberResourceSet.of(resources));
     }
 
     @Test
     public void should_have_constants_for_private_use_resources() {
-        assertEquals("AS64512-AS65534, AS4200000000-AS4294967294", ImmutableResourceSet.ASN_PRIVATE_USE_RESOURCES.toString());
-        assertEquals("10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, fc00::/7", ImmutableResourceSet.IP_PRIVATE_USE_RESOURCES.toString());
+        assertEquals("AS64512-AS65534, AS4200000000-AS4294967294", NumberResourceSet.ASN_PRIVATE_USE_RESOURCES.toString());
+        assertEquals("10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, fc00::/7", NumberResourceSet.IP_PRIVATE_USE_RESOURCES.toString());
         assertEquals(
             "AS64512-AS65534, AS4200000000-AS4294967294, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, fc00::/7",
-            ImmutableResourceSet.ALL_PRIVATE_USE_RESOURCES.toString()
+            NumberResourceSet.ALL_PRIVATE_USE_RESOURCES.toString()
         );
     }
 
     @Test
     public void containsAllIpv4Resources() {
-        ImmutableResourceSet resources = ImmutableResourceSet.of(parse("0.0.0.0/0"));
+        NumberResourceSet resources = NumberResourceSet.of(parse("0.0.0.0/0"));
         assertEquals("0.0.0.0/0", resources.toString());
     }
 
     @Test
     public void shouldNormalizeAccordingToRfc3779() {
-        ImmutableResourceSet resources = ImmutableResourceSet.of(
-            parse("127.0.0.1"),
+        NumberResourceSet resources = NumberResourceSet.of(
+            parse("127.0.0.1/32"),
             parse("10.0.0.0/8"),
             parse("255.255.255.255-255.255.255.255"),
             parse("193.0.0.0/8"),
@@ -111,13 +106,13 @@ public class ImmutableResourceSetTest {
 
     @Test
     public void shouldNormalizeSingletonRangeToUniqueIpResource() {
-        ImmutableResourceSet resources = ImmutableResourceSet.parse("127.0.0.1-127.0.0.1");
+        NumberResourceSet resources = NumberResourceSet.parse("127.0.0.1-127.0.0.1");
         assertEquals("127.0.0.1", resources.toString());
     }
 
     @Test
     public void shouldMergeAdjacentResources_lowerPartFirst() {
-        ImmutableResourceSet subject = empty()
+        NumberResourceSet subject = empty()
             .add(parse("10.0.0.0/9"))
             .add(parse("10.128.0.0/9"));
 
@@ -126,7 +121,7 @@ public class ImmutableResourceSetTest {
 
     @Test
     public void shouldMergeAdjacentResources_higherPartFirst() {
-        ImmutableResourceSet subject = empty()
+        NumberResourceSet subject = empty()
             .add(parse("10.128.0.0/9"))
             .add(parse("10.0.0.0/9"));
 
@@ -136,7 +131,7 @@ public class ImmutableResourceSetTest {
 
     @Test
     public void shouldCheckForType() {
-        ImmutableResourceSet subject = ImmutableResourceSet.of(parse("AS13"));
+        NumberResourceSet subject = NumberResourceSet.of(parse("AS13"));
         assertTrue(subject.containsType(IpResourceType.ASN));
         assertFalse(subject.containsType(IpResourceType.IPv4));
         assertFalse(subject.containsType(IpResourceType.IPv6));
@@ -144,17 +139,17 @@ public class ImmutableResourceSetTest {
 
     @Test
     public void shouldNormalizeUniqueResources() {
-        ImmutableResourceSet subject = ImmutableResourceSet.of(parse("AS1-AS10"));
-        assertEquals(IpResourceRange.class, subject.iterator().next().getClass());
+        NumberResourceSet subject = NumberResourceSet.of(parse("AS1-AS10"));
+        assertEquals(AsnRange.class, subject.iterator().next().getClass());
 
         subject = subject.remove(parse("AS2-AS10"));
-        assertEquals(Asn.class, subject.iterator().next().getClass());
+        assertEquals(AsnRange.class, subject.iterator().next().getClass());
         assertEquals("AS1", subject.toString());
     }
 
     @Test
     public void shouldMergeOverlappingResources() {
-        ImmutableResourceSet subject = empty()
+        NumberResourceSet subject = empty()
             .add(parse("AS5-AS13"))
             .add(parse("AS3-AS8"));
 
@@ -163,30 +158,30 @@ public class ImmutableResourceSetTest {
 
     @Test
     public void parseShouldIgnoreWhitespace() {
-        assertEquals(ImmutableResourceSet.parse("127.0.0.1,AS3333"), ImmutableResourceSet.parse("\t   \n127.0.0.1,   AS3333"));
+        assertEquals(NumberResourceSet.parse("127.0.0.1,AS3333"), NumberResourceSet.parse("\t   \n127.0.0.1,   AS3333"));
     }
 
     @Test
     public void testContains() {
-        ImmutableResourceSet a = ImmutableResourceSet.parse("10.0.0.0/8,192.168.0.0/16");
+        NumberResourceSet a = NumberResourceSet.parse("10.0.0.0/8,192.168.0.0/16");
         assertTrue(a.contains(a));
         assertTrue(a.contains(empty()));
         assertTrue(empty().contains(empty()));
-        assertFalse(empty().contains(ImmutableResourceSet.parse("10.0.0.0/24")));
+        assertFalse(empty().contains(NumberResourceSet.parse("10.0.0.0/24")));
 
-        assertTrue(a.contains(ImmutableResourceSet.parse("10.0.0.0/24")));
-        assertTrue(a.contains(ImmutableResourceSet.parse("192.168.1.131")));
-        assertFalse(a.contains(ImmutableResourceSet.parse("127.0.0.1")));
-        assertFalse(a.contains(ImmutableResourceSet.parse("192.168.0.0-192.172.255.255")));
-        assertFalse(a.contains(ImmutableResourceSet.parse("10.0.0.1,192.168.0.0-192.172.255.255")));
+        assertTrue(a.contains(NumberResourceSet.parse("10.0.0.0/24")));
+        assertTrue(a.contains(NumberResourceSet.parse("192.168.1.131/32")));
+        assertFalse(a.contains(NumberResourceSet.parse("127.0.0.1/32")));
+        assertFalse(a.contains(NumberResourceSet.parse("192.168.0.0-192.172.255.255")));
+        assertFalse(a.contains(NumberResourceSet.parse("10.0.0.1/32,192.168.0.0-192.172.255.255")));
     }
 
     @Test
     public void testRemove() {
-        ImmutableResourceSet a = ImmutableResourceSet.parse("AS3333-AS4444,10.0.0.0/8").remove(IpResource.parse("10.5.0.0/16"));
-        assertEquals(ImmutableResourceSet.parse("AS3333-AS4444, 10.0.0.0-10.4.255.255, 10.6.0.0-10.255.255.255"), a);
+        NumberResourceSet a = NumberResourceSet.parse("AS3333-AS4444,10.0.0.0/8").remove(parse("10.5.0.0/16"));
+        assertEquals(NumberResourceSet.parse("AS3333-AS4444, 10.0.0.0-10.4.255.255, 10.6.0.0-10.255.255.255"), a);
 
-        assertTrue(a.contains(IpResource.parse("AS3333-AS4444")));
+        assertTrue(a.contains(parse("AS3333-AS4444")));
 
         a = a.remove(parse("2000::/16"));
         assertEquals("AS3333-AS4444, 10.0.0.0-10.4.255.255, 10.6.0.0-10.255.255.255", a.toString());
@@ -194,24 +189,24 @@ public class ImmutableResourceSetTest {
 
     @Test
     public void test_difference() {
-        ImmutableResourceSet a = ImmutableResourceSet.parse("AS3333-AS4444,10.0.0.0/8");
-        ImmutableResourceSet difference = a.difference(ImmutableResourceSet.parse("10.5.0.0/16, AS3335"));
-        assertEquals(ImmutableResourceSet.parse("AS3333-AS3334, AS3336-AS4444, 10.0.0.0-10.4.255.255, 10.6.0.0-10.255.255.255"), difference);
+        NumberResourceSet a = NumberResourceSet.parse("AS3333-AS4444,10.0.0.0/8");
+        NumberResourceSet difference = a.difference(NumberResourceSet.parse("10.5.0.0/16, AS3335-AS3335"));
+        assertEquals(NumberResourceSet.parse("AS3333-AS3334, AS3336-AS4444, 10.0.0.0-10.4.255.255, 10.6.0.0-10.255.255.255"), difference);
     }
 
     @Test
     public void test_intersection() {
-        ImmutableResourceSet empty = ImmutableResourceSet.parse("");
-        assertEquals("", empty.intersection(ImmutableResourceSet.parse("AS1-AS10,AS3300-AS4420,10.0.0.0/9")).toString());
+        NumberResourceSet empty = NumberResourceSet.parse("");
+        assertEquals("", empty.intersection(NumberResourceSet.parse("AS1-AS10,AS3300-AS4420,10.0.0.0/9")).toString());
 
-        ImmutableResourceSet a = ImmutableResourceSet.parse("AS8-AS3315,AS3333-AS4444,10.0.0.0/8");
-        a = a.intersection(ImmutableResourceSet.parse("AS1-AS10,AS3300-AS4420,10.0.0.0/9"));
-        assertEquals(ImmutableResourceSet.parse("AS8-AS10,AS3300-AS3315,AS3333-AS4420,10.0.0.0/9"), a);
+        NumberResourceSet a = NumberResourceSet.parse("AS8-AS3315,AS3333-AS4444,10.0.0.0/8");
+        a = a.intersection(NumberResourceSet.parse("AS1-AS10,AS3300-AS4420,10.0.0.0/9"));
+        assertEquals(NumberResourceSet.parse("AS8-AS10,AS3300-AS3315,AS3333-AS4420,10.0.0.0/9"), a);
 
-        a = a.intersection(ImmutableResourceSet.parse("AS3300-AS3320"));
+        a = a.intersection(NumberResourceSet.parse("AS3300-AS3320"));
         assertEquals("AS3300-AS3315", a.toString());
 
-        a = a.intersection(ImmutableResourceSet.parse("AS3300-AS3320, 10.0.0.0/9"));
+        a = a.intersection(NumberResourceSet.parse("AS3300-AS3320, 10.0.0.0/9"));
         assertEquals("AS3300-AS3315", a.toString());
 
         a = a.intersection(empty);
@@ -222,21 +217,21 @@ public class ImmutableResourceSetTest {
     @Test
     public void shouldNormalizeRetainedResources() {
         // Without normalization on difference the single IP resource was retained as the range AS64513-AS64513.
-        ImmutableResourceSet subject = ImmutableResourceSet.parse("AS64513");
+        NumberResourceSet subject = NumberResourceSet.parse("AS64513");
         assertEquals("AS64513", subject.intersection(ALL_PRIVATE_USE_RESOURCES).toString());
     }
 
     @Test
     public void test_removal_of_multiple_overlapping_resources() {
-        ImmutableResourceSet subject = ImmutableResourceSet.parse("AS1-AS3, AS5-AS10, AS13-AS15")
-            .remove(IpResource.parse("AS1-AS10"));
+        NumberResourceSet subject = NumberResourceSet.parse("AS1-AS3, AS5-AS10, AS13-AS15")
+            .remove(parse("AS1-AS10"));
         assertEquals("AS13-AS15", subject.toString());
     }
 
     @Test
     public void test_intersects() {
         for (int i = 0; i < RANDOM_SIZE; ++i) {
-            ImmutableResourceSet a = randomSet(i);
+            NumberResourceSet a = randomSet(i);
 
             assertFalse(a.intersects(empty()));
             assertFalse(a.intersects(a.complement()));
@@ -245,8 +240,8 @@ public class ImmutableResourceSetTest {
         }
 
         for (int i = 0; i < RANDOM_SIZE; ++i) {
-            ImmutableResourceSet a = randomSet(i);
-            ImmutableResourceSet b = randomSet(i);
+            NumberResourceSet a = randomSet(i);
+            NumberResourceSet b = randomSet(i);
 
             assertTrue(a.isEmpty() || b.isEmpty() || (a.union(b).intersects(a) && a.union(b).intersects(b)));
             assertNotEquals(a.intersection(b).isEmpty(), a.intersects(b));
@@ -256,9 +251,9 @@ public class ImmutableResourceSetTest {
     @Test
     public void union_is_associative() {
         for (int i = 0; i < RANDOM_SIZE; ++i) {
-            ImmutableResourceSet a = randomSet(i);
-            ImmutableResourceSet b = randomSet(i);
-            ImmutableResourceSet c = randomSet(i);
+            NumberResourceSet a = randomSet(i);
+            NumberResourceSet b = randomSet(i);
+            NumberResourceSet c = randomSet(i);
 
             assertEquals(a.union(b).union(c), a.union(b.union(c)));
         }
@@ -267,8 +262,8 @@ public class ImmutableResourceSetTest {
     @Test
     public void union_is_commutative() {
         for (int i = 0; i < RANDOM_SIZE; ++i) {
-            ImmutableResourceSet a = randomSet(i);
-            ImmutableResourceSet b = randomSet(i);
+            NumberResourceSet a = randomSet(i);
+            NumberResourceSet b = randomSet(i);
 
             assertEquals(a.union(b), b.union(a));
         }
@@ -277,9 +272,9 @@ public class ImmutableResourceSetTest {
     @Test
     public void intersection_is_associative() {
         for (int i = 0; i < RANDOM_SIZE; ++i) {
-            ImmutableResourceSet a = randomSet(i);
-            ImmutableResourceSet b = randomSet(i);
-            ImmutableResourceSet c = randomSet(i);
+            NumberResourceSet a = randomSet(i);
+            NumberResourceSet b = randomSet(i);
+            NumberResourceSet c = randomSet(i);
 
             assertEquals(a.intersection(b).intersection(c), a.intersection(b.intersection(c)));
         }
@@ -288,8 +283,8 @@ public class ImmutableResourceSetTest {
     @Test
     public void intersection_is_commutative() {
         for (int i = 0; i < RANDOM_SIZE; ++i) {
-            ImmutableResourceSet a = randomSet(i);
-            ImmutableResourceSet b = randomSet(i);
+            NumberResourceSet a = randomSet(i);
+            NumberResourceSet b = randomSet(i);
 
             assertEquals(a.intersection(b), b.intersection(a));
         }
@@ -298,9 +293,9 @@ public class ImmutableResourceSetTest {
     @Test
     public void union_and_intersection_are_distributive() {
         for (int i = 0; i < RANDOM_SIZE; ++i) {
-            ImmutableResourceSet a = randomSet(i);
-            ImmutableResourceSet b = randomSet(i);
-            ImmutableResourceSet c = randomSet(i);
+            NumberResourceSet a = randomSet(i);
+            NumberResourceSet b = randomSet(i);
+            NumberResourceSet c = randomSet(i);
 
             assertEquals(a.union(b.intersection(c)), (a.union(b)).intersection(a.union(c)));
             assertEquals(a.intersection(b.union(c)), (a.intersection(b)).union(a.intersection(c)));
@@ -310,7 +305,7 @@ public class ImmutableResourceSetTest {
     @Test
     public void identity_laws() {
         for (int i = 0; i < RANDOM_SIZE; ++i) {
-            ImmutableResourceSet a = randomSet(i);
+            NumberResourceSet a = randomSet(i);
 
             assertEquals(a, a.union(empty()));
             assertEquals(a, a.intersection(universal()));
@@ -320,7 +315,7 @@ public class ImmutableResourceSetTest {
     @Test
     public void complement_laws() {
         for (int i = 0; i < RANDOM_SIZE; ++i) {
-            ImmutableResourceSet a = randomSet(i);
+            NumberResourceSet a = randomSet(i);
 
             assertEquals(universal(), a.union(a.complement()));
             assertEquals(empty(), a.intersection(a.complement()));
@@ -331,9 +326,9 @@ public class ImmutableResourceSetTest {
     @Test
     public void difference_laws() {
         for (int i = 0; i < RANDOM_SIZE; ++i) {
-            ImmutableResourceSet a = randomSet(i);
-            ImmutableResourceSet b = randomSet(i);
-            ImmutableResourceSet c = randomSet(i);
+            NumberResourceSet a = randomSet(i);
+            NumberResourceSet b = randomSet(i);
+            NumberResourceSet c = randomSet(i);
 
             assertEquals(c.difference(a.intersection(b)), (c.difference(a)).union(c.difference(b)));
             assertEquals(c.difference(a.union(b)), (c.difference(a)).intersection(c.difference(b)));
@@ -344,60 +339,71 @@ public class ImmutableResourceSetTest {
 
     @Test
     public void randomized_testing() {
-        ImmutableResourceSet subject = empty();
-        List<IpResourceRange> ranges = new ArrayList<>();
+        NumberResourceSet subject = empty();
+        var ranges = new ArrayList<NumberResourceRange>();
         Random random = new Random();
         for (int i = 0; i < RANDOM_SIZE; ++i) {
-            BigInteger start = BigInteger.valueOf(random.nextInt(Integer.MAX_VALUE - Integer.MAX_VALUE / 256 - 1));
-            BigInteger end = start.add(BigInteger.valueOf(random.nextInt(Integer.MAX_VALUE / 256))).add(BigInteger.ONE);
-            IpResourceRange range = IpResourceRange.range(new Asn(start), new Asn(end));
+            var start = Integer.toUnsignedLong(random.nextInt(Integer.MAX_VALUE - Integer.MAX_VALUE / 256 - 1));
+            var end = start + Integer.toUnsignedLong(random.nextInt(Integer.MAX_VALUE / 256)) + 1;
+            var range = AsnRange.range(Asn.of(start), Asn.of(end));
             ranges.add(range);
             subject = subject.add(range);
         }
 
-        for (IpResourceRange range: ranges) {
+        for (var range: ranges) {
             assertTrue(range + " contained in set", subject.contains(range));
         }
 
-        Iterator<IpResource> iterator = subject.iterator();
-        IpResource previous = iterator.next();
+        var iterator = subject.iterator();
+        var previous = iterator.next();
         while (iterator.hasNext()) {
-            IpResource next = iterator.next();
+            var next = iterator.next();
             assertTrue("resources out of order <" + previous + "> not before <" + next + ">", previous.compareTo(next) < 0);
-            assertFalse("no mergeable resource in set", previous.isMergeable(next));
+            assertFalse("no mergeable resource in set", mergeable(previous, next));
             previous = next;
         }
 
-        for (IpResourceRange range: ranges) {
+        for (var range: ranges) {
             subject = subject.remove(range);
         }
 
         assertTrue("all resources removed: " + subject, subject.isEmpty());
     }
 
-    private ImmutableResourceSet randomSet(int size) {
+    private NumberResourceSet randomSet(int size) {
         return Stream.generate(this::randomResourceRange)
             .limit(random.nextInt(size + 1))
-            .collect(ImmutableResourceSet.collector());
+            .collect(NumberResourceSet.collector());
     }
 
-    private IpResourceRange randomResourceRange() {
+    private NumberResourceRange randomResourceRange() {
         IpResourceType type = IpResourceType.values()[random.nextInt(IpResourceType.values().length)];
         return switch (type) {
             case ASN -> {
                 var start = Integer.toUnsignedLong(random.nextInt(Integer.MAX_VALUE - Integer.MAX_VALUE / 256 - 1));
                 var end = start + Integer.toUnsignedLong(random.nextInt(Integer.MAX_VALUE / 256)) + 1;
-                yield IpResourceRange.range(new Asn(start), new Asn(end));
+                yield AsnRange.range(Asn.of(start), Asn.of(end));
             }
             case IPv4 -> {
-                var start = Integer.toUnsignedLong(random.nextInt(Integer.MAX_VALUE - Integer.MAX_VALUE / 256 - 1));
-                var end = start + Integer.toUnsignedLong(random.nextInt(Integer.MAX_VALUE / 256)) + 1;
-                yield IpResourceRange.range(new Ipv4Address(start), new Ipv4Address(end));
+                if (random.nextInt(5) == 0) {
+                    var prefix = Integer.toUnsignedLong(random.nextInt(Integer.MAX_VALUE - Integer.MAX_VALUE / 256 - 1));
+                    yield Ipv4Prefix.prefix(prefix, Ipv4Address.NUMBER_OF_BITS - Long.numberOfTrailingZeros(prefix));
+                } else {
+                    var start = Integer.toUnsignedLong(random.nextInt(Integer.MAX_VALUE - Integer.MAX_VALUE / 256 - 1));
+                    var end = start + Integer.toUnsignedLong(random.nextInt(Integer.MAX_VALUE / 256)) + 1;
+                    yield Ipv4Block.of(Ipv4Address.of(start), Ipv4Address.of(end));
+                }
             }
             case IPv6 -> {
-                var start = BigInteger.valueOf(random.nextInt(Integer.MAX_VALUE - Integer.MAX_VALUE / 256 - 1)).multiply(BigInteger.valueOf(random.nextInt(10_000_000)));
-                var end = start.add(BigInteger.valueOf(random.nextInt(Integer.MAX_VALUE / 256)).multiply(BigInteger.valueOf(random.nextInt(10_000_000)))).add(BigInteger.ONE);
-                yield IpResourceRange.range(new Ipv6Address(start), new Ipv6Address(end));
+                if (random.nextInt(5) == 0) {
+                    var prefix = BigInteger.valueOf(random.nextInt(Integer.MAX_VALUE - Integer.MAX_VALUE / 256 - 1)).multiply(BigInteger.valueOf(random.nextInt(10_000_000)));
+                    int numberOfTrailingZeros = Math.max(0, prefix.getLowestSetBit());
+                    yield Ipv6Prefix.prefix(Ipv6Address.of(prefix), Ipv6Address.NUMBER_OF_BITS - numberOfTrailingZeros);
+                } else {
+                    var start = BigInteger.valueOf(random.nextInt(Integer.MAX_VALUE - Integer.MAX_VALUE / 256 - 1)).multiply(BigInteger.valueOf(random.nextInt(10_000_000)));
+                    var end = start.add(BigInteger.valueOf(random.nextInt(Integer.MAX_VALUE / 256)).multiply(BigInteger.valueOf(random.nextInt(10_000_000)))).add(BigInteger.ONE);
+                    yield Ipv6Block.of(Ipv6Address.of(start), Ipv6Address.of(end));
+                }
             }
         };
     }

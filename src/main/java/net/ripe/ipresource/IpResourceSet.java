@@ -286,4 +286,8 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
             }
         }
     }
+
+    public int size() {
+        return resourcesByEndPoint.size();
+    }
 }
