@@ -103,26 +103,28 @@ public sealed abstract class Ipv4Block implements IpBlock permits Ipv4Prefix, Ip
 
     @Override
     public @NotNull List<@NotNull NumberResourceRange> subtract(@Nullable NumberResourceRange other) {
-        if (other == null || other instanceof AsnRange) {
-            return Collections.emptyList();
-        } else if (other instanceof Ipv4Block that) {
-            if (other.contains(this)) {
-                return Collections.emptyList();
-            } else if (overlaps(this, that)) {
-                var result = new ArrayList<@NotNull NumberResourceRange>(2);
-                if (this.lowerBound() < that.lowerBound()) {
-                    result.add(Ipv4Block.of(this.lowerBound(), that.lowerBound() - 1));
+        return switch (other) {
+            case null -> Collections.singletonList(this);
+            case AsnRange ignored -> Collections.singletonList(this);
+            case Ipv6Block ignored -> Collections.singletonList(this);
+            case Ipv4Block that -> {
+                if (other.contains(this)) {
+                    yield Collections.emptyList();
+                } else if (overlaps(this, that)) {
+                    var result = new ArrayList<@NotNull NumberResourceRange>(2);
+                    if (this.lowerBound() < that.lowerBound()) {
+                        result.add(Ipv4Block.of(this.lowerBound(), that.lowerBound() - 1));
+                    }
+                    if (this.upperBound() > that.upperBound()) {
+                        result.add(Ipv4Block.of(that.upperBound() + 1, this.upperBound()));
+                    }
+                    yield result;
+                } else {
+                    yield Collections.singletonList(this);
                 }
-                if (this.upperBound() > that.upperBound()) {
-                    result.add(Ipv4Block.of(that.upperBound() + 1, this.upperBound()));
-                }
-                return result;
-            } else {
-                return Collections.singletonList(this);
             }
-        } else {
-            throw new IllegalArgumentException("unknown type");
-        }
+            default -> throw new IllegalStateException("Unexpected value: " + other);
+        };
     }
 
     abstract long lowerBound();

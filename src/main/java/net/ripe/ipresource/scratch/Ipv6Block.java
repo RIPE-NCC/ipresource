@@ -92,26 +92,28 @@ public sealed abstract class Ipv6Block implements IpBlock permits Ipv6Prefix, Ip
 
     @Override
     public @NotNull List<@NotNull NumberResourceRange> subtract(@Nullable NumberResourceRange other) {
-        if (other == null || other instanceof AsnRange) {
-            return Collections.emptyList();
-        } else if (other instanceof Ipv6Block that) {
-            if (other.contains(this)) {
-                return Collections.emptyList();
-            } else if (overlaps(this, that)) {
-                var result = new ArrayList<@NotNull NumberResourceRange>(2);
-                if (start().compareTo(that.start()) < 0) {
-                    result.add(Ipv6Block.of(start(), that.start().predecessorOrFirst()));
+        return switch (other) {
+            case null -> Collections.singletonList(this);
+            case AsnRange ignored -> Collections.singletonList(this);
+            case Ipv4Block ignored -> Collections.singletonList(this);
+            case Ipv6Block that -> {
+                if (other.contains(this)) {
+                    yield Collections.emptyList();
+                } else if (overlaps(this, that)) {
+                    var result = new ArrayList<@NotNull NumberResourceRange>(2);
+                    if (start().compareTo(that.start()) < 0) {
+                        result.add(Ipv6Block.of(start(), that.start().predecessorOrFirst()));
+                    }
+                    if (end().compareTo(that.end()) > 0) {
+                        result.add(Ipv6Block.of(that.end().successorOrLast(), end()));
+                    }
+                    yield result;
+                } else {
+                    yield Collections.singletonList(this);
                 }
-                if (end().compareTo(that.end()) > 0) {
-                    result.add(Ipv6Block.of(that.end().successorOrLast(), end()));
-                }
-                return result;
-            } else {
-                return Collections.singletonList(this);
             }
-        } else {
-            throw new IllegalArgumentException("unknown type");
-        }
+            default -> throw new IllegalStateException("Unexpected value: " + other);
+        };
     }
 
     public static @Nullable Ipv6Block intersection(@Nullable Ipv6Block a, @Nullable Ipv6Block b) {

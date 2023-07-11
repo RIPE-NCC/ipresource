@@ -127,7 +127,7 @@ public final class AsnRange implements NumberResourceRange {
     @Override
     public @NotNull List<@NotNull NumberResourceRange> subtract(@Nullable NumberResourceRange other) {
         return switch (other) {
-            case null, IpBlock ignored -> Collections.emptyList();
+            case null, IpBlock ignored -> Collections.singletonList(this);
             case AsnRange that -> {
                 if (other.contains(this)) {
                     yield Collections.emptyList();
