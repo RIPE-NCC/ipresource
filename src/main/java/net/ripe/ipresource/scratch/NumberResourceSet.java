@@ -38,9 +38,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static net.ripe.ipresource.scratch.NumberResourceRange.RANGE_END_COMPARATOR;
-import static net.ripe.ipresource.scratch.NumberResourceRange.intersect;
-import static net.ripe.ipresource.scratch.NumberResourceRange.merge;
 import static net.ripe.ipresource.scratch.NumberResourceRange.overlaps;
 
 /**
@@ -62,7 +59,7 @@ public final class NumberResourceSet implements Iterable<NumberResourceRange> {
      *
      * resourcesByEndPoint.ceilingEntry(resourceToLookup.getStart())
      */
-    final TreeMap<NumberResource, NumberResourceRange> resourcesByEndPoint;
+    private final TreeMap<NumberResource, NumberResourceRange> resourcesByEndPoint;
 
     private NumberResourceSet() {
         this.resourcesByEndPoint = new TreeMap<>();
@@ -132,14 +129,16 @@ public final class NumberResourceSet implements Iterable<NumberResourceRange> {
     }
 
     public NumberResourceSet union(NumberResourceSet that) {
-        if (this.isEmpty()) {
+        var left = this.resourcesByEndPoint;
+        var right = that.resourcesByEndPoint;
+        if (left.isEmpty()) {
             return that;
-        } else if (that.isEmpty()) {
+        } else if (right.isEmpty()) {
             return this;
-        } else if (this.resourcesByEndPoint.size() < that.resourcesByEndPoint.size()) {
-            return new Builder(that).addAll(this.resourcesByEndPoint.values()).build();
+        } else if (left.size() < right.size()) {
+            return new Builder(that).addAll(left.values()).build();
         } else {
-            return new Builder(this).addAll(that.resourcesByEndPoint.values()).build();
+            return new Builder(this).addAll(right.values()).build();
         }
     }
 
@@ -149,30 +148,13 @@ public final class NumberResourceSet implements Iterable<NumberResourceRange> {
         } else if (that.isEmpty()) {
             return that;
         } else {
-            var temp = new TreeMap<NumberResource, NumberResourceRange>();
-            Iterator<NumberResourceRange> thisIterator = this.iterator();
-            Iterator<NumberResourceRange> thatIterator = that.iterator();
-            NumberResourceRange thisResource = thisIterator.next();
-            NumberResourceRange thatResource = thatIterator.next();
-            while (thisResource != null && thatResource != null) {
-                NumberResourceRange intersect = intersect(thisResource, thatResource);
-                if (intersect != null) {
-                    temp.put(intersect.end(), intersect);
-                }
-                int compareTo = RANGE_END_COMPARATOR.compare(thisResource, thatResource);
-                if (compareTo <= 0) {
-                    thisResource = thisIterator.hasNext() ? thisIterator.next() : null;
-                }
-                if (compareTo >= 0) {
-                    thatResource = thatIterator.hasNext() ? thatIterator.next() : null;
-                }
-            }
+            var temp = Util.intersection(this.resourcesByEndPoint, that.resourcesByEndPoint);
             return temp.isEmpty() ? NumberResourceSet.empty() : new NumberResourceSet(temp);
         }
     }
 
     public NumberResourceSet difference(NumberResourceSet that) {
-        if (!this.intersects(that)) {
+        if (that.isEmpty()) {
             return this;
         } else {
             return new Builder(this).removeAll(that).build();
@@ -203,8 +185,7 @@ public final class NumberResourceSet implements Iterable<NumberResourceRange> {
     }
 
     public boolean contains(NumberResourceRange resource) {
-        var potentialMatch = resourcesByEndPoint.ceilingEntry(startPredecessor(resource));
-        return potentialMatch != null && potentialMatch.getValue().contains(resource);
+        return Util.contains(resourcesByEndPoint, resource);
     }
 
     public boolean contains(Iterable<? extends NumberResourceRange> other) {
@@ -230,27 +211,8 @@ public final class NumberResourceSet implements Iterable<NumberResourceRange> {
         return potentialMatch != null && overlaps(resource, potentialMatch.getValue());
     }
 
-    public boolean intersects(NumberResourceSet that) {
-        if (this.isEmpty() || that.isEmpty()) {
-            return false;
-        }
-        Iterator<NumberResourceRange> thisIterator = this.iterator();
-        Iterator<NumberResourceRange> thatIterator = that.iterator();
-        NumberResourceRange thisResource = thisIterator.next();
-        NumberResourceRange thatResource = thatIterator.next();
-        while (thisResource != null && thatResource != null) {
-            if (overlaps(thisResource, thatResource)) {
-                return true;
-            }
-            int compareTo = RANGE_END_COMPARATOR.compare(thisResource, thatResource);
-            if (compareTo <= 0) {
-                thisResource = thisIterator.hasNext() ? thisIterator.next() : null;
-            }
-            if (compareTo >= 0) {
-                thatResource = thatIterator.hasNext() ? thatIterator.next() : null;
-            }
-        }
-        return false;
+    public boolean intersects(@NotNull NumberResourceSet that) {
+        return Util.intersects(this.resourcesByEndPoint, that.resourcesByEndPoint);
     }
 
     public static NumberResourceSet parse(String s) {
@@ -311,57 +273,27 @@ public final class NumberResourceSet implements Iterable<NumberResourceRange> {
             }
         }
 
-        public Builder addAll(Iterable<? extends NumberResourceRange> resources) {
-            assertNotAlreadyUsed();
-            for (NumberResourceRange NumberResourceRange: resources) {
-                add(NumberResourceRange);
-            }
-            return this;
-        }
-
-        public Builder removeAll(Iterable<? extends NumberResourceRange> resources) {
-            assertNotAlreadyUsed();
-            for (NumberResourceRange resource: resources) {
-                remove(resource);
-            }
-            return this;
-        }
-
         public Builder add(@NotNull NumberResourceRange resource) {
             assertNotAlreadyUsed();
+            Util.add(resourcesByEndPoint, resource);
+            return this;
+        }
 
-            NumberResource start = startPredecessor(resource);
-
-            Iterator<NumberResourceRange> iterator = resourcesByEndPoint.tailMap(start, true).values().iterator();
-            while (iterator.hasNext()) {
-                NumberResourceRange potentialMatch = iterator.next();
-                var merged = merge(resource, potentialMatch);
-                if (merged == null) {
-                    break;
-                } else {
-                    iterator.remove();
-                    resource = merged;
-                }
-            }
-
-            resourcesByEndPoint.put(resource.end(), resource);
-
+        public Builder addAll(Iterable<? extends NumberResourceRange> resources) {
+            assertNotAlreadyUsed();
+            Util.addAll(resourcesByEndPoint, resources);
             return this;
         }
 
         public Builder remove(@NotNull NumberResourceRange resource) {
             assertNotAlreadyUsed();
+            Util.remove(resourcesByEndPoint, resource);
+            return this;
+        }
 
-            NumberResource start = resource.start();
-            var potentialMatch = resourcesByEndPoint.ceilingEntry(start);
-            while (potentialMatch != null && overlaps(potentialMatch.getValue(), resource)) {
-                resourcesByEndPoint.remove(potentialMatch.getKey());
-                for (NumberResourceRange range : potentialMatch.getValue().subtract(resource)) {
-                    resourcesByEndPoint.put(range.end(), range);
-                }
-                potentialMatch = resourcesByEndPoint.ceilingEntry(start);
-            }
-
+        public Builder removeAll(Iterable<? extends NumberResourceRange> resources) {
+            assertNotAlreadyUsed();
+            Util.removeAll(resourcesByEndPoint, resources);
             return this;
         }
 
