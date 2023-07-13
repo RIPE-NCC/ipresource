@@ -34,19 +34,19 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Iterator;
 import java.util.TreeMap;
 
-import static net.ripe.ipresource.scratch.NumberResourceRange.RANGE_END_COMPARATOR;
-import static net.ripe.ipresource.scratch.NumberResourceRange.intersect;
-import static net.ripe.ipresource.scratch.NumberResourceRange.merge;
-import static net.ripe.ipresource.scratch.NumberResourceRange.overlaps;
+import static net.ripe.ipresource.scratch.NumberResourceBlock.RANGE_END_COMPARATOR;
+import static net.ripe.ipresource.scratch.NumberResourceBlock.intersect;
+import static net.ripe.ipresource.scratch.NumberResourceBlock.merge;
+import static net.ripe.ipresource.scratch.NumberResourceBlock.overlaps;
 
 public final class Util {
     private Util() {
     }
 
-    static void add(@NotNull TreeMap<NumberResource, NumberResourceRange> resourcesByEndPoint, @NotNull NumberResourceRange resource) {
+    static void add(@NotNull TreeMap<NumberResource, NumberResourceBlock> resourcesByEndPoint, @NotNull NumberResourceBlock resource) {
         var iterator = resourcesByEndPoint.tailMap(predecessorOrFirstOfStart(resource), true).values().iterator();
         while (iterator.hasNext()) {
-            NumberResourceRange potentialMatch = iterator.next();
+            NumberResourceBlock potentialMatch = iterator.next();
             var merged = merge(resource, potentialMatch);
             if (merged == null) {
                 break;
@@ -59,43 +59,43 @@ public final class Util {
         resourcesByEndPoint.put(resource.end(), resource);
     }
 
-    static void addAll(@NotNull TreeMap<NumberResource, NumberResourceRange> resourcesByEndPoint, @NotNull Iterable<? extends NumberResourceRange> resources) {
-        for (NumberResourceRange resource: resources) {
+    static void addAll(@NotNull TreeMap<NumberResource, NumberResourceBlock> resourcesByEndPoint, @NotNull Iterable<? extends NumberResourceBlock> resources) {
+        for (NumberResourceBlock resource: resources) {
             add(resourcesByEndPoint, resource);
         }
     }
 
-    static void remove(@NotNull TreeMap<NumberResource, NumberResourceRange> resourcesByEndPoint, @NotNull NumberResourceRange resource) {
+    static void remove(@NotNull TreeMap<NumberResource, NumberResourceBlock> resourcesByEndPoint, @NotNull NumberResourceBlock resource) {
         NumberResource start = resource.start();
         var potentialMatch = resourcesByEndPoint.ceilingEntry(start);
         while (potentialMatch != null && overlaps(potentialMatch.getValue(), resource)) {
             resourcesByEndPoint.remove(potentialMatch.getKey());
-            for (NumberResourceRange range : potentialMatch.getValue().subtract(resource)) {
+            for (NumberResourceBlock range : potentialMatch.getValue().subtract(resource)) {
                 resourcesByEndPoint.put(range.end(), range);
             }
             potentialMatch = resourcesByEndPoint.ceilingEntry(start);
         }
    }
 
-    static void removeAll(@NotNull TreeMap<NumberResource, NumberResourceRange> resourcesByEndPoint, @NotNull Iterable<? extends NumberResourceRange> resources) {
-        for (NumberResourceRange resource: resources) {
+    static void removeAll(@NotNull TreeMap<NumberResource, NumberResourceBlock> resourcesByEndPoint, @NotNull Iterable<? extends NumberResourceBlock> resources) {
+        for (NumberResourceBlock resource: resources) {
             remove(resourcesByEndPoint, resource);
         }
     }
 
-    static boolean contains(@NotNull TreeMap<NumberResource, NumberResourceRange> resourcesByEndPoint, @NotNull NumberResourceRange resourceRange) {
+    static boolean contains(@NotNull TreeMap<NumberResource, NumberResourceBlock> resourcesByEndPoint, @NotNull NumberResourceBlock resourceRange) {
         var potentialMatch = resourcesByEndPoint.ceilingEntry(predecessorOrFirstOfStart(resourceRange));
         return potentialMatch != null && potentialMatch.getValue().contains(resourceRange);
     }
 
-   static boolean intersects(@NotNull TreeMap<NumberResource, NumberResourceRange> left, @NotNull TreeMap<NumberResource, NumberResourceRange> right) {
+   static boolean intersects(@NotNull TreeMap<NumberResource, NumberResourceBlock> left, @NotNull TreeMap<NumberResource, NumberResourceBlock> right) {
        if (left.isEmpty() || right.isEmpty()) {
            return false;
        }
-       Iterator<NumberResourceRange> thisIterator = left.values().iterator();
-       Iterator<NumberResourceRange> thatIterator = right.values().iterator();
-       NumberResourceRange leftResource = thisIterator.next();
-       NumberResourceRange rightResource = thatIterator.next();
+       Iterator<NumberResourceBlock> thisIterator = left.values().iterator();
+       Iterator<NumberResourceBlock> thatIterator = right.values().iterator();
+       NumberResourceBlock leftResource = thisIterator.next();
+       NumberResourceBlock rightResource = thatIterator.next();
        while (leftResource != null && rightResource != null) {
            if (overlaps(leftResource, rightResource)) {
                return true;
@@ -111,19 +111,19 @@ public final class Util {
        return false;
    }
 
-    public static @NotNull TreeMap<NumberResource, NumberResourceRange> intersection(@NotNull TreeMap<NumberResource, NumberResourceRange> left, @NotNull TreeMap<NumberResource, NumberResourceRange> right) {
+    public static @NotNull TreeMap<NumberResource, NumberResourceBlock> intersection(@NotNull TreeMap<NumberResource, NumberResourceBlock> left, @NotNull TreeMap<NumberResource, NumberResourceBlock> right) {
         if (left.isEmpty()) {
             return left;
         } else if (right.isEmpty()) {
             return right;
         } else {
-            var result = new TreeMap<NumberResource, NumberResourceRange>();
-            Iterator<NumberResourceRange> thisIterator = left.values().iterator();
-            Iterator<NumberResourceRange> thatIterator = right.values().iterator();
-            NumberResourceRange thisResource = thisIterator.next();
-            NumberResourceRange thatResource = thatIterator.next();
+            var result = new TreeMap<NumberResource, NumberResourceBlock>();
+            Iterator<NumberResourceBlock> thisIterator = left.values().iterator();
+            Iterator<NumberResourceBlock> thatIterator = right.values().iterator();
+            NumberResourceBlock thisResource = thisIterator.next();
+            NumberResourceBlock thatResource = thatIterator.next();
             while (thisResource != null && thatResource != null) {
-                NumberResourceRange intersect = intersect(thisResource, thatResource);
+                NumberResourceBlock intersect = intersect(thisResource, thatResource);
                 if (intersect != null) {
                     result.put(intersect.end(), intersect);
                 }
@@ -140,9 +140,9 @@ public final class Util {
     }
 
     @NotNull
-    private static NumberResource predecessorOrFirstOfStart(NumberResourceRange resource) {
+    private static NumberResource predecessorOrFirstOfStart(NumberResourceBlock resource) {
         return switch (resource) {
-            case AsnRange asnRange -> Asn.of(Math.max(0, asnRange.lowerBound() - 1));
+            case AsnBlock asnBlock -> Asn.of(Math.max(0, asnBlock.lowerBound() - 1));
             case Ipv4Prefix ipv4Prefix -> Ipv4Address.of(Math.max(0L, ipv4Prefix.lowerBound() - 1));
             case Ipv4Range ipv4Range -> Ipv4Address.of(Math.max(0L, ipv4Range.lowerBound() - 1));
             case Ipv6Prefix ipv6Prefix -> ipv6Prefix.prefix().predecessorOrFirst();

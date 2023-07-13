@@ -47,7 +47,7 @@ public sealed interface NumberResource extends Comparable<NumberResource> permit
     @NotNull NumberResource successorOrLast();
     @NotNull NumberResource predecessorOrFirst();
 
-    default @NotNull NumberResourceRange upTo(@NotNull NumberResource that) {
-        return  NumberResourceRange.range(this, that);
+    default @NotNull NumberResourceBlock upTo(@NotNull NumberResource that) {
+        return  NumberResourceBlock.range(this, that);
     }
 }

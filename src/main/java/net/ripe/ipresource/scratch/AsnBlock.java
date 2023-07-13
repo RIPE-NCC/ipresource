@@ -41,11 +41,11 @@ import static java.lang.Integer.toUnsignedLong;
 import static java.lang.Long.max;
 import static java.lang.Long.min;
 
-public final class AsnRange implements NumberResourceRange {
+public final class AsnBlock implements NumberResourceBlock {
     private final int start;
     private final int end;
 
-    AsnRange(long start, long end) {
+    AsnBlock(long start, long end) {
         this.start = (int) start;
         this.end = (int) end;
         if (toUnsignedLong(this.start) != start) {
@@ -59,17 +59,17 @@ public final class AsnRange implements NumberResourceRange {
         }
     }
 
-    private AsnRange(Asn start, Asn end) {
+    private AsnBlock(Asn start, Asn end) {
         this(start.longValue(), end.longValue());
     }
 
-    public static AsnRange range(Asn start, Asn end) {
-        return new AsnRange(start, end);
+    public static AsnBlock range(Asn start, Asn end) {
+        return new AsnBlock(start, end);
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof AsnRange that && this.start == that.start && this.end == that.end;
+        return obj instanceof AsnBlock that && this.start == that.start && this.end == that.end;
     }
 
     @Override
@@ -83,9 +83,9 @@ public final class AsnRange implements NumberResourceRange {
     }
 
     @Override
-    public int compareTo(@NotNull NumberResourceRange o) {
+    public int compareTo(@NotNull NumberResourceBlock o) {
         return switch (o) {
-            case AsnRange that -> {
+            case AsnBlock that -> {
                 int rc = Integer.compareUnsigned(this.start, that.start);
                 if (rc != 0) {
                     yield rc;
@@ -112,10 +112,10 @@ public final class AsnRange implements NumberResourceRange {
     }
 
     @Override
-    public boolean contains(@Nullable NumberResourceRange other) {
+    public boolean contains(@Nullable NumberResourceBlock other) {
         return switch (other) {
             case null, IpBlock ignored -> false;
-            case AsnRange that -> this.lowerBound() <= that.lowerBound() && this.upperBound() >= that.upperBound();
+            case AsnBlock that -> this.lowerBound() <= that.lowerBound() && this.upperBound() >= that.upperBound();
         };
     }
 
@@ -125,19 +125,19 @@ public final class AsnRange implements NumberResourceRange {
     }
 
     @Override
-    public @NotNull List<@NotNull NumberResourceRange> subtract(@Nullable NumberResourceRange other) {
+    public @NotNull List<@NotNull NumberResourceBlock> subtract(@Nullable NumberResourceBlock other) {
         return switch (other) {
             case null, IpBlock ignored -> Collections.singletonList(this);
-            case AsnRange that -> {
+            case AsnBlock that -> {
                 if (other.contains(this)) {
                     yield Collections.emptyList();
                 } else if (overlaps(this, that)) {
-                    var result = new ArrayList<@NotNull NumberResourceRange>(2);
+                    var result = new ArrayList<@NotNull NumberResourceBlock>(2);
                     if (this.lowerBound() < that.lowerBound()) {
-                        result.add(new AsnRange(this.lowerBound(), that.lowerBound() - 1));
+                        result.add(new AsnBlock(this.lowerBound(), that.lowerBound() - 1));
                     }
                     if (this.upperBound() > that.upperBound()) {
-                        result.add(new AsnRange(that.upperBound() + 1, this.upperBound()));
+                        result.add(new AsnBlock(that.upperBound() + 1, this.upperBound()));
                     }
                     yield result;
                 } else {
@@ -147,31 +147,31 @@ public final class AsnRange implements NumberResourceRange {
         };
     }
 
-    public static @Nullable AsnRange intersection(@Nullable AsnRange a, @Nullable AsnRange b) {
+    public static @Nullable AsnBlock intersection(@Nullable AsnBlock a, @Nullable AsnBlock b) {
         long start = max(a.lowerBound(), b.lowerBound());
         long end = min(a.upperBound(), b.upperBound());
-        return start <= end ? new AsnRange(start, end) : null;
+        return start <= end ? new AsnBlock(start, end) : null;
     }
 
-    public static boolean overlaps(@Nullable AsnRange a, @Nullable AsnRange b) {
+    public static boolean overlaps(@Nullable AsnBlock a, @Nullable AsnBlock b) {
         return a != null
             && b != null
             && a.lowerBound() <= b.upperBound()
             && a.upperBound() >= b.lowerBound();
     }
 
-    public static @Nullable AsnRange merge(@Nullable AsnRange a, @Nullable AsnRange b) {
+    public static @Nullable AsnBlock merge(@Nullable AsnBlock a, @Nullable AsnBlock b) {
         if (!mergeable(a, b)) {
             return null;
         } else {
-            return new AsnRange(
+            return new AsnBlock(
                 min(a.lowerBound(), b.lowerBound()),
                 max(a.upperBound(), b.upperBound())
             );
         }
     }
 
-    public static boolean mergeable(@Nullable AsnRange a, @Nullable AsnRange b) {
+    public static boolean mergeable(@Nullable AsnBlock a, @Nullable AsnBlock b) {
         if (a == null || b == null) {
             return false;
         }

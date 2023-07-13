@@ -32,7 +32,7 @@ package net.ripe.ipresource.scratch;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public sealed interface IpBlock extends NumberResourceRange permits IpPrefix, Ipv4Block, Ipv6Block {
+public sealed interface IpBlock extends NumberResourceBlock permits IpPrefix, Ipv4Block, Ipv6Block {
     @NotNull IpAddress start();
     @NotNull IpAddress end();
 

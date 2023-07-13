@@ -74,9 +74,9 @@ public final class Ipv4Prefix extends Ipv4Block implements IpPrefix {
     }
 
     @Override
-    public int compareTo(@NotNull NumberResourceRange o) {
+    public int compareTo(@NotNull NumberResourceBlock o) {
         return switch (o) {
-            case AsnRange ignored ->
+            case AsnBlock ignored ->
                 1;
             case Ipv4Prefix that -> {
                 int rc = Integer.compareUnsigned(this.prefix, that.prefix);

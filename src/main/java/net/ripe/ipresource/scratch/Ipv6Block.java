@@ -50,9 +50,9 @@ public sealed abstract class Ipv6Block implements IpBlock permits Ipv6Prefix, Ip
     }
 
     @Override
-    public int compareTo(@NotNull NumberResourceRange o) {
+    public int compareTo(@NotNull NumberResourceBlock o) {
         return switch (o) {
-            case AsnRange ignored -> 1;
+            case AsnBlock ignored -> 1;
             case Ipv4Prefix ignored -> 1;
             case Ipv4Range ignored -> 1;
             case Ipv6Prefix that -> {
@@ -78,10 +78,10 @@ public sealed abstract class Ipv6Block implements IpBlock permits Ipv6Prefix, Ip
     }
 
     @Override
-    public boolean contains(@Nullable NumberResourceRange other) {
+    public boolean contains(@Nullable NumberResourceBlock other) {
         return switch (other) {
             case null -> false;
-            case AsnRange ignored -> false;
+            case AsnBlock ignored -> false;
             case Ipv4Prefix ignored -> false;
             case Ipv4Range ignored -> false;
             case Ipv6Prefix that ->
@@ -91,16 +91,16 @@ public sealed abstract class Ipv6Block implements IpBlock permits Ipv6Prefix, Ip
     }
 
     @Override
-    public @NotNull List<@NotNull NumberResourceRange> subtract(@Nullable NumberResourceRange other) {
+    public @NotNull List<@NotNull NumberResourceBlock> subtract(@Nullable NumberResourceBlock other) {
         return switch (other) {
             case null -> Collections.singletonList(this);
-            case AsnRange ignored -> Collections.singletonList(this);
+            case AsnBlock ignored -> Collections.singletonList(this);
             case Ipv4Block ignored -> Collections.singletonList(this);
             case Ipv6Block that -> {
                 if (other.contains(this)) {
                     yield Collections.emptyList();
                 } else if (overlaps(this, that)) {
-                    var result = new ArrayList<@NotNull NumberResourceRange>(2);
+                    var result = new ArrayList<@NotNull NumberResourceBlock>(2);
                     if (start().compareTo(that.start()) < 0) {
                         result.add(Ipv6Block.of(start(), that.start().predecessorOrFirst()));
                     }

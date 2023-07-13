@@ -62,9 +62,9 @@ public sealed abstract class Ipv4Block implements IpBlock permits Ipv4Prefix, Ip
     }
 
     @Override
-    public int compareTo(@NotNull NumberResourceRange o) {
+    public int compareTo(@NotNull NumberResourceBlock o) {
         return switch (o) {
-            case AsnRange ignored -> 1;
+            case AsnBlock ignored -> 1;
             case Ipv4Prefix that -> {
                 int rc = Long.compare(this.lowerBound(), that.lowerBound());
                 if (rc != 0) {
@@ -90,10 +90,10 @@ public sealed abstract class Ipv4Block implements IpBlock permits Ipv4Prefix, Ip
     }
 
     @Override
-    public boolean contains(@Nullable NumberResourceRange other) {
+    public boolean contains(@Nullable NumberResourceBlock other) {
         return switch (other) {
             case null -> false;
-            case AsnRange ignored -> false;
+            case AsnBlock ignored -> false;
             case Ipv4Prefix that -> this.lowerBound() <= that.lowerBound() && this.upperBound() >= that.upperBound();
             case Ipv4Block that -> this.lowerBound() <= that.lowerBound() && this.upperBound() >= that.upperBound();
             case Ipv6Prefix ignored -> false;
@@ -102,16 +102,16 @@ public sealed abstract class Ipv4Block implements IpBlock permits Ipv4Prefix, Ip
     }
 
     @Override
-    public @NotNull List<@NotNull NumberResourceRange> subtract(@Nullable NumberResourceRange other) {
+    public @NotNull List<@NotNull NumberResourceBlock> subtract(@Nullable NumberResourceBlock other) {
         return switch (other) {
             case null -> Collections.singletonList(this);
-            case AsnRange ignored -> Collections.singletonList(this);
+            case AsnBlock ignored -> Collections.singletonList(this);
             case Ipv6Block ignored -> Collections.singletonList(this);
             case Ipv4Block that -> {
                 if (other.contains(this)) {
                     yield Collections.emptyList();
                 } else if (overlaps(this, that)) {
-                    var result = new ArrayList<@NotNull NumberResourceRange>(2);
+                    var result = new ArrayList<@NotNull NumberResourceBlock>(2);
                     if (this.lowerBound() < that.lowerBound()) {
                         result.add(Ipv4Block.of(this.lowerBound(), that.lowerBound() - 1));
                     }

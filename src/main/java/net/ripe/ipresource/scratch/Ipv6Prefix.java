@@ -71,9 +71,9 @@ public final class Ipv6Prefix extends Ipv6Block implements IpPrefix {
     }
 
     @Override
-    public int compareTo(@NotNull NumberResourceRange o) {
+    public int compareTo(@NotNull NumberResourceBlock o) {
         return switch (o) {
-            case AsnRange ignored ->
+            case AsnBlock ignored ->
                 1;
             case Ipv4Prefix ignored -> 1;
             case Ipv4Range ignored -> 1;

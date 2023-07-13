@@ -38,8 +38,8 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.stream.Stream;
 
-import static net.ripe.ipresource.scratch.NumberResourceRange.mergeable;
-import static net.ripe.ipresource.scratch.NumberResourceRange.parse;
+import static net.ripe.ipresource.scratch.NumberResourceBlock.mergeable;
+import static net.ripe.ipresource.scratch.NumberResourceBlock.parse;
 import static net.ripe.ipresource.scratch.NumberResourceSet.ALL_PRIVATE_USE_RESOURCES;
 import static net.ripe.ipresource.scratch.NumberResourceSet.empty;
 import static net.ripe.ipresource.scratch.NumberResourceSet.universal;
@@ -56,7 +56,7 @@ public class NumberResourceSetTest {
         NumberResourceSet.Builder builder = new NumberResourceSet.Builder();
         builder.build();
 
-        NumberResourceRange address = parse("10.0.0.1/32");
+        NumberResourceBlock address = parse("10.0.0.1/32");
 
         assertThrows(IllegalStateException.class, () -> builder.add(address));
         assertThrows(IllegalStateException.class, () -> builder.remove(address));
@@ -139,10 +139,10 @@ public class NumberResourceSetTest {
     @Test
     public void shouldNormalizeUniqueResources() {
         NumberResourceSet subject = NumberResourceSet.of(parse("AS1-AS10"));
-        assertEquals(AsnRange.class, subject.iterator().next().getClass());
+        assertEquals(AsnBlock.class, subject.iterator().next().getClass());
 
         subject = subject.remove(parse("AS2-AS10"));
-        assertEquals(AsnRange.class, subject.iterator().next().getClass());
+        assertEquals(AsnBlock.class, subject.iterator().next().getClass());
         assertEquals("AS1", subject.toString());
     }
 
@@ -339,12 +339,12 @@ public class NumberResourceSetTest {
     @Test
     public void randomized_testing() {
         NumberResourceSet subject = empty();
-        var ranges = new ArrayList<NumberResourceRange>();
+        var ranges = new ArrayList<NumberResourceBlock>();
         Random random = new Random();
         for (int i = 0; i < RANDOM_SIZE; ++i) {
             var start = Integer.toUnsignedLong(random.nextInt(Integer.MAX_VALUE - Integer.MAX_VALUE / 256 - 1));
             var end = start + Integer.toUnsignedLong(random.nextInt(Integer.MAX_VALUE / 256)) + 1;
-            var range = AsnRange.range(Asn.of(start), Asn.of(end));
+            var range = AsnBlock.range(Asn.of(start), Asn.of(end));
             ranges.add(range);
             subject = subject.add(range);
         }
@@ -375,13 +375,13 @@ public class NumberResourceSetTest {
             .collect(NumberResourceSet.collector());
     }
 
-    private NumberResourceRange randomResourceRange() {
+    private NumberResourceBlock randomResourceRange() {
         IpResourceType type = IpResourceType.values()[random.nextInt(IpResourceType.values().length)];
         return switch (type) {
             case ASN -> {
                 var start = Integer.toUnsignedLong(random.nextInt(Integer.MAX_VALUE - Integer.MAX_VALUE / 256 - 1));
                 var end = start + Integer.toUnsignedLong(random.nextInt(Integer.MAX_VALUE / 256)) + 1;
-                yield AsnRange.range(Asn.of(start), Asn.of(end));
+                yield AsnBlock.range(Asn.of(start), Asn.of(end));
             }
             case IPv4 -> {
                 if (random.nextInt(5) == 0) {

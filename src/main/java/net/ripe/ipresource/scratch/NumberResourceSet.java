@@ -38,34 +38,34 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static net.ripe.ipresource.scratch.NumberResourceRange.overlaps;
+import static net.ripe.ipresource.scratch.NumberResourceBlock.overlaps;
 
 /**
  * An immutable set of IP resources. Resources can be ASNs, IPv4 addresses, IPv6
  * addresses, or ranges. Adjacent resources are merged. Single-sized ranges are
  * normalized into single resources.
  */
-public final class NumberResourceSet implements Iterable<NumberResourceRange> {
+public final class NumberResourceSet implements Iterable<NumberResourceBlock> {
 
     public static final NumberResourceSet IP_PRIVATE_USE_RESOURCES = NumberResourceSet.parse("10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7");
     public static final NumberResourceSet ASN_PRIVATE_USE_RESOURCES = NumberResourceSet.parse("AS64512-AS65534,AS4200000000-AS4294967294");
     public static final NumberResourceSet ALL_PRIVATE_USE_RESOURCES = ASN_PRIVATE_USE_RESOURCES.union(IP_PRIVATE_USE_RESOURCES);
 
     private static final NumberResourceSet EMPTY = new NumberResourceSet();
-    private static final NumberResourceSet UNIVERSAL = NumberResourceSet.of(NumberResourceRange.ALL_AS_RESOURCES, NumberResourceRange.ALL_IPV4_RESOURCES, NumberResourceRange.ALL_IPV6_RESOURCES);
+    private static final NumberResourceSet UNIVERSAL = NumberResourceSet.of(NumberResourceBlock.ALL_AS_RESOURCES, NumberResourceBlock.ALL_IPV4_RESOURCES, NumberResourceBlock.ALL_IPV6_RESOURCES);
 
     /*
      * Resources keyed by their end-point. This allows fast lookup to find potentially overlapping resources:
      *
      * resourcesByEndPoint.ceilingEntry(resourceToLookup.getStart())
      */
-    private final TreeMap<NumberResource, NumberResourceRange> resourcesByEndPoint;
+    private final TreeMap<NumberResource, NumberResourceBlock> resourcesByEndPoint;
 
     private NumberResourceSet() {
         this.resourcesByEndPoint = new TreeMap<>();
     }
 
-    private NumberResourceSet(TreeMap<NumberResource, NumberResourceRange> resourcesByEndPoint) {
+    private NumberResourceSet(TreeMap<NumberResource, NumberResourceBlock> resourcesByEndPoint) {
         if (resourcesByEndPoint.isEmpty()) {
             throw new IllegalArgumentException("empty resource set must use ImmutableResourceSet.empty()");
         }
@@ -77,17 +77,17 @@ public final class NumberResourceSet implements Iterable<NumberResourceRange> {
         return empty();
     }
 
-    public static NumberResourceSet of(NumberResourceRange resource) {
-        TreeMap<NumberResource, NumberResourceRange> resourcesByEndpoint = new TreeMap<>();
+    public static NumberResourceSet of(NumberResourceBlock resource) {
+        TreeMap<NumberResource, NumberResourceBlock> resourcesByEndpoint = new TreeMap<>();
         resourcesByEndpoint.put(resource.end(), resource);
         return new NumberResourceSet(resourcesByEndpoint);
     }
 
-    public static NumberResourceSet of(NumberResourceRange... resources) {
+    public static NumberResourceSet of(NumberResourceBlock... resources) {
         return resources.length == 0 ? empty() : NumberResourceSet.of(Arrays.asList(resources));
     }
 
-    public static NumberResourceSet of(Iterable<? extends NumberResourceRange> resources) {
+    public static NumberResourceSet of(Iterable<? extends NumberResourceBlock> resources) {
         if (resources instanceof NumberResourceSet) {
             return (NumberResourceSet) resources;
         } else {
@@ -103,7 +103,7 @@ public final class NumberResourceSet implements Iterable<NumberResourceRange> {
         return UNIVERSAL;
     }
 
-    public static Collector<NumberResourceRange, NumberResourceSet.Builder, NumberResourceSet> collector() {
+    public static Collector<NumberResourceBlock, NumberResourceSet.Builder, NumberResourceSet> collector() {
         return Collector.of(
             Builder::new,
             Builder::add,
@@ -113,7 +113,7 @@ public final class NumberResourceSet implements Iterable<NumberResourceRange> {
         );
     }
 
-    public NumberResourceSet add(NumberResourceRange value) {
+    public NumberResourceSet add(NumberResourceBlock value) {
         if (this.contains(value)) {
             return this;
         } else {
@@ -121,7 +121,7 @@ public final class NumberResourceSet implements Iterable<NumberResourceRange> {
         }
     }
 
-    public NumberResourceSet remove(NumberResourceRange value) {
+    public NumberResourceSet remove(NumberResourceBlock value) {
         if (!this.intersects(value)) {
             return this;
         }
@@ -166,17 +166,17 @@ public final class NumberResourceSet implements Iterable<NumberResourceRange> {
     }
 
     @Override
-    public @NotNull Iterator<NumberResourceRange> iterator() {
+    public @NotNull Iterator<NumberResourceBlock> iterator() {
         return Collections.unmodifiableMap(resourcesByEndPoint).values().iterator();
     }
 
     @Override
-    public Spliterator<NumberResourceRange> spliterator() {
+    public Spliterator<NumberResourceBlock> spliterator() {
         return Spliterators.spliterator(resourcesByEndPoint.values(),
             Spliterator.DISTINCT | Spliterator.SORTED | Spliterator.IMMUTABLE);
     }
 
-    public Stream<NumberResourceRange> stream() {
+    public Stream<NumberResourceBlock> stream() {
         return StreamSupport.stream(spliterator(), false);
     }
 
@@ -184,12 +184,12 @@ public final class NumberResourceSet implements Iterable<NumberResourceRange> {
         return resourcesByEndPoint.isEmpty();
     }
 
-    public boolean contains(NumberResourceRange resource) {
+    public boolean contains(NumberResourceBlock resource) {
         return Util.contains(resourcesByEndPoint, resource);
     }
 
-    public boolean contains(Iterable<? extends NumberResourceRange> other) {
-        for (NumberResourceRange resource: other) {
+    public boolean contains(Iterable<? extends NumberResourceBlock> other) {
+        for (NumberResourceBlock resource: other) {
             if (!contains(resource)) {
                 return false;
             }
@@ -206,7 +206,7 @@ public final class NumberResourceSet implements Iterable<NumberResourceRange> {
         return false;
     }
 
-    public boolean intersects(NumberResourceRange resource) {
+    public boolean intersects(NumberResourceBlock resource) {
         var potentialMatch = resourcesByEndPoint.ceilingEntry(startPredecessor(resource));
         return potentialMatch != null && overlaps(resource, potentialMatch.getValue());
     }
@@ -221,7 +221,7 @@ public final class NumberResourceSet implements Iterable<NumberResourceRange> {
         for (String r : resources) {
             String trimmed = r.trim();
             if (!trimmed.isEmpty()) {
-                builder.add(NumberResourceRange.parse(trimmed));
+                builder.add(NumberResourceBlock.parse(trimmed));
             }
         }
         return builder.build();
@@ -243,7 +243,7 @@ public final class NumberResourceSet implements Iterable<NumberResourceRange> {
     }
 
     public static class Builder {
-        private TreeMap<NumberResource, NumberResourceRange> resourcesByEndPoint;
+        private TreeMap<NumberResource, NumberResourceBlock> resourcesByEndPoint;
 
         public Builder() {
             this.resourcesByEndPoint = new TreeMap<>();
@@ -253,12 +253,12 @@ public final class NumberResourceSet implements Iterable<NumberResourceRange> {
             this.resourcesByEndPoint = new TreeMap<>(resources.resourcesByEndPoint);
         }
 
-        public Builder(Iterable<? extends NumberResourceRange> resources) {
+        public Builder(Iterable<? extends NumberResourceBlock> resources) {
             if (resources instanceof NumberResourceSet set) {
                 this.resourcesByEndPoint = new TreeMap<>(set.resourcesByEndPoint);
             } else {
                 this.resourcesByEndPoint = new TreeMap<>();
-                for (NumberResourceRange resource : resources) {
+                for (NumberResourceBlock resource : resources) {
                     add(resource);
                 }
             }
@@ -273,25 +273,25 @@ public final class NumberResourceSet implements Iterable<NumberResourceRange> {
             }
         }
 
-        public Builder add(@NotNull NumberResourceRange resource) {
+        public Builder add(@NotNull NumberResourceBlock resource) {
             assertNotAlreadyUsed();
             Util.add(resourcesByEndPoint, resource);
             return this;
         }
 
-        public Builder addAll(Iterable<? extends NumberResourceRange> resources) {
+        public Builder addAll(Iterable<? extends NumberResourceBlock> resources) {
             assertNotAlreadyUsed();
             Util.addAll(resourcesByEndPoint, resources);
             return this;
         }
 
-        public Builder remove(@NotNull NumberResourceRange resource) {
+        public Builder remove(@NotNull NumberResourceBlock resource) {
             assertNotAlreadyUsed();
             Util.remove(resourcesByEndPoint, resource);
             return this;
         }
 
-        public Builder removeAll(Iterable<? extends NumberResourceRange> resources) {
+        public Builder removeAll(Iterable<? extends NumberResourceBlock> resources) {
             assertNotAlreadyUsed();
             Util.removeAll(resourcesByEndPoint, resources);
             return this;
@@ -305,9 +305,9 @@ public final class NumberResourceSet implements Iterable<NumberResourceRange> {
     }
 
     @NotNull
-    private static NumberResource startPredecessor(NumberResourceRange resource) {
+    private static NumberResource startPredecessor(NumberResourceBlock resource) {
         return switch (resource) {
-            case AsnRange asnRange -> Asn.of(Math.max(0, asnRange.lowerBound() - 1));
+            case AsnBlock asnBlock -> Asn.of(Math.max(0, asnBlock.lowerBound() - 1));
             case Ipv4Prefix ipv4Prefix -> Ipv4Address.of(Math.max(0L, ipv4Prefix.lowerBound() - 1));
             case Ipv4Range ipv4Range -> Ipv4Address.of(Math.max(0L, ipv4Range.lowerBound() - 1));
             case Ipv6Prefix ipv6Prefix -> ipv6Prefix.prefix().predecessorOrFirst();

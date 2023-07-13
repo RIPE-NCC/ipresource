@@ -32,7 +32,6 @@ package net.ripe.ipresource.scratch;
 import org.junit.Test;
 
 import java.math.BigInteger;
-import java.util.Collections;
 
 import static java.util.Collections.singletonList;
 import static net.ripe.ipresource.scratch.Ipv6Address.parse;
@@ -349,8 +348,8 @@ public class Ipv6AddressTest {
 
     @Test
     public void shouldSubtract() {
-        assertEquals(singletonList(NumberResourceRange.parse("8000::/1")), NumberResourceRange.parse("::/0").subtract(NumberResourceRange.parse("::/1")));
-        assertEquals(singletonList(NumberResourceRange.parse("0:0:0:1::-ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff")), NumberResourceRange.parse("::/0").subtract(NumberResourceRange.parse("::/64")));
+        assertEquals(singletonList(NumberResourceBlock.parse("8000::/1")), NumberResourceBlock.parse("::/0").subtract(NumberResourceBlock.parse("::/1")));
+        assertEquals(singletonList(NumberResourceBlock.parse("0:0:0:1::-ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff")), NumberResourceBlock.parse("::/0").subtract(NumberResourceBlock.parse("::/64")));
     }
 
 //    @Test
