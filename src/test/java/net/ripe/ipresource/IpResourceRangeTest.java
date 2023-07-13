@@ -1,4 +1,4 @@
-/**
+/*
  * The BSD License
  *
  * Copyright (c) 2010-2023 RIPE NCC
