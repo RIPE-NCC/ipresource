@@ -37,11 +37,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class Asn implements NumberResource {
-    private static final Pattern ASN_TEXT_PATTERN = Pattern.compile("(?:AS)?(\\d+)(\\.(\\d+))?", Pattern.CASE_INSENSITIVE);
+
+    public static final int NUMBER_OF_BITS = 32;
+
+    public static final Asn LOWEST = new Asn(0);
+    public static final Asn HIGHEST = new Asn(-1);
 
     public static final long ASN_MIN_VALUE = 0L;
     public static final long ASN16_MAX_VALUE = (1L << 16) - 1L;
     public static final long ASN32_MAX_VALUE = (1L << 32) - 1L;
+
+    private static final Pattern ASN_TEXT_PATTERN = Pattern.compile("(?:AS)?(\\d+)(\\.(\\d+))?", Pattern.CASE_INSENSITIVE);
 
     private final int value;
 

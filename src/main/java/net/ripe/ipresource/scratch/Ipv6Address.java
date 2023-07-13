@@ -37,14 +37,15 @@ import java.math.BigInteger;
 
 public final class Ipv6Address implements IpAddress {
     public static final int NUMBER_OF_BITS = 128;
+
     public static final Ipv6Address LOWEST = new Ipv6Address(0, 0);
     public static final Ipv6Address HIGHEST = new Ipv6Address(-1, -1);
 
-    private static final BigInteger IPV6_MAX = BigInteger.ONE.shiftLeft(NUMBER_OF_BITS).subtract(BigInteger.ONE);
+    private static final BigInteger MASK_128 = BigInteger.ONE.shiftLeft(NUMBER_OF_BITS).subtract(BigInteger.ONE);
     private static final BigInteger MASK_64 = BigInteger.ONE.shiftLeft(64).subtract(BigInteger.ONE);
+    private static final int MASK_16 = 0xffff;
 
     public static final String COLON = ":";
-    public static final int MASK_16 = 0xffff;
 
     final long hi, lo;
 
@@ -54,7 +55,7 @@ public final class Ipv6Address implements IpAddress {
     }
 
     Ipv6Address(BigInteger value) {
-        if (value.compareTo(BigInteger.ZERO) < 0 || value.compareTo(IPV6_MAX) > 0) {
+        if (value.compareTo(BigInteger.ZERO) < 0 || value.compareTo(MASK_128) > 0) {
             throw new ArithmeticException("IPv6 address value out of bounds");
         }
         this.hi = value.shiftRight(64).and(MASK_64).longValue();

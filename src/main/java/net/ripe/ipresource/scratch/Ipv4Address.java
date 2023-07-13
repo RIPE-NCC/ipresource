@@ -35,6 +35,9 @@ import org.jetbrains.annotations.NotNull;
 public final class Ipv4Address implements IpAddress {
     public static final int NUMBER_OF_BITS = 32;
 
+    public static final Ipv4Address LOWEST = new Ipv4Address(0);
+    public static final Ipv4Address HIGHEST = new Ipv4Address(-1);
+
     final int value;
 
     Ipv4Address(int value) {
