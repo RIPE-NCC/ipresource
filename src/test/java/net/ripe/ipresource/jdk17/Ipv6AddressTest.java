@@ -27,14 +27,14 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package net.ripe.ipresource.scratch;
+package net.ripe.ipresource.jdk17;
 
 import org.junit.Test;
 
 import java.math.BigInteger;
 
 import static java.util.Collections.singletonList;
-import static net.ripe.ipresource.scratch.Ipv6Address.parse;
+import static net.ripe.ipresource.jdk17.Ipv6Address.parse;
 import static org.junit.Assert.*;
 
 public class Ipv6AddressTest {

@@ -27,17 +27,17 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package net.ripe.ipresource.scratch;
+package net.ripe.ipresource.jdk17;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 import java.util.TreeMap;
 
-import static net.ripe.ipresource.scratch.NumberResourceBlock.RANGE_END_COMPARATOR;
-import static net.ripe.ipresource.scratch.NumberResourceBlock.intersect;
-import static net.ripe.ipresource.scratch.NumberResourceBlock.merge;
-import static net.ripe.ipresource.scratch.NumberResourceBlock.overlaps;
+import static net.ripe.ipresource.jdk17.NumberResourceBlock.RANGE_END_COMPARATOR;
+import static net.ripe.ipresource.jdk17.NumberResourceBlock.intersect;
+import static net.ripe.ipresource.jdk17.NumberResourceBlock.merge;
+import static net.ripe.ipresource.jdk17.NumberResourceBlock.overlaps;
 
 public final class Util {
     private Util() {

@@ -27,7 +27,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package net.ripe.ipresource.scratch;
+package net.ripe.ipresource.jdk17;
 
 import net.ripe.ipresource.IpResourceType;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static net.ripe.ipresource.scratch.NumberResourceBlock.overlaps;
+import static net.ripe.ipresource.jdk17.NumberResourceBlock.overlaps;
 
 /**
  * An immutable set of IP resources. Resources can be ASNs, IPv4 addresses, IPv6

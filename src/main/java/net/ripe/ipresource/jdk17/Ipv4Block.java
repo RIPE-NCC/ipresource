@@ -27,7 +27,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package net.ripe.ipresource.scratch;
+package net.ripe.ipresource.jdk17;
 
 import net.ripe.ipresource.IpResourceType;
 import org.jetbrains.annotations.NotNull;
@@ -37,156 +37,141 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static java.lang.Integer.toUnsignedLong;
 import static java.lang.Long.max;
 import static java.lang.Long.min;
+import static net.ripe.ipresource.jdk17.Ipv4Prefix.lowerBoundForPrefix;
+import static net.ripe.ipresource.jdk17.Ipv4Prefix.upperBoundForPrefix;
 
-public final class AsnBlock implements NumberResourceBlock {
-    private final int start;
-    private final int end;
+public sealed abstract class Ipv4Block implements IpBlock permits Ipv4Prefix, Ipv4Range {
+    public abstract @NotNull Ipv4Address start();
+    public abstract @NotNull Ipv4Address end();
 
-    AsnBlock(long start, long end) {
-        this.start = (int) start;
-        this.end = (int) end;
-        if (toUnsignedLong(this.start) != start) {
-            throw new IllegalArgumentException("start out of bounds");
+    public static @NotNull Ipv4Block of(@NotNull Ipv4Address start, @NotNull Ipv4Address end) {
+        return of(start.longValue(), end.longValue());
+    }
+
+    @NotNull
+    private static Ipv4Block of(long start, long end) {
+        if (isLegalPrefix(start, end)) {
+            long temp = start ^ end;
+            int length = Integer.numberOfLeadingZeros((int) temp);
+            return Ipv4Prefix.prefix(start, length);
+        } else {
+            return new Ipv4Range(start, end);
         }
-        if (toUnsignedLong(this.end) != end) {
-            throw new IllegalArgumentException("end out of bounds");
-        }
-        if (Integer.compareUnsigned(this.start, this.end) > 0) {
-            throw new IllegalArgumentException("start must be less than or equal to end");
-        }
-    }
-
-    private AsnBlock(Asn start, Asn end) {
-        this(start.longValue(), end.longValue());
-    }
-
-    public static AsnBlock range(Asn start, Asn end) {
-        return new AsnBlock(start, end);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof AsnBlock that && this.start == that.start && this.end == that.end;
-    }
-
-    @Override
-    public int hashCode() {
-        return 'A' + 31 * 31 * Integer.hashCode(start) + 31 * Integer.hashCode(end);
-    }
-
-    @Override
-    public String toString() {
-        return isSingleton() ? String.valueOf(start()) : (start() + "-" + end());
     }
 
     @Override
     public int compareTo(@NotNull NumberResourceBlock o) {
         return switch (o) {
-            case AsnBlock that -> {
-                int rc = Integer.compareUnsigned(this.start, that.start);
+            case AsnBlock ignored -> 1;
+            case Ipv4Prefix that -> {
+                int rc = Long.compare(this.lowerBound(), that.lowerBound());
                 if (rc != 0) {
                     yield rc;
                 }
-                yield -Integer.compareUnsigned(this.end, that.end);
+                yield -Long.compare(this.upperBound(), that.upperBound());
             }
-            case IpBlock ignored -> -1;
+            case Ipv4Range that -> {
+                int rc = Long.compare(this.lowerBound(), that.lowerBound());
+                if (rc != 0) {
+                    yield rc;
+                }
+                yield -Long.compare(this.upperBound(), that.upperBound());
+            }
+            case Ipv6Prefix ignored -> -1;
+            case Ipv6Range ignored -> -1;
         };
     }
 
     @Override
     public IpResourceType getType() {
-        return IpResourceType.ASN;
-    }
-
-    @Override
-    public Asn start() {
-        return new Asn(start);
-    }
-
-    @Override
-    public Asn end() {
-        return new Asn(end);
+        return IpResourceType.IPv4;
     }
 
     @Override
     public boolean contains(@Nullable NumberResourceBlock other) {
         return switch (other) {
-            case null, IpBlock ignored -> false;
-            case AsnBlock that -> this.lowerBound() <= that.lowerBound() && this.upperBound() >= that.upperBound();
+            case null -> false;
+            case AsnBlock ignored -> false;
+            case Ipv4Prefix that -> this.lowerBound() <= that.lowerBound() && this.upperBound() >= that.upperBound();
+            case Ipv4Block that -> this.lowerBound() <= that.lowerBound() && this.upperBound() >= that.upperBound();
+            case Ipv6Prefix ignored -> false;
+            case Ipv6Range ignored -> false;
         };
-    }
-
-    @Override
-    public boolean isSingleton() {
-        return start == end;
     }
 
     @Override
     public @NotNull List<@NotNull NumberResourceBlock> subtract(@Nullable NumberResourceBlock other) {
         return switch (other) {
-            case null, IpBlock ignored -> Collections.singletonList(this);
-            case AsnBlock that -> {
+            case null -> Collections.singletonList(this);
+            case AsnBlock ignored -> Collections.singletonList(this);
+            case Ipv6Block ignored -> Collections.singletonList(this);
+            case Ipv4Block that -> {
                 if (other.contains(this)) {
                     yield Collections.emptyList();
                 } else if (overlaps(this, that)) {
                     var result = new ArrayList<@NotNull NumberResourceBlock>(2);
                     if (this.lowerBound() < that.lowerBound()) {
-                        result.add(new AsnBlock(this.lowerBound(), that.lowerBound() - 1));
+                        result.add(Ipv4Block.of(this.lowerBound(), that.lowerBound() - 1));
                     }
                     if (this.upperBound() > that.upperBound()) {
-                        result.add(new AsnBlock(that.upperBound() + 1, this.upperBound()));
+                        result.add(Ipv4Block.of(that.upperBound() + 1, this.upperBound()));
                     }
                     yield result;
                 } else {
                     yield Collections.singletonList(this);
                 }
             }
+            default -> throw new IllegalStateException("Unexpected value: " + other);
         };
     }
 
-    public static @Nullable AsnBlock intersection(@Nullable AsnBlock a, @Nullable AsnBlock b) {
+    abstract long lowerBound();
+    abstract long upperBound();
+
+    public static @Nullable Ipv4Block intersection(@Nullable Ipv4Block a, @Nullable Ipv4Block b) {
+        if (a == null || b == null) {
+            return null;
+        }
+
         long start = max(a.lowerBound(), b.lowerBound());
         long end = min(a.upperBound(), b.upperBound());
-        return start <= end ? new AsnBlock(start, end) : null;
+        return start <= end ? Ipv4Block.of(start, end) : null;
     }
 
-    public static boolean overlaps(@Nullable AsnBlock a, @Nullable AsnBlock b) {
+    public static boolean overlaps(@Nullable Ipv4Block a, @Nullable Ipv4Block b) {
         return a != null
             && b != null
             && a.lowerBound() <= b.upperBound()
             && a.upperBound() >= b.lowerBound();
     }
 
-    public static @Nullable AsnBlock merge(@Nullable AsnBlock a, @Nullable AsnBlock b) {
+    public static @Nullable Ipv4Block merge(@Nullable Ipv4Block a, @Nullable Ipv4Block b) {
         if (!mergeable(a, b)) {
             return null;
         } else {
-            return new AsnBlock(
-                min(a.lowerBound(), b.lowerBound()),
-                max(a.upperBound(), b.upperBound())
+            return Ipv4Block.of(
+                Math.min(a.lowerBound(), b.lowerBound()),
+                Math.max(a.upperBound(), b.upperBound())
             );
         }
     }
 
-    public static boolean mergeable(@Nullable AsnBlock a, @Nullable AsnBlock b) {
+    public static boolean mergeable(@Nullable Ipv4Block a, @Nullable Ipv4Block b) {
         if (a == null || b == null) {
             return false;
         }
         if (a.lowerBound() <= b.upperBound()) {
-            return a.upperBound() >= b.lowerBound() || Math.abs(a.upperBound() - b.lowerBound()) == 1;
+            return a.upperBound() + 1 >= b.lowerBound();
         } else {
             return Math.abs(a.lowerBound() - b.upperBound()) == 1;
         }
     }
 
-    long lowerBound() {
-        return toUnsignedLong(start);
-    }
-
-    long upperBound() {
-        return toUnsignedLong(end);
+    static boolean isLegalPrefix(long start, long end) {
+        long temp = start ^ end;
+        int length = Integer.numberOfLeadingZeros((int) temp);
+        return start == lowerBoundForPrefix(start, length) && end == upperBoundForPrefix(end, length);
     }
 }

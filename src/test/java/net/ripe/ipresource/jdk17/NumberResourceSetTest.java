@@ -27,7 +27,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package net.ripe.ipresource.scratch;
+package net.ripe.ipresource.jdk17;
 
 
 import net.ripe.ipresource.IpResourceType;
@@ -38,11 +38,11 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.stream.Stream;
 
-import static net.ripe.ipresource.scratch.NumberResourceBlock.mergeable;
-import static net.ripe.ipresource.scratch.NumberResourceBlock.parse;
-import static net.ripe.ipresource.scratch.NumberResourceSet.ALL_PRIVATE_USE_RESOURCES;
-import static net.ripe.ipresource.scratch.NumberResourceSet.empty;
-import static net.ripe.ipresource.scratch.NumberResourceSet.universal;
+import static net.ripe.ipresource.jdk17.NumberResourceBlock.mergeable;
+import static net.ripe.ipresource.jdk17.NumberResourceBlock.parse;
+import static net.ripe.ipresource.jdk17.NumberResourceSet.ALL_PRIVATE_USE_RESOURCES;
+import static net.ripe.ipresource.jdk17.NumberResourceSet.empty;
+import static net.ripe.ipresource.jdk17.NumberResourceSet.universal;
 import static org.junit.Assert.*;
 
 public class NumberResourceSetTest {

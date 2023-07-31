@@ -27,7 +27,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package net.ripe.ipresource.scratch;
+package net.ripe.ipresource.jdk17;
 
 import net.ripe.ipresource.IpResourceType;
 import org.jetbrains.annotations.NotNull;
@@ -37,8 +37,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static net.ripe.ipresource.scratch.Ipv6Prefix.lowerBoundForPrefix;
-import static net.ripe.ipresource.scratch.Ipv6Prefix.upperBoundForPrefix;
+import static net.ripe.ipresource.jdk17.Ipv6Prefix.lowerBoundForPrefix;
+import static net.ripe.ipresource.jdk17.Ipv6Prefix.upperBoundForPrefix;
 
 public sealed abstract class Ipv6Block implements IpBlock permits Ipv6Prefix, Ipv6Range {
     public abstract @NotNull Ipv6Address start();
