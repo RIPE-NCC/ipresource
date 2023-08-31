@@ -30,18 +30,21 @@
 package net.ripe.ipresource.jdk17;
 
 import net.ripe.ipresource.IpResourceType;
-import net.ripe.ipresource.UniqueIpResource;
 import org.jetbrains.annotations.NotNull;
 
 public sealed interface NumberResource extends Comparable<NumberResource> permits IpAddress, Asn {
     IpResourceType getType();
 
-    static NumberResource parse(@NotNull String s) {
-        return switch (UniqueIpResource.parse(s)) {
-            case net.ripe.ipresource.Asn asn -> Asn.of(asn.longValue());
-            case net.ripe.ipresource.Ipv4Address ipv4 -> Ipv4Address.of(ipv4.longValue());
-            default -> throw new IllegalArgumentException("unknown type");
-        };
+    static @NotNull NumberResource parse(@NotNull String s) {
+        try {
+            return IpAddress.parse(s);
+        } catch (IllegalArgumentException ignored) {
+        }
+        try {
+            return Asn.parse(s);
+        } catch (IllegalArgumentException ignored) {
+        }
+        throw new IllegalArgumentException(String.format("Invalid IPv4, IPv6 or ASN resource: %s", s));
     }
 
     @NotNull NumberResource successorOrLast();

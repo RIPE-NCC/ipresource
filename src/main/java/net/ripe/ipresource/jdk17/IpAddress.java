@@ -29,5 +29,18 @@
  */
 package net.ripe.ipresource.jdk17;
 
+import org.jetbrains.annotations.NotNull;
+
 public sealed interface IpAddress extends NumberResource permits Ipv4Address, Ipv6Address {
+    static @NotNull NumberResource parse(@NotNull String s) {
+        try {
+            return Ipv4Address.parse(s);
+        } catch (IllegalArgumentException ignored) {
+        }
+        try {
+            return Ipv6Address.parse(s);
+        } catch (IllegalArgumentException ignored) {
+        }
+        throw new IllegalArgumentException(String.format("Invalid IPv4 or IPv6 address: %s", s));
+    }
 }
