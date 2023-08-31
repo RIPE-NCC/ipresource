@@ -27,35 +27,29 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package net.ripe.ipresource;
+package net.ripe.ipresource.jdk17;
 
-import org.junit.Test;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+public sealed interface IpBlock extends NumberResourceBlock permits IpPrefix, Ipv4Block, Ipv6Block {
+    @NotNull IpAddress start();
+    @NotNull IpAddress end();
 
-import static org.junit.Assert.assertEquals;
-
-public class SerializationTest {
-
-    private static final IpResourceSet RESOURCES = IpResourceSet.parse("AS1-AS100,10/8,ffff::/16");
-
-    @Test
-    public void serialize_and_deserialize() throws Exception {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(baos);
-        oos.writeObject(RESOURCES);
-        oos.close();
-
-        ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()));
-        assertEquals(RESOURCES, ois.readObject());
+    static @NotNull IpBlock range(IpAddress start, IpAddress end) {
+        return switch (start) {
+            case Ipv4Address x -> Ipv4Block.of(x, (Ipv4Address) end);
+            case Ipv6Address x -> Ipv6Block.of(x, (Ipv6Address) end);
+        };
     }
 
-    @Test
-    public void deserialize_v1() throws Exception {
-        ObjectInputStream ois = new ObjectInputStream(getClass().getResourceAsStream("/serialized-v1.bin"));
-        assertEquals(RESOURCES, ois.readObject());
+    static @Nullable IpBlock merge(@Nullable IpBlock a, @Nullable IpBlock b) {
+        return switch (a) {
+            case null -> null;
+            case Ipv4Prefix x -> b instanceof Ipv4Block y ? Ipv4Block.merge(x, y) : null;
+            case Ipv4Range x -> b instanceof Ipv4Block y ? Ipv4Block.merge(x, y) : null;
+            case Ipv6Prefix x -> b instanceof Ipv6Block y ? Ipv6Block.merge(x, y) : null;
+            case Ipv6Range x -> b instanceof Ipv6Block y ? Ipv6Block.merge(x, y) : null;
+        };
     }
 }

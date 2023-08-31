@@ -27,35 +27,52 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package net.ripe.ipresource;
+package net.ripe.ipresource.jdk17;
 
-import org.junit.Test;
+import org.jetbrains.annotations.NotNull;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+public final class Ipv6Range extends Ipv6Block {
+    final Ipv6Address start;
+    final Ipv6Address end;
 
-import static org.junit.Assert.assertEquals;
-
-public class SerializationTest {
-
-    private static final IpResourceSet RESOURCES = IpResourceSet.parse("AS1-AS100,10/8,ffff::/16");
-
-    @Test
-    public void serialize_and_deserialize() throws Exception {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(baos);
-        oos.writeObject(RESOURCES);
-        oos.close();
-
-        ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()));
-        assertEquals(RESOURCES, ois.readObject());
+    Ipv6Range(Ipv6Address start, Ipv6Address end) {
+        this.start = start;
+        this.end = end;
+        if (this.start.compareTo(this.end) > 0) {
+            throw new IllegalArgumentException("start must be less than or equal to end");
+        }
+        if (isLegalPrefix(start, end)) {
+            throw new IllegalArgumentException("proper prefix must not be represented by range");
+        }
     }
 
-    @Test
-    public void deserialize_v1() throws Exception {
-        ObjectInputStream ois = new ObjectInputStream(getClass().getResourceAsStream("/serialized-v1.bin"));
-        assertEquals(RESOURCES, ois.readObject());
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Ipv6Range that && this.start.equals(that.start) && this.end.equals(that.end);
+    }
+
+    @Override
+    public int hashCode() {
+        return '6' + 31 * 31 * start.hashCode() + 31 * end.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return start() + "-" + end();
+    }
+
+    @Override
+    public @NotNull Ipv6Address start() {
+        return start;
+    }
+
+    @Override
+    public @NotNull Ipv6Address end() {
+        return end;
+    }
+
+    @Override
+    public boolean isSingleton() {
+        return false;
     }
 }

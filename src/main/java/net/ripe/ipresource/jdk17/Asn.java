@@ -27,40 +27,67 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package net.ripe.ipresource;
+package net.ripe.ipresource.jdk17;
 
+import net.ripe.ipresource.IpResourceType;
 import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.math.BigInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Immutable value object for Autonomous System Numbers.
- */
-public class Asn extends UniqueIpResource {
+public final class Asn implements NumberResource {
 
-    private static final long serialVersionUID = 2L;
+    public static final int NUMBER_OF_BITS = 32;
 
-    private static final Pattern ASN_TEXT_PATTERN = Pattern.compile("(?:AS)?(\\d+)(\\.(\\d+))?", Pattern.CASE_INSENSITIVE);
+    public static final Asn LOWEST = new Asn(0);
+    public static final Asn HIGHEST = new Asn(-1);
 
     public static final long ASN_MIN_VALUE = 0L;
     public static final long ASN16_MAX_VALUE = (1L << 16) - 1L;
     public static final long ASN32_MAX_VALUE = (1L << 32) - 1L;
 
-    // Int is more memory efficient, so use value() accessor to get correct
-    // unsigned long value.
-    private int intValue;
+    private static final Pattern ASN_TEXT_PATTERN = Pattern.compile("(?:AS)?(\\d+)(\\.(\\d+))?", Pattern.CASE_INSENSITIVE);
 
-    public Asn(BigInteger value) {
-        this(value.longValue());
+    private final int value;
+
+    Asn(int value) {
+        this.value = value;
     }
 
-    public Asn(long value) {
-        checkRange(value, ASN32_MAX_VALUE);
-        this.intValue = (int) value;
+    Asn(long value) {
+        this.value = (int) value;
+        if (Integer.toUnsignedLong(this.value) != value) {
+            throw new IllegalArgumentException("ASN value out of bounds");
+        }
+    }
+
+    public static @NotNull Asn of(long value) {
+        return new Asn(value);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Asn that && this.value == that.value;
+    }
+
+    @Override
+    public int hashCode() {
+        return 'A' + 31 * value;
+    }
+
+    @Override
+    public String toString() {
+        return "AS" + longValue();
+    }
+
+    @Override
+    public int compareTo(@NotNull NumberResource o) {
+        return switch (o) {
+            case Asn that -> Integer.compareUnsigned(this.value, that.value);
+            case Ipv4Address ignored -> -1;
+            case Ipv6Address ignored -> -1;
+        };
     }
 
     @Override
@@ -68,11 +95,17 @@ public class Asn extends UniqueIpResource {
         return IpResourceType.ASN;
     }
 
-    public static Asn parse(String text) {
-        if (text == null) {
-            return null;
-        }
+    @Override
+    public @NotNull Asn predecessorOrFirst() {
+        return value == 0 ? this : new Asn(value - 1);
+    }
 
+    @Override
+    public @NotNull Asn successorOrLast() {
+        return value == -1 ? this : new Asn(value + 1);
+    }
+
+    public static @NotNull Asn parse(@NotNull String text) {
         text = text.trim();
 
         Matcher matcher = ASN_TEXT_PATTERN.matcher(text);
@@ -99,66 +132,12 @@ public class Asn extends UniqueIpResource {
         return new Asn((high << 16) | low);
     }
 
+    long longValue() {
+        return Integer.toUnsignedLong(value);
+    }
+
     private static void checkRange(long value, long max) {
         Validate.isTrue(value >= ASN_MIN_VALUE);
         Validate.isTrue(value <= max);
-    }
-
-    public final long longValue() {
-        return intValue & ASN32_MAX_VALUE;
-    }
-
-    @Override
-    protected int doHashCode() {
-        return intValue;
-    }
-
-    @Override
-    protected int doCompareTo(IpResource obj) {
-        if (obj instanceof Asn) {
-            long otherValue = ((Asn) obj).longValue();
-            return Long.compare(longValue(), otherValue);
-        } else {
-            return super.doCompareTo(obj);
-        }
-    }
-
-    @Override
-    public String toString() {
-        return "AS" + longValue();
-    }
-
-    @Override
-    public int getCommonPrefixLength(UniqueIpResource other) {
-        throw new UnsupportedOperationException("prefix notation not supported for ASN resources");
-    }
-
-    @Override
-    public IpAddress lowerBoundForPrefix(int prefixLength) {
-        throw new UnsupportedOperationException("prefix notation not supported for ASN resources");
-    }
-
-    @Override
-    public IpAddress upperBoundForPrefix(int prefixLength) {
-        throw new UnsupportedOperationException("prefix notation not supported for ASN resources");
-    }
-
-    @Override
-    public final BigInteger getValue() {
-        return BigInteger.valueOf(longValue());
-    }
-
-    @Override
-    protected boolean adjacent(UniqueIpResource other) {
-        return other instanceof Asn && Math.abs(longValue() - ((Asn) other).longValue()) == 1;
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
-        ObjectInputStream.GetField gf = in.readFields();
-        if (!gf.defaulted("intValue")) {
-            this.intValue = gf.get("intValue", 0);
-        } else {
-            this.intValue = (int) gf.get("value", 0L);
-        }
     }
 }

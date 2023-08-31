@@ -1,7 +1,7 @@
-/**
+/*
  * The BSD License
  *
- * Copyright (c) 2010-2022 RIPE NCC
+ * Copyright (c) 2010-2023 RIPE NCC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,7 @@ import static net.ripe.ipresource.ImmutableResourceSet.empty;
 import static net.ripe.ipresource.ImmutableResourceSet.universal;
 import static net.ripe.ipresource.IpResource.parse;
 import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ImmutableResourceSetTest {
 
@@ -383,8 +384,22 @@ public class ImmutableResourceSetTest {
 
     private IpResourceRange randomResourceRange() {
         IpResourceType type = IpResourceType.values()[random.nextInt(IpResourceType.values().length)];
-        BigInteger start = BigInteger.valueOf(random.nextInt(Integer.MAX_VALUE - Integer.MAX_VALUE / 256 - 1));
-        BigInteger end = start.add(BigInteger.valueOf(random.nextInt(Integer.MAX_VALUE / 256))).add(BigInteger.ONE);
-        return IpResourceRange.range(type.fromBigInteger(start), type.fromBigInteger(end));
+        return switch (type) {
+            case ASN -> {
+                var start = Integer.toUnsignedLong(random.nextInt(Integer.MAX_VALUE - Integer.MAX_VALUE / 256 - 1));
+                var end = start + Integer.toUnsignedLong(random.nextInt(Integer.MAX_VALUE / 256)) + 1;
+                yield IpResourceRange.range(new Asn(start), new Asn(end));
+            }
+            case IPv4 -> {
+                var start = Integer.toUnsignedLong(random.nextInt(Integer.MAX_VALUE - Integer.MAX_VALUE / 256 - 1));
+                var end = start + Integer.toUnsignedLong(random.nextInt(Integer.MAX_VALUE / 256)) + 1;
+                yield IpResourceRange.range(new Ipv4Address(start), new Ipv4Address(end));
+            }
+            case IPv6 -> {
+                var start = BigInteger.valueOf(random.nextInt(Integer.MAX_VALUE - Integer.MAX_VALUE / 256 - 1)).multiply(BigInteger.valueOf(random.nextInt(10_000_000)));
+                var end = start.add(BigInteger.valueOf(random.nextInt(Integer.MAX_VALUE / 256)).multiply(BigInteger.valueOf(random.nextInt(10_000_000)))).add(BigInteger.ONE);
+                yield IpResourceRange.range(new Ipv6Address(start), new Ipv6Address(end));
+            }
+        };
     }
 }

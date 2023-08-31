@@ -27,21 +27,21 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package net.ripe.ipresource;
+package net.ripe.ipresource.jdk17;
 
+import net.ripe.ipresource.IpResourceType;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.regex.Pattern;
 
-/**
- * Ipv6 address. This implementation has no support for interfaces.
- */
-public class Ipv6Address extends IpAddress {
+public final class Ipv6Address implements IpAddress {
+    public static final int NUMBER_OF_BITS = 128;
 
-    private static final long serialVersionUID = 2L;
+    public static final Ipv6Address LOWEST = new Ipv6Address(0, 0);
+    public static final Ipv6Address HIGHEST = new Ipv6Address(-1, -1);
 
     /* Pattern to match IPv6 addresses in forms defined in http://www.ietf.org/rfc/rfc4291.txt */
     private static final Pattern IPV6_PATTERN = Pattern.compile("(([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))");
@@ -49,15 +49,96 @@ public class Ipv6Address extends IpAddress {
     private static final int COLON_COUNT_IPV6 = 7;
     private static final String COLON = ":";
 
-    /**
-     * Mask for 16 bits, which is the length of one part of an IPv6 address.
-     */
-    private final BigInteger PART_MASK = BigInteger.valueOf(0xffff);
+    private static final BigInteger MASK_128 = BigInteger.ONE.shiftLeft(NUMBER_OF_BITS).subtract(BigInteger.ONE);
+    private static final BigInteger MASK_64 = BigInteger.ONE.shiftLeft(64).subtract(BigInteger.ONE);
+    private static final int MASK_16 = 0xffff;
 
-    private final BigInteger value;
+    final long hi, lo;
 
-    public Ipv6Address(BigInteger value) {
-        this.value = value;
+    Ipv6Address(long hi, long lo) {
+        this.hi = hi;
+        this.lo = lo;
+    }
+
+    Ipv6Address(BigInteger value) {
+        if (value.compareTo(BigInteger.ZERO) < 0 || value.compareTo(MASK_128) > 0) {
+            throw new ArithmeticException("IPv6 address value out of bounds");
+        }
+        this.hi = value.shiftRight(64).and(MASK_64).longValue();
+        this.lo = value.and(MASK_64).longValue();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Ipv6Address that && this.hi == that.hi && this.lo == that.lo;
+    }
+
+    @Override
+    public int hashCode() {
+        return '6' + 31 * 31 * Long.hashCode(hi) + 31 * Long.hashCode(lo);
+    }
+
+    @Override
+    public String toString() {
+        long[] parts = new long[8];
+        parts[0] = (hi >> 48) & MASK_16;
+        parts[1] = (hi >> 32) & MASK_16;
+        parts[2] = (hi >> 16) & MASK_16;
+        parts[3] = (hi >> 0) & MASK_16;
+        parts[4] = (lo >> 48) & MASK_16;
+        parts[5] = (lo >> 32) & MASK_16;
+        parts[6] = (lo >> 16) & MASK_16;
+        parts[7] = (lo >> 0) & MASK_16;
+        String[] formatted = new String[parts.length];
+
+        for (int i = 0; i < parts.length; ++i) {
+            formatted[i] = Long.toHexString(parts[i]);
+        }
+
+        // Find the longest sequence of zeroes. Use the first one if there are
+        // multiple sequences of zeroes with the same length.
+        int currentZeroPartsLength = 0;
+        int currentZeroPartsStart = 0;
+        int maxZeroPartsLength = 0;
+        int maxZeroPartsStart = 0;
+        for (int i = 0; i < parts.length; ++i) {
+            if (parts[i] == 0) {
+                if (currentZeroPartsLength == 0) {
+                    currentZeroPartsStart = i;
+                }
+                ++currentZeroPartsLength;
+                if (currentZeroPartsLength > maxZeroPartsLength) {
+                    maxZeroPartsLength = currentZeroPartsLength;
+                    maxZeroPartsStart = currentZeroPartsStart;
+                }
+            } else {
+                currentZeroPartsLength = 0;
+            }
+        }
+
+        if (maxZeroPartsLength <= 1) {
+            return String.join(COLON, formatted);
+        } else {
+            String init = StringUtils.join(formatted, COLON, 0, maxZeroPartsStart);
+            String tail = StringUtils.join(formatted, COLON, maxZeroPartsStart + maxZeroPartsLength, formatted.length);
+            return init + "::" + tail;
+        }
+    }
+
+
+    @Override
+    public int compareTo(@NotNull NumberResource o) {
+        return switch (o) {
+            case Asn ignored -> 1;
+            case Ipv4Address ignored -> 1;
+            case Ipv6Address that -> {
+                var rc = Long.compareUnsigned(this.hi, that.hi);
+                if (rc != 0) {
+                    yield rc;
+                }
+                yield Long.compareUnsigned(this.lo, that.lo);
+            }
+        };
     }
 
     @Override
@@ -66,53 +147,59 @@ public class Ipv6Address extends IpAddress {
     }
 
     @Override
-    protected int doHashCode() {
-        return value.hashCode();
-    }
-
-    @Override
-    protected int doCompareTo(IpResource obj) {
-        if (obj instanceof Ipv6Address) {
-            Ipv6Address that = (Ipv6Address) obj;
-            return this.getValue().compareTo(that.getValue());
+    public @NotNull Ipv6Address predecessorOrFirst() {
+        if (hi == 0 && lo == 0) {
+            return this;
+        } else if (lo > 0) {
+            return new Ipv6Address(hi, lo - 1);
         } else {
-            return super.doCompareTo(obj);
+            return new Ipv6Address(hi - 1, -1);
         }
     }
 
     @Override
-    protected boolean adjacent(UniqueIpResource other) {
-        return other instanceof Ipv6Address && getValue().subtract(other.getValue()).abs().equals(BigInteger.ONE);
+    public @NotNull Ipv6Address successorOrLast() {
+        if (hi == -1 && lo == -1) {
+            return this;
+        } else if (lo == -1) {
+            return new Ipv6Address(hi + 1, 0);
+        } else {
+            return new Ipv6Address(hi, lo + 1);
+        }
     }
 
-    @Override
-    public int getCommonPrefixLength(UniqueIpResource other) {
-        Validate.isTrue(getType() == other.getType(), "incompatible resource types");
-        BigInteger temp = this.getValue().xor(other.getValue());
-        return getType().getBitSize() - temp.bitLength();
+    public Ipv6Address min(Ipv6Address that) {
+        return this.compareTo(that) <= 0 ? this : that;
     }
 
-    @Override
-    public Ipv6Address lowerBoundForPrefix(int prefixLength) {
-        BigInteger mask = bitMask(0, getType()).xor(bitMask(prefixLength, getType()));
-        return new Ipv6Address(this.getValue().and(mask));
+    public Ipv6Address max(Ipv6Address that) {
+        return this.compareTo(that) >= 0 ? this : that;
     }
 
-    @Override
-    public IpAddress upperBoundForPrefix(int prefixLength) {
-        return new Ipv6Address(this.getValue().or(bitMask(prefixLength, getType())));
+    public static Ipv6Address of(BigInteger value) {
+        return new Ipv6Address(value);
     }
 
-    public static Ipv6Address parse(String ipAddressString) {
-        Validate.notNull(ipAddressString);
+    public BigInteger getValue() {
+        return BigInteger.valueOf(hi).and(MASK_64).shiftLeft(64).add(BigInteger.valueOf(lo).and(MASK_64));
+    }
+
+    public Ipv6Address getCommonPrefix(Ipv6Address that) {
+        int length = Ipv6Block.getCommonPrefixLength(this, that);
+        return Ipv6Prefix.lowerBoundForPrefix(this, length);
+    }
+
+    public static @NotNull Ipv6Address parse(@NotNull String ipAddressString) {
         ipAddressString = ipAddressString.trim();
-        Validate.isTrue(IPV6_PATTERN.matcher(ipAddressString).matches(), "Invalid IPv6 address: " + ipAddressString);
+        if (!IPV6_PATTERN.matcher(ipAddressString).matches()) {
+            throw new IllegalArgumentException("Invalid IPv6 address: " + ipAddressString);
+        }
 
         ipAddressString = expandMissingColons(ipAddressString);
         if (isInIpv4EmbeddedIpv6Format(ipAddressString)) {
             ipAddressString = getIpv6AddressWithIpv4SectionInIpv6Notation(ipAddressString);
         }
-        return new Ipv6Address(ipv6StringtoBigInteger(ipAddressString));
+        return new Ipv6Address(ipv6StringToBigInteger(ipAddressString));
     }
 
     private static String expandMissingColons(String ipAddressString) {
@@ -143,7 +230,7 @@ public class Ipv6Address extends IpAddress {
      * @param ipAddressString Fully expanded address (i.e. no '::' shortcut)
      * @return Address as BigInteger
      */
-    private static BigInteger ipv6StringtoBigInteger(String ipAddressString) {
+    private static BigInteger ipv6StringToBigInteger(String ipAddressString) {
         final ByteBuffer byteBuffer = ByteBuffer.allocate(16);
         int groupValue = 0;
         for (int i = 0; i < ipAddressString.length(); i++) {
@@ -157,66 +244,5 @@ public class Ipv6Address extends IpAddress {
         }
         byteBuffer.putShort((short) groupValue);
         return new BigInteger(1, byteBuffer.array());
-    }
-
-    @Override
-    public String toString(boolean defaultMissingOctets) {
-        long[] parts = new long[8];
-        String[] formatted = new String[parts.length];
-        for (int i = 0; i < parts.length; ++i) {
-            parts[i] = getValue().shiftRight((7 - i) * 16).and(PART_MASK).longValue();
-            formatted[i] = Long.toHexString(parts[i]);
-        }
-
-        // Find longest sequence of zeroes. Use the first one if there are
-        // multiple sequences of zeroes with the same length.
-        int currentZeroPartsLength = 0;
-        int currentZeroPartsStart = 0;
-        int maxZeroPartsLength = 0;
-        int maxZeroPartsStart = 0;
-        for (int i = 0; i < parts.length; ++i) {
-            if (parts[i] == 0) {
-                if (currentZeroPartsLength == 0) {
-                    currentZeroPartsStart = i;
-                }
-                ++currentZeroPartsLength;
-                if (currentZeroPartsLength > maxZeroPartsLength) {
-                    maxZeroPartsLength = currentZeroPartsLength;
-                    maxZeroPartsStart = currentZeroPartsStart;
-                }
-            } else {
-                currentZeroPartsLength = 0;
-            }
-        }
-
-        if (maxZeroPartsLength <= 1) {
-            return StringUtils.join(formatted, COLON);
-        } else {
-            String init = StringUtils.join(formatted, COLON, 0, maxZeroPartsStart);
-            String tail = StringUtils.join(formatted, COLON, maxZeroPartsStart + maxZeroPartsLength, formatted.length);
-            return init + "::" + tail;
-        }
-    }
-
-    @Override
-    public final BigInteger getValue() {
-        return value;
-    }
-
-    @Override
-    public boolean isValidNetmask() {
-        int bitLength = value.bitLength();
-        if (bitLength < IpResourceType.IPv6.getBitSize()) {
-            return false;
-        }
-
-        int lowestSetBit = value.getLowestSetBit();
-        for (int i = bitLength - 1; i >= lowestSetBit; --i) {
-            if (!value.testBit(i)) {
-                return false;
-            }
-        }
-
-        return true;
     }
 }

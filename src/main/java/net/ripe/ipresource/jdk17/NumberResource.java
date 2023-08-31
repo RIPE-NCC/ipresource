@@ -27,35 +27,30 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package net.ripe.ipresource;
+package net.ripe.ipresource.jdk17;
 
-import org.junit.Test;
+import net.ripe.ipresource.IpResourceType;
+import org.jetbrains.annotations.NotNull;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+public sealed interface NumberResource extends Comparable<NumberResource> permits IpAddress, Asn {
+    IpResourceType getType();
 
-import static org.junit.Assert.assertEquals;
-
-public class SerializationTest {
-
-    private static final IpResourceSet RESOURCES = IpResourceSet.parse("AS1-AS100,10/8,ffff::/16");
-
-    @Test
-    public void serialize_and_deserialize() throws Exception {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(baos);
-        oos.writeObject(RESOURCES);
-        oos.close();
-
-        ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()));
-        assertEquals(RESOURCES, ois.readObject());
+    static @NotNull NumberResource parse(@NotNull String s) {
+        try {
+            return IpAddress.parse(s);
+        } catch (IllegalArgumentException ignored) {
+        }
+        try {
+            return Asn.parse(s);
+        } catch (IllegalArgumentException ignored) {
+        }
+        throw new IllegalArgumentException(String.format("Invalid IPv4, IPv6 or ASN resource: %s", s));
     }
 
-    @Test
-    public void deserialize_v1() throws Exception {
-        ObjectInputStream ois = new ObjectInputStream(getClass().getResourceAsStream("/serialized-v1.bin"));
-        assertEquals(RESOURCES, ois.readObject());
+    @NotNull NumberResource successorOrLast();
+    @NotNull NumberResource predecessorOrFirst();
+
+    default @NotNull NumberResourceBlock upTo(@NotNull NumberResource that) {
+        return  NumberResourceBlock.range(this, that);
     }
 }

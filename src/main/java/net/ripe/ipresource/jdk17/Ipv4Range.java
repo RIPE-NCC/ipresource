@@ -27,74 +27,68 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package net.ripe.ipresource;
+package net.ripe.ipresource.jdk17;
 
-import java.math.BigInteger;
+import org.jetbrains.annotations.NotNull;
 
-public enum IpResourceType {
-    ASN("Autonomous System Number", 32) {
-        @Override
-        public boolean allowPrefixNotation() {
-            return false;
+public final class Ipv4Range extends Ipv4Block {
+    final int start;
+    final int end;
+
+    Ipv4Range(long start, long end) {
+        this.start = (int) start;
+        this.end = (int) end;
+        if (Integer.toUnsignedLong(this.start) != start) {
+            throw new IllegalArgumentException("start out of bounds");
         }
-
-        @Override
-        public UniqueIpResource fromBigInteger(BigInteger value) {
-            return new Asn(value.longValue());
+        if (Integer.toUnsignedLong(this.end) != end) {
+            throw new IllegalArgumentException("end out of bounds");
         }
-    },
-
-    IPv4("IPv4 Address", 32) {
-        @Override
-        public UniqueIpResource fromBigInteger(BigInteger value) {
-            return new Ipv4Address(value.longValue());
+        if (Integer.compareUnsigned(this.start, this.end) > 0) {
+            throw new IllegalArgumentException("start must be less than or equal to end");
         }
-    },
-    IPv6("IPv6 Address", 128) {
-        @Override
-        public UniqueIpResource fromBigInteger(BigInteger value) {
-            return new Ipv6Address(value);
+        if (Ipv4Block.isLegalPrefix(start, end)) {
+            throw new IllegalArgumentException("proper prefix must not be represented by range");
         }
-    };
-
-    private final String description;
-    private final int bitSize;
-
-    private IpResourceType(String description, int bitSize) {
-        this.description = description;
-        this.bitSize = bitSize;
     }
 
-    public String getCode() {
-        return name();
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Ipv4Range that && this.start == that.start && this.end == that.end;
     }
 
-    public String getDescription() {
-        return description;
+    @Override
+    public int hashCode() {
+        return '4' + 31 * 31 * Integer.hashCode(start) + 31 * Integer.hashCode(end);
     }
 
-    public int getBitSize() {
-        return bitSize;
+    @Override
+    public String toString() {
+        return start() + "-" + end();
     }
 
-    public boolean allowPrefixNotation() {
-        return true;
+    @Override
+    public @NotNull Ipv4Address start() {
+        return new Ipv4Address(start);
     }
 
-    public UniqueIpResource getMinimum() {
-        return fromBigInteger(BigInteger.ZERO);
-    }
-    
-    public UniqueIpResource getMaximum() {
-        return fromBigInteger(BigInteger.ONE.shiftLeft(bitSize).subtract(BigInteger.ONE));
+    @Override
+    public @NotNull Ipv4Address end() {
+        return new Ipv4Address(end);
     }
 
-    public abstract UniqueIpResource fromBigInteger(BigInteger value);
+    @Override
+    public boolean isSingleton() {
+        return false;
+    }
 
-    /**
-     * Necessary for FitNesse.
-     */
-    public static IpResourceType parse(String s) {
-        return IpResourceType.valueOf(s);
+    @Override
+    long lowerBound() {
+        return Integer.toUnsignedLong(start);
+    }
+
+    @Override
+    long upperBound() {
+        return Integer.toUnsignedLong(end);
     }
 }

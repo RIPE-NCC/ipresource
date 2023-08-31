@@ -1,7 +1,7 @@
-/**
+/*
  * The BSD License
  *
- * Copyright (c) 2010-2022 RIPE NCC
+ * Copyright (c) 2010-2023 RIPE NCC
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -285,5 +285,9 @@ public class IpResourceSet implements Iterable<IpResource>, Serializable {
                 resourcesByEndPoint.put(resource.getEnd(), resource);
             }
         }
+    }
+
+    public int size() {
+        return resourcesByEndPoint.size();
     }
 }

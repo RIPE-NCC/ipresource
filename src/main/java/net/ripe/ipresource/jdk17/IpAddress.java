@@ -27,35 +27,20 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package net.ripe.ipresource;
+package net.ripe.ipresource.jdk17;
 
-import org.junit.Test;
+import org.jetbrains.annotations.NotNull;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
-import static org.junit.Assert.assertEquals;
-
-public class SerializationTest {
-
-    private static final IpResourceSet RESOURCES = IpResourceSet.parse("AS1-AS100,10/8,ffff::/16");
-
-    @Test
-    public void serialize_and_deserialize() throws Exception {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(baos);
-        oos.writeObject(RESOURCES);
-        oos.close();
-
-        ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()));
-        assertEquals(RESOURCES, ois.readObject());
-    }
-
-    @Test
-    public void deserialize_v1() throws Exception {
-        ObjectInputStream ois = new ObjectInputStream(getClass().getResourceAsStream("/serialized-v1.bin"));
-        assertEquals(RESOURCES, ois.readObject());
+public sealed interface IpAddress extends NumberResource permits Ipv4Address, Ipv6Address {
+    static @NotNull NumberResource parse(@NotNull String s) {
+        try {
+            return Ipv4Address.parse(s);
+        } catch (IllegalArgumentException ignored) {
+        }
+        try {
+            return Ipv6Address.parse(s);
+        } catch (IllegalArgumentException ignored) {
+        }
+        throw new IllegalArgumentException(String.format("Invalid IPv4 or IPv6 address: %s", s));
     }
 }
