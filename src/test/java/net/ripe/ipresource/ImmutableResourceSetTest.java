@@ -43,6 +43,7 @@ import static net.ripe.ipresource.ImmutableResourceSet.empty;
 import static net.ripe.ipresource.ImmutableResourceSet.universal;
 import static net.ripe.ipresource.IpResource.parse;
 import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class ImmutableResourceSetTest {
 

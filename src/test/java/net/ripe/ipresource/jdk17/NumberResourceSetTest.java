@@ -31,7 +31,7 @@ package net.ripe.ipresource.jdk17;
 
 
 import net.ripe.ipresource.IpResourceType;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -43,16 +43,16 @@ import static net.ripe.ipresource.jdk17.NumberResourceBlock.parse;
 import static net.ripe.ipresource.jdk17.NumberResourceSet.ALL_PRIVATE_USE_RESOURCES;
 import static net.ripe.ipresource.jdk17.NumberResourceSet.empty;
 import static net.ripe.ipresource.jdk17.NumberResourceSet.universal;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class NumberResourceSetTest {
+class NumberResourceSetTest {
 
-    public static final int RANDOM_SIZE = 250;
+    static final int RANDOM_SIZE = 250;
 
     private final Random random = new Random(123);
 
     @Test
-    public void builder_can_only_be_used_once() {
+    void builder_can_only_be_used_once() {
         NumberResourceSet.Builder builder = new NumberResourceSet.Builder();
         builder.build();
 
@@ -66,14 +66,14 @@ public class NumberResourceSetTest {
     }
 
     @Test
-    public void should_share_from_ImmutableResourceSet() {
+    void should_share_from_ImmutableResourceSet() {
         assertSame(NumberResourceSet.empty(), NumberResourceSet.of(NumberResourceSet.parse("")));
         NumberResourceSet resources = NumberResourceSet.parse("10.0.0.0/8");
         assertSame(resources, NumberResourceSet.of(resources));
     }
 
     @Test
-    public void should_have_constants_for_private_use_resources() {
+    void should_have_constants_for_private_use_resources() {
         assertEquals("AS64512-AS65534, AS4200000000-AS4294967294", NumberResourceSet.ASN_PRIVATE_USE_RESOURCES.toString());
         assertEquals("10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, fc00::/7", NumberResourceSet.IP_PRIVATE_USE_RESOURCES.toString());
         assertEquals(
@@ -83,13 +83,13 @@ public class NumberResourceSetTest {
     }
 
     @Test
-    public void containsAllIpv4Resources() {
+    void containsAllIpv4Resources() {
         NumberResourceSet resources = NumberResourceSet.of(parse("0.0.0.0/0"));
         assertEquals("0.0.0.0/0", resources.toString());
     }
 
     @Test
-    public void shouldNormalizeAccordingToRfc3779() {
+    void shouldNormalizeAccordingToRfc3779() {
         NumberResourceSet resources = NumberResourceSet.of(
             parse("127.0.0.1/32"),
             parse("10.0.0.0/8"),
@@ -104,13 +104,13 @@ public class NumberResourceSetTest {
     }
 
     @Test
-    public void shouldNormalizeSingletonRangeToUniqueIpResource() {
+    void shouldNormalizeSingletonRangeToUniqueIpResource() {
         NumberResourceSet resources = NumberResourceSet.parse("127.0.0.1-127.0.0.1");
         assertEquals("127.0.0.1", resources.toString());
     }
 
     @Test
-    public void shouldMergeAdjacentResources_lowerPartFirst() {
+    void shouldMergeAdjacentResources_lowerPartFirst() {
         NumberResourceSet subject = empty()
             .add(parse("10.0.0.0/9"))
             .add(parse("10.128.0.0/9"));
@@ -119,7 +119,7 @@ public class NumberResourceSetTest {
     }
 
     @Test
-    public void shouldMergeAdjacentResources_higherPartFirst() {
+    void shouldMergeAdjacentResources_higherPartFirst() {
         NumberResourceSet subject = empty()
             .add(parse("10.128.0.0/9"))
             .add(parse("10.0.0.0/9"));
@@ -129,7 +129,7 @@ public class NumberResourceSetTest {
     }
 
     @Test
-    public void shouldCheckForType() {
+    void shouldCheckForType() {
         NumberResourceSet subject = NumberResourceSet.of(parse("AS13"));
         assertTrue(subject.containsType(IpResourceType.ASN));
         assertFalse(subject.containsType(IpResourceType.IPv4));
@@ -137,7 +137,7 @@ public class NumberResourceSetTest {
     }
 
     @Test
-    public void shouldNormalizeUniqueResources() {
+    void shouldNormalizeUniqueResources() {
         NumberResourceSet subject = NumberResourceSet.of(parse("AS1-AS10"));
         assertEquals(AsnBlock.class, subject.iterator().next().getClass());
 
@@ -147,7 +147,7 @@ public class NumberResourceSetTest {
     }
 
     @Test
-    public void shouldMergeOverlappingResources() {
+    void shouldMergeOverlappingResources() {
         NumberResourceSet subject = empty()
             .add(parse("AS5-AS13"))
             .add(parse("AS3-AS8"));
@@ -156,12 +156,12 @@ public class NumberResourceSetTest {
     }
 
     @Test
-    public void parseShouldIgnoreWhitespace() {
+    void parseShouldIgnoreWhitespace() {
         assertEquals(NumberResourceSet.parse("127.0.0.1,AS3333"), NumberResourceSet.parse("\t   \n127.0.0.1,   AS3333"));
     }
 
     @Test
-    public void testContains() {
+    void testContains() {
         NumberResourceSet a = NumberResourceSet.parse("10.0.0.0/8,192.168.0.0/16");
         assertTrue(a.contains(a));
         assertTrue(a.contains(empty()));
@@ -176,7 +176,7 @@ public class NumberResourceSetTest {
     }
 
     @Test
-    public void testRemove() {
+    void testRemove() {
         NumberResourceSet a = NumberResourceSet.parse("AS3333-AS4444,10.0.0.0/8").remove(parse("10.5.0.0/16"));
         assertEquals(NumberResourceSet.parse("AS3333-AS4444, 10.0.0.0-10.4.255.255, 10.6.0.0-10.255.255.255"), a);
 
@@ -187,14 +187,14 @@ public class NumberResourceSetTest {
     }
 
     @Test
-    public void test_difference() {
+    void test_difference() {
         NumberResourceSet a = NumberResourceSet.parse("AS3333-AS4444,10.0.0.0/8");
         NumberResourceSet difference = a.difference(NumberResourceSet.parse("10.5.0.0/16, AS3335-AS3335"));
         assertEquals(NumberResourceSet.parse("AS3333-AS3334, AS3336-AS4444, 10.0.0.0-10.4.255.255, 10.6.0.0-10.255.255.255"), difference);
     }
 
     @Test
-    public void test_intersection() {
+    void test_intersection() {
         NumberResourceSet empty = NumberResourceSet.parse("");
         assertEquals("", empty.intersection(NumberResourceSet.parse("AS1-AS10,AS3300-AS4420,10.0.0.0/9")).toString());
 
@@ -214,21 +214,21 @@ public class NumberResourceSetTest {
     }
 
     @Test
-    public void shouldNormalizeRetainedResources() {
+    void shouldNormalizeRetainedResources() {
         // Without normalization on difference the single IP resource was retained as the range AS64513-AS64513.
         NumberResourceSet subject = NumberResourceSet.parse("AS64513");
         assertEquals("AS64513", subject.intersection(ALL_PRIVATE_USE_RESOURCES).toString());
     }
 
     @Test
-    public void test_removal_of_multiple_overlapping_resources() {
+    void test_removal_of_multiple_overlapping_resources() {
         NumberResourceSet subject = NumberResourceSet.parse("AS1-AS3, AS5-AS10, AS13-AS15")
             .remove(parse("AS1-AS10"));
         assertEquals("AS13-AS15", subject.toString());
     }
 
     @Test
-    public void test_intersects() {
+    void test_intersects() {
         for (int i = 0; i < RANDOM_SIZE; ++i) {
             NumberResourceSet a = randomSet(i);
 
@@ -248,7 +248,7 @@ public class NumberResourceSetTest {
     }
 
     @Test
-    public void union_is_associative() {
+    void union_is_associative() {
         for (int i = 0; i < RANDOM_SIZE; ++i) {
             NumberResourceSet a = randomSet(i);
             NumberResourceSet b = randomSet(i);
@@ -259,7 +259,7 @@ public class NumberResourceSetTest {
     }
 
     @Test
-    public void union_is_commutative() {
+    void union_is_commutative() {
         for (int i = 0; i < RANDOM_SIZE; ++i) {
             NumberResourceSet a = randomSet(i);
             NumberResourceSet b = randomSet(i);
@@ -269,7 +269,7 @@ public class NumberResourceSetTest {
     }
 
     @Test
-    public void intersection_is_associative() {
+    void intersection_is_associative() {
         for (int i = 0; i < RANDOM_SIZE; ++i) {
             NumberResourceSet a = randomSet(i);
             NumberResourceSet b = randomSet(i);
@@ -280,7 +280,7 @@ public class NumberResourceSetTest {
     }
 
     @Test
-    public void intersection_is_commutative() {
+    void intersection_is_commutative() {
         for (int i = 0; i < RANDOM_SIZE; ++i) {
             NumberResourceSet a = randomSet(i);
             NumberResourceSet b = randomSet(i);
@@ -290,7 +290,7 @@ public class NumberResourceSetTest {
     }
 
     @Test
-    public void union_and_intersection_are_distributive() {
+    void union_and_intersection_are_distributive() {
         for (int i = 0; i < RANDOM_SIZE; ++i) {
             NumberResourceSet a = randomSet(i);
             NumberResourceSet b = randomSet(i);
@@ -302,7 +302,7 @@ public class NumberResourceSetTest {
     }
 
     @Test
-    public void identity_laws() {
+    void identity_laws() {
         for (int i = 0; i < RANDOM_SIZE; ++i) {
             NumberResourceSet a = randomSet(i);
 
@@ -312,7 +312,7 @@ public class NumberResourceSetTest {
     }
 
     @Test
-    public void complement_laws() {
+    void complement_laws() {
         for (int i = 0; i < RANDOM_SIZE; ++i) {
             NumberResourceSet a = randomSet(i);
 
@@ -323,7 +323,7 @@ public class NumberResourceSetTest {
 
     // Proposition 9 of https://www.umsl.edu/~siegelj/SetTheoryandTopology/The_algebra_of_sets.html
     @Test
-    public void difference_laws() {
+    void difference_laws() {
         for (int i = 0; i < RANDOM_SIZE; ++i) {
             NumberResourceSet a = randomSet(i);
             NumberResourceSet b = randomSet(i);
@@ -337,7 +337,7 @@ public class NumberResourceSetTest {
     }
 
     @Test
-    public void randomized_testing() {
+    void randomized_testing() {
         NumberResourceSet subject = empty();
         var ranges = new ArrayList<NumberResourceBlock>();
         Random random = new Random();
@@ -350,15 +350,15 @@ public class NumberResourceSetTest {
         }
 
         for (var range: ranges) {
-            assertTrue(range + " contained in set", subject.contains(range));
+            assertTrue(subject.contains(range), range + " contained in set");
         }
 
         var iterator = subject.iterator();
         var previous = iterator.next();
         while (iterator.hasNext()) {
             var next = iterator.next();
-            assertTrue("resources out of order <" + previous + "> not before <" + next + ">", previous.compareTo(next) < 0);
-            assertFalse("no mergeable resource in set", mergeable(previous, next));
+            assertTrue(previous.compareTo(next) < 0, "resources out of order <" + previous + "> not before <" + next + ">");
+            assertFalse(mergeable(previous, next), "no mergeable resource in set");
             previous = next;
         }
 
@@ -366,7 +366,7 @@ public class NumberResourceSetTest {
             subject = subject.remove(range);
         }
 
-        assertTrue("all resources removed: " + subject, subject.isEmpty());
+        assertTrue(subject.isEmpty(), "all resources removed: " + subject);
     }
 
     private NumberResourceSet randomSet(int size) {

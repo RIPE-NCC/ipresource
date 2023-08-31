@@ -29,15 +29,17 @@
  */
 package net.ripe.ipresource.jdk17;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.math.BigInteger;
 
 import static java.util.Collections.singletonList;
 import static net.ripe.ipresource.jdk17.Ipv6Address.parse;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class Ipv6AddressTest {
+class Ipv6AddressTest {
     final static String ADDRESS_ALL = "::";
 
     final static String COMPRESSED_NOTATION = "12::34";
@@ -53,14 +55,14 @@ public class Ipv6AddressTest {
 
 
     @Test
-    public void shouldParseFullAddressesCaseInsensitively() {
+    void shouldParseFullAddressesCaseInsensitively() {
         assertEquals("2001:0:1234::c1c0:abcd:876", parse("2001:0000:1234:0000:0000:C1C0:ABCD:0876").toString());
         assertEquals("3ffe:b00::1:0:0:a", parse("3ffe:0b00:0000:0000:0001:0000:0000:000a").toString());
         assertEquals("::", parse("0000:0000:0000:0000:0000:0000:0000:0000").toString());
     }
 
     @Test
-    public void shouldParseCompressedAddresses() {
+    void shouldParseCompressedAddresses() {
         assertEquals("::1", parse("::1").toString());
         assertEquals("::", parse("::").toString());
         assertEquals("::", parse("0000:0000:0000:0000:0000:0000:0000:0000").toString());
@@ -76,37 +78,37 @@ public class Ipv6AddressTest {
     }
 
     @Test
-    public void shouldCompressLongestSequenceOfZeroes() {
+    void shouldCompressLongestSequenceOfZeroes() {
         assertEquals("ffce::dead:beef:0:12", parse("ffce:0:0:0:dead:beef:0:12").toString());
     }
 
     @Test
-    public void shouldCompressLeftmostLongestSequenceOfZeroes() {
+    void shouldCompressLeftmostLongestSequenceOfZeroes() {
         assertEquals("ffce::dead:0:0:0", parse("ffce:0:0:0:dead:0:0:0").toString());
     }
 
     @Test
-    public void shouldNotCompressSingleZero() {
+    void shouldNotCompressSingleZero() {
         assertEquals("ffce:0:a:0:dead:0:b:0", parse("ffce:0:a:0:dead:0:b:0").toString());
     }
 
     @Test
-    public void shouldCompressOnLeft() {
+    void shouldCompressOnLeft() {
         assertEquals("::a:0:dead:0:b:0", parse("0:0:a:0:dead:0:b:0").toString());
     }
 
     @Test
-    public void shouldCompressOnRight() {
+    void shouldCompressOnRight() {
         assertEquals("a:0:a:0:dead::", parse("a:0:a:0:dead:0:0:0").toString());
     }
 
     @Test
-    public void shouldCompressOnLeftNotRight() {
+    void shouldCompressOnLeftNotRight() {
         assertEquals("::a:0:dead:a:0:0", parse("0:0:a:0:dead:a:0:0").toString());
     }
 
     @Test
-    public void shouldParseAddressesWithLeadingZerosOmitted() {
+    void shouldParseAddressesWithLeadingZerosOmitted() {
         assertEquals("::", parse("0:0:0:0:0:0:0:0").toString());
         assertEquals("::1", parse("0:0:0:0:0:0:0:1").toString());
         assertEquals("2001:db8::8:800:200c:417a", parse("2001:DB8:0:0:8:800:200C:417A").toString());
@@ -114,101 +116,81 @@ public class Ipv6AddressTest {
     }
 
     @Test
-    public void shouldParseAddressesWithLeadingOrTrailingSpaces() {
+    void shouldParseAddressesWithLeadingOrTrailingSpaces() {
         assertEquals("1:2:3:4:5:6:0:8", parse("   1:2:3:4:5:6::8").toString());
         assertEquals("1:2:3:4:5:6:0:8", parse("1:2:3:4:5:6::8    ").toString());
     }
 
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldFailOnEmptyString() {
-        parse("");
+    @Test
+    void shouldFailOnEmptyString() {
+        assertThrows(IllegalArgumentException.class, () -> parse(""));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "2001:0000:1234: 0000:0000:C1C0:ABCD:0876",
+        "2001:0000:1234:0000 :0000:C1C0:ABCD:0876",
+    })
+    void shouldFailOnInternalSpace(String address) {
+        assertThrows(IllegalArgumentException.class, () -> parse(address));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "02001:0000:1234:0000:0000:C1C0:ABCD:0876",
+        "2001:0000:01234:0000:0000:C1C0:ABCD:0876",
+    })
+    void shouldFailOnExtraZero(String address) {
+        assertThrows(IllegalArgumentException.class, () -> parse(address));
     }
 
     @Test
-    public void shouldFailOnInternalSpace() {
-        try {
-            parse("2001:0000:1234: 0000:0000:C1C0:ABCD:0876");
-            fail();
-        } catch(IllegalArgumentException e) {
-        }
-        try {
-            parse("2001:0000:1234:0000 :0000:C1C0:ABCD:0876");
-            fail();
-        } catch(IllegalArgumentException e) {
-        }
+    void shouldFailOnExtraSegment() {
+        assertThrows(IllegalArgumentException.class, () -> parse("1:2:3:4:5:6:7:8:9"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "3ffe:b00::1::a",
+        "::1111:2222:3333:4444:5555:6666::",
+    })
+    void shouldFailOnMultipleDoubleColons(String address) {
+        assertThrows(IllegalArgumentException.class, () -> parse(address));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "2ffff::10",
+        "-2::10",
+    })
+    void shouldFailIfSegmentOutOfBound(String address) {
+        assertThrows(IllegalArgumentException.class, () -> parse(address));
     }
 
     @Test
-    public void shouldFailOnExtraZero() {
-        try {
-            parse("02001:0000:1234:0000:0000:C1C0:ABCD:0876");
-            fail();
-        } catch(IllegalArgumentException e) {
-        }
-        try {
-            parse("2001:0000:01234:0000:0000:C1C0:ABCD:0876");
-            fail();
-        } catch(IllegalArgumentException e) {
-        }
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldFailOnExtraSegment() {
-        parse("1:2:3:4:5:6:7:8:9");
+    void shouldNotParseIpv6AddressesWithLessThan7ColonsWithoutDoubleColon() {
+        assertThrows(IllegalArgumentException.class, () -> parse("a:b:c"));
     }
 
     @Test
-    public void shouldFailOnMultipleDoubleColons() {
-        try {
-            parse("3ffe:b00::1::a");
-            fail();
-        } catch(IllegalArgumentException e) {
-        }
-        try {
-            parse("::1111:2222:3333:4444:5555:6666::");
-            fail();
-        } catch(IllegalArgumentException e) {
-        }
+    void shouldNotParseIpv6AddressesWith7ColonsOnly() {
+        assertThrows(IllegalArgumentException.class, () -> parse(":::::::"));
     }
 
     @Test
-    public void shouldFailIfSegmentOutOfBound() {
-        try {
-            parse("2ffff::10");
-            fail();
-        } catch(IllegalArgumentException e) {
-        }
-        try {
-            parse("-2::10");
-            fail();
-        } catch(IllegalArgumentException e) {
-        }
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldNotParseIpv6AddressesWithLessThan7ColonsWithoutDoubleColon() {
-        parse("a:b:c");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldNotParseIpv6AddressesWith7ColonsOnly() {
-        parse(":::::::");
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void shouldNotParseNull() {
-        parse(null);
+    void shouldNotParseNull() {
+        assertThrows(RuntimeException.class, () -> parse(null));
     }
 
     @Test
-    public void shouldParseIpv4EmbeddedIpv6Address() {
+    void shouldParseIpv4EmbeddedIpv6Address() {
         assertEquals("1:2:3:4:5:6:102:304", parse("1:2:3:4:5:6:1.2.3.4").toString());
         assertEquals("::102:304", parse("0:0:0:0:0:0:1.2.3.4").toString());
         assertEquals("::ffff:c8c9:cacb", parse("::ffff:200.201.202.203").toString());
     }
 
     @Test
-    public void shouldParseIpv4EmbeddedIpv6AddressInCompressedFormat() {
+    void shouldParseIpv4EmbeddedIpv6AddressInCompressedFormat() {
         assertEquals("1:2:3:4:5:0:102:304", parse("1:2:3:4:5::1.2.3.4").toString());
         assertEquals("2001:db8:122:344::102:304", parse("2001:db8:122:344::1.2.3.4").toString());
         assertEquals("::122:344:0:102:304", parse("::122:344:0:1.2.3.4").toString());
@@ -222,104 +204,53 @@ public class Ipv6AddressTest {
         assertEquals("::102:304", parse("::1.2.3.4").toString());
     }
 
-    @Test
-    public void shouldFailIfIpv4PartExceedsBounds() {
-        try {
-            parse("1::5:400.2.3.4");
-            fail();
-        } catch(IllegalArgumentException e) {
-        }
-        try {
-            parse("1::5:260.2.3.4");
-            fail();
-        } catch(IllegalArgumentException e) {
-        }
-        try {
-            parse("1::5:256.2.3.4");
-            fail();
-        } catch(IllegalArgumentException e) {
-        }
-        try {
-            parse("1::5:1.256.3.4");
-            fail();
-        } catch(IllegalArgumentException e) {
-        }
-        try {
-            parse("1::5:1.2.256.4");
-            fail();
-        } catch(IllegalArgumentException e) {
-        }
-        try {
-            parse("1::5:1.2.256.256");
-            fail();
-        } catch(IllegalArgumentException e) {
-        }
-        try {
-            parse("::300.2.3.4");
-            fail();
-        } catch(IllegalArgumentException e) {
-        }
-        try {
-            parse("::1.300.3.4");
-            fail();
-        } catch(IllegalArgumentException e) {
-        }
-        try {
-            parse("::1.2.300.4");
-            fail();
-        } catch(IllegalArgumentException e) {
-        }
-        try {
-            parse("::1.2.3.300");
-            fail();
-        } catch(IllegalArgumentException e) {
-        }
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "1::5:400.2.3.4",
+        "1::5:260.2.3.4",
+        "1::5:256.2.3.4",
+        "1::5:1.256.3.4",
+        "1::5:1.2.256.4",
+        "1::5:1.2.256.256",
+        "::300.2.3.4",
+        "::1.300.3.4",
+        "::1.2.300.4",
+        "::1.2.3.300",
+    })
+    void shouldFailIfIpv4PartExceedsBounds(String address) {
+        assertThrows(IllegalArgumentException.class, () -> parse(address));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "2001:1:1:1:1:1:255Z255X255Y255",
+        "::ffff:192x168.1.26",
+    })
+    void shouldFailIfIpv4PartContainsInvalidCharacters(String address) {
+        assertThrows(IllegalArgumentException.class, () -> parse(address));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "1.2.3.4:1111:2222:3333:4444::5555",
+        "1.2.3.4::",
+    })
+    void shouldFailIfIpv4PartIsMislocated(String address) {
+        assertThrows(IllegalArgumentException.class, () -> parse(address));
     }
 
     @Test
-    public void shouldFailIfIpv4PartContainsInvalidCharacters() {
-        try {
-            parse("2001:1:1:1:1:1:255Z255X255Y255");
-            fail();
-        } catch(IllegalArgumentException e) {
-        }
-        try {
-            parse("::ffff:192x168.1.26");
-            fail();
-        } catch(IllegalArgumentException e) {
-        }
+    void shouldFailIfIpv4PartContainsLeadingZeros() {
+        assertThrows(IllegalArgumentException.class, () -> parse("fe80:0000:0000:0000:0204:61ff:254.157.241.086"));
     }
 
     @Test
-    public void shouldFailIfIpv4PartIsMislocated() {
-        try {
-            parse("1.2.3.4:1111:2222:3333:4444::5555");
-            fail();
-        } catch(IllegalArgumentException e) {
-        }
-        try {
-            parse("1.2.3.4::");
-            fail();
-        } catch(IllegalArgumentException e) {
-        }
-    }
-
-    @Test
-    public void shouldFailIfIpv4PartContainsLeadingZeros() {
-        try {
-            parse("fe80:0000:0000:0000:0204:61ff:254.157.241.086");
-            fail();
-        } catch(IllegalArgumentException e) {
-        }
-    }
-
-    @Test
-    public void testExpandAllString() {
+    void testExpandAllString() {
         assertEquals(ADDRESS_ALL, parse(ADDRESS_ALL).toString());
     }
 
     @Test
-    public void testExplandToExpandString() {
+    void testExplandToExpandString() {
         assertEquals(EXPECTED_COMPRESSED_NOTATION, parse(COMPRESSED_NOTATION).toString());
         assertEquals(EXPECTED_COMPRESSED_NOTATION_AT_END, parse(COMPRESSED_NOTATION_AT_END).toString());
 
@@ -327,45 +258,28 @@ public class Ipv6AddressTest {
         assertEquals(EXPECTED_NOTATION_AT_BEGIN, parse(COMPRESSED_NOTATION_AT_BEGIN).toString());
     }
 
-     @Test(expected = IllegalArgumentException.class)
-    public void shouldFailSinceUniqueAddressIsNotARange() {
-        assertEquals(CLASSLESS_NOTATION, parse(CLASSLESS_NOTATION).toString());
+     @Test
+    void shouldFailSinceUniqueAddressIsNotARange() {
+        assertThrows(IllegalArgumentException.class, () -> parse(CLASSLESS_NOTATION));
     }
 
     @Test
-    public void testCompareTo() {
-        assertTrue(parse("ffce::32").compareTo(parse("ffce::32")) == 0);
+    void testCompareTo() {
+        assertEquals(0, parse("ffce::32").compareTo(parse("ffce::32")));
         assertTrue(parse("ffce::32").compareTo(parse("ffce::33")) < 0);
         assertTrue(parse("ffce::32").compareTo(parse("ffcd::32")) > 0);
     }
 
     @Test
-    public void shouldCalculateCommonPrefix() {
+    void shouldCalculateCommonPrefix() {
         assertEquals(parse("ffce::"), parse("ffce::1").getCommonPrefix(parse("ffce:de::")));
         assertEquals(parse("::"), parse("::1").getCommonPrefix(parse("fd::")));
         assertEquals(parse("23:23:33:112:33:fce:fa:0"), parse("23:23:33:112:33:fce:fa:16").getCommonPrefix(parse("23:23:33:112:33:fce:fa:24")));
     }
 
     @Test
-    public void shouldSubtract() {
+    void shouldSubtract() {
         assertEquals(singletonList(NumberResourceBlock.parse("8000::/1")), NumberResourceBlock.parse("::/0").subtract(NumberResourceBlock.parse("::/1")));
         assertEquals(singletonList(NumberResourceBlock.parse("0:0:0:1::-ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff")), NumberResourceBlock.parse("::/0").subtract(NumberResourceBlock.parse("::/64")));
     }
-
-//    @Test
-//    public void shouldCalculatePrefixRange() {
-//        assertEquals(parse("ffce:abc0::"), parse("ffce:abcd::").lowerBoundForPrefix(28));
-//        assertEquals(parse("ffce:abcf:ffff:ffff:ffff:ffff:ffff:ffff"), parse("ffce:abcd::").upperBoundForPrefix(28));
-//    }
-//
-//    @Test
-//    public void testIsValidNetmask() {
-//        assertTrue(parse("ffff::").isValidNetmask());
-//        assertTrue(parse("8000::").isValidNetmask());
-//        assertTrue(parse("c000::").isValidNetmask());
-//        assertTrue(parse("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ff80").isValidNetmask());
-//        assertTrue(parse("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff").isValidNetmask());
-//        assertFalse(parse("ffff::ffff").isValidNetmask());
-//        assertFalse(parse("::").isValidNetmask());
-//    }
 }

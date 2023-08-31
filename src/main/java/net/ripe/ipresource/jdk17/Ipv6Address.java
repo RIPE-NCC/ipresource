@@ -34,6 +34,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.util.regex.Pattern;
 
 public final class Ipv6Address implements IpAddress {
     public static final int NUMBER_OF_BITS = 128;
@@ -41,11 +43,15 @@ public final class Ipv6Address implements IpAddress {
     public static final Ipv6Address LOWEST = new Ipv6Address(0, 0);
     public static final Ipv6Address HIGHEST = new Ipv6Address(-1, -1);
 
+    /* Pattern to match IPv6 addresses in forms defined in http://www.ietf.org/rfc/rfc4291.txt */
+    private static final Pattern IPV6_PATTERN = Pattern.compile("(([0-9A-Fa-f]{1,4}:){7}([0-9A-Fa-f]{1,4}|:))|(([0-9A-Fa-f]{1,4}:){6}(:[0-9A-Fa-f]{1,4}|((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){5}(((:[0-9A-Fa-f]{1,4}){1,2})|:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3})|:))|(([0-9A-Fa-f]{1,4}:){4}(((:[0-9A-Fa-f]{1,4}){1,3})|((:[0-9A-Fa-f]{1,4})?:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){3}(((:[0-9A-Fa-f]{1,4}){1,4})|((:[0-9A-Fa-f]{1,4}){0,2}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){2}(((:[0-9A-Fa-f]{1,4}){1,5})|((:[0-9A-Fa-f]{1,4}){0,3}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(([0-9A-Fa-f]{1,4}:){1}(((:[0-9A-Fa-f]{1,4}){1,6})|((:[0-9A-Fa-f]{1,4}){0,4}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))|(:(((:[0-9A-Fa-f]{1,4}){1,7})|((:[0-9A-Fa-f]{1,4}){0,5}:((25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)(\\.(25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]?\\d)){3}))|:))");
+    private static final int COLON_COUNT_FOR_EMBEDDED_IPV4 = 6;
+    private static final int COLON_COUNT_IPV6 = 7;
+    private static final String COLON = ":";
+
     private static final BigInteger MASK_128 = BigInteger.ONE.shiftLeft(NUMBER_OF_BITS).subtract(BigInteger.ONE);
     private static final BigInteger MASK_64 = BigInteger.ONE.shiftLeft(64).subtract(BigInteger.ONE);
     private static final int MASK_16 = 0xffff;
-
-    public static final String COLON = ":";
 
     final long hi, lo;
 
@@ -89,7 +95,7 @@ public final class Ipv6Address implements IpAddress {
             formatted[i] = Long.toHexString(parts[i]);
         }
 
-        // Find longest sequence of zeroes. Use the first one if there are
+        // Find the longest sequence of zeroes. Use the first one if there are
         // multiple sequences of zeroes with the same length.
         int currentZeroPartsLength = 0;
         int currentZeroPartsStart = 0;
@@ -170,11 +176,6 @@ public final class Ipv6Address implements IpAddress {
         return this.compareTo(that) >= 0 ? this : that;
     }
 
-    public static Ipv6Address parse(String s) {
-        var x = net.ripe.ipresource.Ipv6Address.parse(s);
-        return new Ipv6Address(x.getValue());
-    }
-
     public static Ipv6Address of(BigInteger value) {
         return new Ipv6Address(value);
     }
@@ -186,5 +187,62 @@ public final class Ipv6Address implements IpAddress {
     public Ipv6Address getCommonPrefix(Ipv6Address that) {
         int length = Ipv6Block.getCommonPrefixLength(this, that);
         return Ipv6Prefix.lowerBoundForPrefix(this, length);
+    }
+
+    public static @NotNull Ipv6Address parse(@NotNull String ipAddressString) {
+        ipAddressString = ipAddressString.trim();
+        if (!IPV6_PATTERN.matcher(ipAddressString).matches()) {
+            throw new IllegalArgumentException("Invalid IPv6 address: " + ipAddressString);
+        }
+
+        ipAddressString = expandMissingColons(ipAddressString);
+        if (isInIpv4EmbeddedIpv6Format(ipAddressString)) {
+            ipAddressString = getIpv6AddressWithIpv4SectionInIpv6Notation(ipAddressString);
+        }
+        return new Ipv6Address(ipv6StringToBigInteger(ipAddressString));
+    }
+
+    private static String expandMissingColons(String ipAddressString) {
+        int colonCount = isInIpv4EmbeddedIpv6Format(ipAddressString) ? COLON_COUNT_FOR_EMBEDDED_IPV4 : COLON_COUNT_IPV6;
+        return ipAddressString.replace("::", StringUtils.repeat(":", colonCount - StringUtils.countMatches(ipAddressString, ":") + 2));
+    }
+
+    private static boolean isInIpv4EmbeddedIpv6Format(String ipAddressString) {
+        return ipAddressString.contains(".");
+    }
+
+    private static String getIpv6AddressWithIpv4SectionInIpv6Notation(String ipAddressString) {
+        String ipv6Section = StringUtils.substringBeforeLast(ipAddressString, ":");
+        String ipv4Section = StringUtils.substringAfterLast(ipAddressString, ":");
+        try {
+            long ipv4value = Ipv4Address.parse(ipv4Section).longValue();
+            return ipv6Section + ":" +
+                Long.toString(ipv4value >>> 16, 16) + ":" +
+                Long.toString(ipv4value & 0xffff, 16);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Embedded Ipv4 in IPv6 address is invalid: " + ipAddressString, e);
+        }
+    }
+
+    /**
+     * Converts a fully expanded IPv6 string to a BigInteger
+     *
+     * @param ipAddressString Fully expanded address (i.e. no '::' shortcut)
+     * @return Address as BigInteger
+     */
+    private static BigInteger ipv6StringToBigInteger(String ipAddressString) {
+        final ByteBuffer byteBuffer = ByteBuffer.allocate(16);
+        int groupValue = 0;
+        for (int i = 0; i < ipAddressString.length(); i++) {
+            final char c = ipAddressString.charAt(i);
+            if (c == ':') {
+                byteBuffer.putShort((short) groupValue);
+                groupValue = 0;
+            } else {
+                groupValue = (groupValue << 4) + Character.digit(c, 16);
+            }
+        }
+        byteBuffer.putShort((short) groupValue);
+        return new BigInteger(1, byteBuffer.array());
     }
 }
