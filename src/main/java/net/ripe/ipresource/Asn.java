@@ -54,8 +54,8 @@ public class Asn extends UniqueIpResource {
     // unsigned long value.
     private int intValue;
 
-    public Asn(BigInteger value) {
-        this(value.longValue());
+    public Asn(BigInteger value) {        
+        this(checked(value));
     }
 
     public Asn(long value) {
@@ -146,6 +146,12 @@ public class Asn extends UniqueIpResource {
     @Override
     public final BigInteger getValue() {
         return BigInteger.valueOf(longValue());
+    }
+
+    private static long checked(BigInteger value) {
+        Validate.isTrue(value.compareTo(BigInteger.valueOf(ASN32_MAX_VALUE)) <= 0);
+        Validate.isTrue(value.compareTo(BigInteger.valueOf(ASN_MIN_VALUE)) >= 0);
+        return value.longValue();
     }
 
     @Override

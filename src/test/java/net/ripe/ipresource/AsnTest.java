@@ -31,6 +31,8 @@ package net.ripe.ipresource;
 
 import static org.junit.Assert.*;
 
+import java.math.BigInteger;
+
 import org.junit.Test;
 
 /**
@@ -78,6 +80,13 @@ public class AsnTest {
     @Test(expected = IllegalArgumentException.class)
     public void shouldFailOnIllegalValue() {
         Asn.parse("AS232442321412");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldFailOnWraparoundBigInteger() {
+        // BigInteger.longValue() keeps only the low 64 bits, so converting this value with longValue()
+        // would wrap around to 5, which is in range. Asn(BigInteger) must reject it regardless.
+        new Asn(BigInteger.ONE.shiftLeft(64).add(BigInteger.valueOf(5)));
     }
 
     @Test
