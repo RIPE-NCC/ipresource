@@ -148,12 +148,6 @@ public class Asn extends UniqueIpResource {
         return BigInteger.valueOf(longValue());
     }
 
-    private static long checked(BigInteger value) {
-        Validate.isTrue(value.compareTo(BigInteger.valueOf(ASN32_MAX_VALUE)) <= 0);
-        Validate.isTrue(value.compareTo(BigInteger.valueOf(ASN_MIN_VALUE)) >= 0);
-        return value.longValue();
-    }
-
     @Override
     protected boolean adjacent(UniqueIpResource other) {
         return other instanceof Asn && Math.abs(longValue() - ((Asn) other).longValue()) == 1;
