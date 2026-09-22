@@ -83,6 +83,11 @@ public class AsnTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
+    public void shouldFailOnVeryBigLong() {                
+        new Asn(1 << 63L);
+    }
+
+    @Test(expected = ArithmeticException.class)
     public void shouldFailOnWraparoundBigInteger() {
         // BigInteger.longValue() keeps only the low 64 bits, so converting this value with longValue()
         // would wrap around to 5, which is in range. Asn(BigInteger) must reject it regardless.
