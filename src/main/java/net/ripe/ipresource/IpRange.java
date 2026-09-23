@@ -48,8 +48,9 @@ public class IpRange extends IpResourceRange {
 
     public static IpRange prefix(IpAddress networkNumber, int prefixLength) {
         Validate.notNull(networkNumber, "network number not null");
-        Validate.isTrue(prefixLength >= 0);
-        Validate.isTrue(prefixLength <= networkNumber.getType().getBitSize());
+        Validate.isTrue(prefixLength >= 0, "prefix length must be non-negative");
+        Validate.isTrue(prefixLength <= networkNumber.getType().getBitSize(), 
+            "prefix " + prefixLength + " out of bounds (maximum " + networkNumber.getType().getBitSize() + ")");
         return new IpRange(networkNumber, prefixLength);
     }
 
