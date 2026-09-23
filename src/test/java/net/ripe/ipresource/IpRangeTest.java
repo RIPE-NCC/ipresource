@@ -131,4 +131,9 @@ public class IpRangeTest {
     public void shouldCheckPrefixLength_NotGreatherThanAddressBitSize() {
         IpRange.prefix(IpAddress.parse("127.0.0.0"), 34);
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldCheckPrefixLength_NotGreatherThanAddressBitSize_v6() {
+        IpRange.prefix(IpAddress.parse("2001:67c:2e8:13:21e:c2ff:0:0"), 129);
+    }    
 }
