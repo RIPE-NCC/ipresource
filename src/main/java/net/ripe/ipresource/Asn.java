@@ -54,8 +54,8 @@ public class Asn extends UniqueIpResource {
     // unsigned long value.
     private int intValue;
 
-    public Asn(BigInteger value) {
-        this(value.longValue());
+    public Asn(BigInteger value) {        
+        this(value.longValueExact());
     }
 
     public Asn(long value) {
